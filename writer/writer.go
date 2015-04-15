@@ -5,7 +5,8 @@ import (
 //    "bytes"
 // TODO    
 //    ".."
-    "encoding/xml"
+	"fmt"
+//    "encoding/xml"
     "io"
     "io/ioutil"
     "log"
@@ -17,18 +18,22 @@ import (
 
 const (
     containerFilename = "container.xml"
-    containerVersion = "1.0"
-    containerXMLNS = "urn:oasis:names:tc:opendocument:xmlns:container"
-    contentFilename = "content.opf"
+	containerFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="%s/%s" media-type="application/oebps-package+xml" />
+  </rootfiles>
+</container>
+`
+	contentFolderName = "EPUB"
     // Permissions for any new directories we create
-    dirPermissions = 0755
+    dirPermissions = 0755    
     // Permissions for any new files we create
     filePermissions = 0644
-    mediaTypeOebpsPackage = "application/oebps-package+xml"
     metaInfFolderName = "META-INF"
     mimetypeContent = "application/epub+zip"
     mimetypeFilename = "mimetype"
-    oebpsFolderName = "OEBPS"
+    packageDocFilename = "package.opf"
     tempDirPrefix = "go-epub"
     tocFilename = "toc.ncx"
 )
@@ -63,6 +68,25 @@ func writeContainerFile(tempDir string) error {
         return err
     }
     
+    containerFilePath := filepath.Join(metaInfFolderPath, containerFilename)
+    if err := ioutil.WriteFile(
+    		containerFilePath,
+    		[]byte(
+    			fmt.Sprintf(
+					containerFileTemplate, 
+					contentFolderName,
+					packageDocFilename,
+	    		),
+	    	),
+    		filePermissions,
+			); err != nil {
+        return err
+    }
+    
+    return nil
+}
+
+/*   
     type Rootfile struct {
         FullPath string `xml:"full-path,attr"`
         MediaType string `xml:"media-type,attr"`
@@ -104,6 +128,7 @@ func writeContainerFile(tempDir string) error {
     
     return nil
 }
+
 /*
 func writeContentFile(tempDir string) error {    
     oebpsFolderPath := filepath.Join(tempDir, oebpsFolderName)
