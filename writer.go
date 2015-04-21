@@ -1,12 +1,10 @@
-package writer
+package epub
 
 import (
     "archive/zip"
 //    "bytes"
-// TODO    
-//    ".."
+    "encoding/xml"
 	"fmt"
-//    "encoding/xml"
     "io"
     "io/ioutil"
     "log"
@@ -33,12 +31,12 @@ const (
     metaInfFolderName = "META-INF"
     mimetypeContent = "application/epub+zip"
     mimetypeFilename = "mimetype"
-    packageDocFilename = "package.opf"
+    pkgdocFilename = "package.opf"
     tempDirPrefix = "go-epub"
     tocFilename = "toc.ncx"
 )
 
-func Write(filename string) {
+func Write(e *Epub, filename string) {
     // Files to include in the built epub
 //    filesToInclude := []string{}
 
@@ -75,7 +73,7 @@ func writeContainerFile(tempDir string) error {
     			fmt.Sprintf(
 					containerFileTemplate, 
 					contentFolderName,
-					packageDocFilename,
+					pkgdocFilename,
 	    		),
 	    	),
     		filePermissions,
@@ -280,4 +278,20 @@ func writeEpub(tempDir string, destFilePath string) error {
 	}
 
 	return nil
+}
+
+func writePkgdocFile(e *Epub, tempDir string) error {
+    pkgdocFilePath := filepath.Join(tempDir, pkgdocFilename)
+    
+    output, _ := xml.MarshalIndent(e.Pkgdoc, "", `   `)
+    // Add the xml header to the output
+    pkgdocFileContent := append([]byte(xml.Header), output...)
+    // It's generally nice to have files end with a newline
+    pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+    
+    if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+        return err
+    }
+    
+    return nil
 }

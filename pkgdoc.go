@@ -1,4 +1,4 @@
-package writer
+package epub
 
 import (
     "encoding/xml"
@@ -88,7 +88,7 @@ type Metadata struct {
     Meta Meta `xml:"meta"`
 }
 
-type Package struct {
+type Pkgdoc struct {
     XMLName xml.Name `xml:"http://www.idpf.org/2007/opf package"`
     UniqueIdentifier string `xml:"unique-identifier,attr"`
     Version string `xml:"version,attr"`
@@ -97,8 +97,8 @@ type Package struct {
     Spine Spine `xml:"spine"`
 }
 
-func NewPackage() {
-	v := &Package{}
+func NewPkgdoc() *Pkgdoc {
+	v := &Pkgdoc{}
 
 	err := xml.Unmarshal([]byte(packageFileTemplate), &v)
 	if err != nil {
@@ -107,10 +107,10 @@ func NewPackage() {
 	
 	v.Metadata.XmlnsDc = contentXmlnsDc
 	v.Metadata.Identifier.Id = contentUniqueIdentifier
-	
+//	v.Metadata.Identifier.Data = 
 	
 	/*
-    v := &Package{
+    v := &Pkgdoc{
         UniqueIdentifier: contentUniqueIdentifier,
         Version: "2.0",
         Metadata: Metadata{
@@ -129,6 +129,7 @@ func NewPackage() {
     }
     */
 	
+	/*
     output, _ := xml.MarshalIndent(v, "", `   `)
     // Add the xml header to the output
     contentFileContent := append([]byte(xml.Header), output...)
@@ -136,4 +137,7 @@ func NewPackage() {
     contentFileContent = append(contentFileContent, "\n"...)
     
     log.Println(string(contentFileContent))
+    */
+    
+    return v
 }
