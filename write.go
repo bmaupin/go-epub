@@ -36,7 +36,7 @@ const (
     tocFilename = "toc.ncx"
 )
 
-func Write(e *Epub, filename string) {
+func (e *Epub) Write() {
     // Files to include in the built epub
 //    filesToInclude := []string{}
 
@@ -54,7 +54,13 @@ func Write(e *Epub, filename string) {
     if err != nil {
         log.Fatalf("writeContainerFile error: %s", err)
     }
-    err = writeEpub(tempDir, filename)
+    
+    if e.filename == "" {
+    	log.Println("filename nil")
+//    	efilename = ""
+    }
+    
+    err = e.writeEpub(tempDir, e.filename)
     if err != nil {
         log.Fatalf("writeEpub error: %s", err)
     }
@@ -196,7 +202,7 @@ func writeMimetype(tempDir string) error {
     return nil
 }
 
-func writeEpub(tempDir string, destFilePath string) error {
+func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
 		log.Fatalf("os.Create error: %s", err)
@@ -280,10 +286,10 @@ func writeEpub(tempDir string, destFilePath string) error {
 	return nil
 }
 
-func writePkgdocFile(e *Epub, tempDir string) error {
+func (e *Epub) writePkgdocFile(tempDir string) error {
     pkgdocFilePath := filepath.Join(tempDir, pkgdocFilename)
     
-    output, _ := xml.MarshalIndent(e.Pkgdoc, "", `   `)
+    output, _ := xml.MarshalIndent(e.pkgdoc, "", `   `)
     // Add the xml header to the output
     pkgdocFileContent := append([]byte(xml.Header), output...)
     // It's generally nice to have files end with a newline
