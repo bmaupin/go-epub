@@ -2,6 +2,7 @@ package epub
 
 import (
     "encoding/xml"
+    "io/ioutil"
     "log"
 )
 
@@ -140,4 +141,21 @@ func NewPkgdoc() *Pkgdoc {
     */
     
     return v
+}
+
+func (p *Pkgdoc) write(pkgdocFilePath string) error {
+    output, err := xml.MarshalIndent(p, "", `   `)
+	if err != nil {
+		return err
+	}
+    // Add the xml header to the output
+    pkgdocFileContent := append([]byte(xml.Header), output...)
+    // It's generally nice to have files end with a newline
+    pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+    
+    if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+        return err
+    }
+    
+    return nil
 }

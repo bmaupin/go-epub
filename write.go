@@ -3,13 +3,14 @@ package epub
 import (
     "archive/zip"
 //    "bytes"
-    "encoding/xml"
+//    "encoding/xml"
 	"fmt"
     "io"
     "io/ioutil"
     "log"
     "os"
     "path/filepath"
+    "time"
     
 //    "github.com/satori/go.uuid"
 )
@@ -36,7 +37,7 @@ const (
     tocFilename = "toc.ncx"
 )
 
-func (e *Epub) Write() {
+func (e *Epub) Write(destFilePath string) error {
     // Files to include in the built epub
 //    filesToInclude := []string{}
 
@@ -48,22 +49,25 @@ func (e *Epub) Write() {
 
     err = writeMimetype(tempDir)
     if err != nil {
-        log.Fatalf("writeMimetype error: %s", err)
+        return err
     }
+    
     err = writeContainerFile(tempDir)
     if err != nil {
-        log.Fatalf("writeContainerFile error: %s", err)
+        return err
     }
     
-    if e.filename == "" {
-    	log.Println("filename nil")
-//    	efilename = ""
-    }
-    
-    err = e.writeEpub(tempDir, e.filename)
+	err = e.writePkgdocFile(tempDir)
     if err != nil {
-        log.Fatalf("writeEpub error: %s", err)
+        return err
     }
+    
+    err = e.writeEpub(tempDir, destFilePath)
+    if err != nil {
+        return err
+    }
+    
+    return nil
 }
 
 func writeContainerFile(tempDir string) error {
@@ -287,17 +291,18 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 }
 
 func (e *Epub) writePkgdocFile(tempDir string) error {
-    pkgdocFilePath := filepath.Join(tempDir, pkgdocFilename)
-    
-    output, _ := xml.MarshalIndent(e.pkgdoc, "", `   `)
-    // Add the xml header to the output
-    pkgdocFileContent := append([]byte(xml.Header), output...)
-    // It's generally nice to have files end with a newline
-    pkgdocFileContent = append(pkgdocFileContent, "\n"...)
-    
-    if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+	e.pkgdoc.Metadata.Language.Data = e.lang
+	e.pkgdoc.Metadata.Title.Data = e.title
+	
+	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	e.pkgdoc.Metadata.Meta.Data = now
+
+    contentFolderPath := filepath.Join(tempDir, contentFolderName)
+    if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
         return err
     }
     
-    return nil
+    pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
+    
+    return e.pkgdoc.write(pkgdocFilePath)
 }
