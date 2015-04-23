@@ -3,7 +3,7 @@ package epub
 import (
     "archive/zip"
 //    "bytes"
-//    "encoding/xml"
+    "encoding/xml"
 	"fmt"
     "io"
     "io/ioutil"
@@ -37,7 +37,7 @@ const (
     tocFilename = "toc.ncx"
 )
 
-func (e *Epub) Write(destFilePath string) error {
+func (e *epub) Write(destFilePath string) error {
     // Files to include in the built epub
 //    filesToInclude := []string{}
 
@@ -206,7 +206,7 @@ func writeMimetype(tempDir string) error {
     return nil
 }
 
-func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
+func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
 		log.Fatalf("os.Create error: %s", err)
@@ -290,12 +290,9 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	return nil
 }
 
-func (e *Epub) writePkgdocFile(tempDir string) error {
-	e.pkgdoc.Metadata.Language.Data = e.lang
-	e.pkgdoc.Metadata.Title.Data = e.title
-	
+func (e *epub) writePkgdocFile(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
-	e.pkgdoc.Metadata.Meta.Data = now
+	e.pkgdoc.setModified(now)
 
     contentFolderPath := filepath.Join(tempDir, contentFolderName)
     if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
@@ -304,5 +301,18 @@ func (e *Epub) writePkgdocFile(tempDir string) error {
     
     pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
     
-    return e.pkgdoc.write(pkgdocFilePath)
+    output, err := xml.MarshalIndent(e.pkgdoc, "", `   `)
+	if err != nil {
+		return err
+	}
+    // Add the xml header to the output
+    pkgdocFileContent := append([]byte(xml.Header), output...)
+    // It's generally nice to have files end with a newline
+    pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+    
+    if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+        return err
+    }
+    
+    return nil
 }

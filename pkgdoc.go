@@ -2,11 +2,11 @@ package epub
 
 import (
     "encoding/xml"
-    "io/ioutil"
     "log"
 )
 
 const (
+// TODO
 	temp = `<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -108,54 +108,22 @@ func NewPkgdoc() *Pkgdoc {
 	
 	v.Metadata.XmlnsDc = contentXmlnsDc
 	v.Metadata.Identifier.Id = contentUniqueIdentifier
-//	v.Metadata.Identifier.Data = 
-	
-	/*
-    v := &Pkgdoc{
-        UniqueIdentifier: contentUniqueIdentifier,
-        Version: "2.0",
-        Metadata: Metadata{
-            XmlnsDc: contentXmlnsDc,
-            XmlnsOpf: contentXmlnsOpf,
-            Identifier: Identifier{
-                Id: contentUniqueIdentifier,
-                Scheme: "UUID",
-                Data: u.String(),
-            },
-            Date: Date {
-                Event: "modification",
-                Data: today,
-            },
-        },
-    }
-    */
-	
-	/*
-    output, _ := xml.MarshalIndent(v, "", `   `)
-    // Add the xml header to the output
-    contentFileContent := append([]byte(xml.Header), output...)
-    // It's generally nice to have files end with a newline
-    contentFileContent = append(contentFileContent, "\n"...)
-    
-    log.Println(string(contentFileContent))
-    */
     
     return v
 }
 
-func (p *Pkgdoc) write(pkgdocFilePath string) error {
-    output, err := xml.MarshalIndent(p, "", `   `)
-	if err != nil {
-		return err
-	}
-    // Add the xml header to the output
-    pkgdocFileContent := append([]byte(xml.Header), output...)
-    // It's generally nice to have files end with a newline
-    pkgdocFileContent = append(pkgdocFileContent, "\n"...)
-    
-    if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
-        return err
-    }
-    
-    return nil
+func (p *Pkgdoc) setLang(lang string) {
+	p.Metadata.Language.Data = lang
+}
+
+func (p *Pkgdoc) setModified(timestamp string) {
+	p.Metadata.Meta.Data = timestamp
+}
+
+func (p *Pkgdoc) setTitle(title string) {
+	p.Metadata.Title.Data = title
+}
+
+func (p *Pkgdoc) setUUID(uuid string) {
+	p.Metadata.Identifier.Data = uuid
 }
