@@ -68,14 +68,6 @@ type Meta struct {
 	Data string `xml:",chardata"`
 }
 
-type Language struct {
-	Data string `xml:",chardata"`
-}
-
-type Title struct {
-	Data string `xml:",chardata"`
-}
-
 type Identifier struct {
     Id string `xml:"id,attr"`
     Data string `xml:",chardata"`
@@ -84,8 +76,8 @@ type Identifier struct {
 type Metadata struct {
     XmlnsDc string `xml:"xmlns:dc,attr"`
     Identifier Identifier `xml:"dc:identifier"`
-    Title Title `xml:"dc:title"`
-    Language Language `xml:"dc:language"`
+    Title string
+    Language string
     Meta Meta `xml:"meta"`
 }
 
@@ -113,7 +105,7 @@ func NewPkgdoc() *Pkgdoc {
 }
 
 func (p *Pkgdoc) setLang(lang string) {
-	p.Metadata.Language.Data = lang
+	p.Metadata.Language = lang
 }
 
 func (p *Pkgdoc) setModified(timestamp string) {
@@ -121,7 +113,7 @@ func (p *Pkgdoc) setModified(timestamp string) {
 }
 
 func (p *Pkgdoc) setTitle(title string) {
-	p.Metadata.Title.Data = title
+  p.Metadata.Title = title
 }
 
 func (p *Pkgdoc) setUUID(uuid string) {
