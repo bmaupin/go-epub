@@ -1,6 +1,6 @@
 package epub
 
-type toc struct {
+const (
     navBodyTemplate = `    <nav epub:type="toc">
       <h1>Table of Contents</h1>
       <ol>
@@ -9,4 +9,14 @@ type toc struct {
     </nav>
 `
     xmlnsEpub = `xmlns:epub="http://www.idpf.org/2007/ops"`
+)
+
+type toc struct {
+	navDoc Xhtml
+}
+
+func newToc() *toc {
+	t := &toc{}
+
+	return t
 }
