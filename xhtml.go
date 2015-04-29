@@ -11,22 +11,25 @@ const (
   <head>
     <title></title>
   </head>
-  <body>
-  </body>
+  <body></body>
 </html>
 `
 )
 
-type Body struct {
+type body struct {
 	Data string `xml:",chardata"`
 }
 
-type Head struct {
-	Title string
+type head struct {
+	Title string `xml:"title"`
 }
 
-type Xhtml struct {
+type xhtml struct {
     XMLName xml.Name `xml:"http://www.w3.org/1999/xhtml html"`
-    Head Head `xml:"head"`
-    Body Body `xml:"body"`
+    Head head `xml:"head"`
+    Body body `xml:"body"`
+}
+
+func (x *xhtml) setBody(body string) {
+  x.Body.Data = body
 }

@@ -44,54 +44,54 @@ const (
 	contentXmlnsDc = "http://purl.org/dc/elements/1.1/"
 )
 
-type Itemref struct {
+type itemref struct {
     Idref string `xml:"idref,attr"`
 }
 
-type Spine struct {
-    Itemref []Itemref `xml:"itemref"`
+type spine struct {
+    Itemref []itemref `xml:"itemref"`
 }
 
-type Item struct {
+type item struct {
     Href string `xml:"href,attr"`
     Id string `xml:"id,attr"`
     MediaType string `xml:"media-type,attr"`
     Properties string `xml:"properties,attr"`
 }
 
-type Manifest struct {
-    Item []Item `xml:"item"`
+type manifest struct {
+    Item []item `xml:"item"`
 }
 
-type Meta struct {
+type meta struct {
 	Property string `xml:"property,attr"`
 	Data string `xml:",chardata"`
 }
 
-type Identifier struct {
+type identifier struct {
     Id string `xml:"id,attr"`
     Data string `xml:",chardata"`
 }
 
-type Metadata struct {
+type metadata struct {
     XmlnsDc string `xml:"xmlns:dc,attr"`
-    Identifier Identifier `xml:"dc:identifier"`
-    Title string
-    Language string
-    Meta Meta `xml:"meta"`
+    Identifier identifier `xml:"dc:identifier"`
+    Title string `xml:"title"`
+    Language string `xml:"language"`
+    Meta meta `xml:"meta"`
 }
 
-type Pkgdoc struct {
+type pkgdoc struct {
     XMLName xml.Name `xml:"http://www.idpf.org/2007/opf package"`
     UniqueIdentifier string `xml:"unique-identifier,attr"`
     Version string `xml:"version,attr"`
-    Metadata Metadata `xml:"metadata"`
-    Manifest Manifest `xml:"manifest"`
-    Spine Spine `xml:"spine"`
+    Metadata metadata `xml:"metadata"`
+    Manifest manifest `xml:"manifest"`
+    Spine spine `xml:"spine"`
 }
 
-func NewPkgdoc() *Pkgdoc {
-	v := &Pkgdoc{}
+func newPkgdoc() *pkgdoc {
+	v := &pkgdoc{}
 
 	err := xml.Unmarshal([]byte(packageFileTemplate), &v)
 	if err != nil {
@@ -104,18 +104,18 @@ func NewPkgdoc() *Pkgdoc {
     return v
 }
 
-func (p *Pkgdoc) setLang(lang string) {
+func (p *pkgdoc) setLang(lang string) {
 	p.Metadata.Language = lang
 }
 
-func (p *Pkgdoc) setModified(timestamp string) {
+func (p *pkgdoc) setModified(timestamp string) {
 	p.Metadata.Meta.Data = timestamp
 }
 
-func (p *Pkgdoc) setTitle(title string) {
+func (p *pkgdoc) setTitle(title string) {
   p.Metadata.Title = title
 }
 
-func (p *Pkgdoc) setUUID(uuid string) {
+func (p *pkgdoc) setUUID(uuid string) {
 	p.Metadata.Identifier.Data = uuid
 }

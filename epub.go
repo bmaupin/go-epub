@@ -6,21 +6,24 @@ import (
 
 type epub struct {
 	lang string
-	pkgdoc *Pkgdoc
+	pkgdoc *pkgdoc
 	title string
+	toc *toc
 	uuid string
 }
 
-func NewEpub(title string) *epub {
+func NewEpub(title string) (*epub, error) {
+	var err error
+
 	e := &epub{}
-	e.pkgdoc = NewPkgdoc()
-	
+	e.pkgdoc = newPkgdoc()
+	e.toc, err = newToc()
 	// Set minimal required attributes
 	e.SetLang("en")
 	e.SetTitle(title)
 	e.SetUUID(uuid.NewV4().String())
 	
-	return e
+	return e, err
 }
 
 func (e *epub) Lang() string {
