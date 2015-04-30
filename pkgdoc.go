@@ -59,10 +59,6 @@ type item struct {
     Properties string `xml:"properties,attr"`
 }
 
-type manifest struct {
-    Item []item `xml:"item"`
-}
-
 type meta struct {
 	Property string `xml:"property,attr"`
 	Data string `xml:",chardata"`
@@ -86,7 +82,7 @@ type pkgdoc struct {
     UniqueIdentifier string `xml:"unique-identifier,attr"`
     Version string `xml:"version,attr"`
     Metadata metadata `xml:"metadata"`
-    Manifest manifest `xml:"manifest"`
+    Item []item `xml:"manifest>item"`
     Spine spine `xml:"spine"`
 }
 

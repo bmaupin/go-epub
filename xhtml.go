@@ -17,16 +17,12 @@ const (
 )
 
 type body struct {
-	Data string `xml:",chardata"`
-}
-
-type head struct {
-	Title string `xml:"title"`
+	Data string `xml:",innerxml"`
 }
 
 type xhtml struct {
     XMLName xml.Name `xml:"http://www.w3.org/1999/xhtml html"`
-    Head head `xml:"head"`
+    Title string `xml:"head>title"`
     Body body `xml:"body"`
 }
 
