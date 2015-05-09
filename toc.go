@@ -6,22 +6,31 @@ import (
 )
 
 const (
-	navBodyTemplate = `
+    navDocBodyTemplate = `
     <nav epub:type="toc">
       <h1>Table of Contents</h1>
       <ol>
-        <li><a href="xhtml/section0001.xhtml">Section 1</a></li>
       </ol>
     </nav>
 `
-	navDocFilename = "nav.xhtml"
-	xmlnsEpub      = `xmlns:epub="http://www.idpf.org/2007/ops"`
+    navDocFilename = "nav.xhtml"
+    navDocEpubType = "toc"
+    xmlnsEpub      = `xmlns:epub="http://www.idpf.org/2007/ops"`
 )
 
+type tocXmlNavLink struct {
+    A struct {
+        XMLName xml.Name `xml:"a"`
+        Href string `xml:"href,attr"`
+        Data string `xml:",chardata"`
+    } `xml:a`
+}
+
 type tocXmlNav struct {
-    XMLName xml.Name `xml:"http://www.w3.org/1999/xhtml html"`
+    XMLName xml.Name `xml:"nav"`
+    EpubType string `xml:"epub:type,attr"`
     H1 string `xml:"h1"`
-//    A tocXmlNav
+    Links []tocXmlNavLink `xml:"ol>li"`
 }
 
 type toc struct {
@@ -43,7 +52,23 @@ func newToc() (*toc, error) {
   output, err = xml.MarshalIndent(t.navDoc, "", `   `)
   log.Println(string(output))
 
-  t.navDoc.setBody(navBodyTemplate)
+//  t.navDoc.setBody(navDocTemplate)
+
+    n := &tocXmlNav{
+        EpubType: navDocEpubType,
+    }
+  err = xml.Unmarshal([]byte(navDocBodyTemplate), &n)
+  if err != nil {
+    log.Println("xml.Unmarshal error: %s", err)
+  }
+
+	navDocBodyContent, err := xml.MarshalIndent(n, "", `   `)
+  if err != nil {
+    log.Println("xml.Unmarshal error: %s", err)
+  }
+  log.Println(string(navDocBodyContent))
+
+    t.navDoc.setBody(string(navDocBodyContent))
 
   output, err = xml.MarshalIndent(t.navDoc, "", `   `)
   log.Println(string(output))
