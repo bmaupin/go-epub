@@ -1,12 +1,12 @@
 package epub
 
 import (
-    "encoding/xml"
-    "log"
+	"encoding/xml"
+	"log"
 )
 
 const (
-// TODO
+	// TODO
 	temp = `<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -41,49 +41,49 @@ const (
 `
 
 	contentUniqueIdentifier = "pub-id"
-	contentXmlnsDc = "http://purl.org/dc/elements/1.1/"
+	contentXmlnsDc          = "http://purl.org/dc/elements/1.1/"
 )
 
 type itemref struct {
-    Idref string `xml:"idref,attr"`
+	Idref string `xml:"idref,attr"`
 }
 
 type spine struct {
-    Itemref []itemref `xml:"itemref"`
+	Itemref []itemref `xml:"itemref"`
 }
 
 type item struct {
-    Href string `xml:"href,attr"`
-    Id string `xml:"id,attr"`
-    MediaType string `xml:"media-type,attr"`
-    Properties string `xml:"properties,attr"`
+	Href       string `xml:"href,attr"`
+	Id         string `xml:"id,attr"`
+	MediaType  string `xml:"media-type,attr"`
+	Properties string `xml:"properties,attr"`
 }
 
 type meta struct {
 	Property string `xml:"property,attr"`
-	Data string `xml:",chardata"`
+	Data     string `xml:",chardata"`
 }
 
 type identifier struct {
-    Id string `xml:"id,attr"`
-    Data string `xml:",chardata"`
+	Id   string `xml:"id,attr"`
+	Data string `xml:",chardata"`
 }
 
 type metadata struct {
-    XmlnsDc string `xml:"xmlns:dc,attr"`
-    Identifier identifier `xml:"dc:identifier"`
-    Title string `xml:"title"`
-    Language string `xml:"language"`
-    Meta meta `xml:"meta"`
+	XmlnsDc    string     `xml:"xmlns:dc,attr"`
+	Identifier identifier `xml:"dc:identifier"`
+	Title      string     `xml:"title"`
+	Language   string     `xml:"language"`
+	Meta       meta       `xml:"meta"`
 }
 
 type pkgdoc struct {
-    XMLName xml.Name `xml:"http://www.idpf.org/2007/opf package"`
-    UniqueIdentifier string `xml:"unique-identifier,attr"`
-    Version string `xml:"version,attr"`
-    Metadata metadata `xml:"metadata"`
-    Item []item `xml:"manifest>item"`
-    Spine spine `xml:"spine"`
+	XMLName          xml.Name `xml:"http://www.idpf.org/2007/opf package"`
+	UniqueIdentifier string   `xml:"unique-identifier,attr"`
+	Version          string   `xml:"version,attr"`
+	Metadata         metadata `xml:"metadata"`
+	Item             []item   `xml:"manifest>item"`
+	Spine            spine    `xml:"spine"`
 }
 
 func newPkgdoc() *pkgdoc {
@@ -93,11 +93,11 @@ func newPkgdoc() *pkgdoc {
 	if err != nil {
 		log.Fatalf("xml.Unmarshal error: %s", err)
 	}
-	
+
 	v.Metadata.XmlnsDc = contentXmlnsDc
 	v.Metadata.Identifier.Id = contentUniqueIdentifier
-    
-    return v
+
+	return v
 }
 
 func (p *pkgdoc) setLang(lang string) {
@@ -109,7 +109,7 @@ func (p *pkgdoc) setModified(timestamp string) {
 }
 
 func (p *pkgdoc) setTitle(title string) {
-  p.Metadata.Title = title
+	p.Metadata.Title = title
 }
 
 func (p *pkgdoc) setUUID(uuid string) {

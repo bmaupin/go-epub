@@ -1,22 +1,22 @@
 package epub
 
 import (
-    "archive/zip"
-//    "bytes"
-    "encoding/xml"
+	"archive/zip"
+	//    "bytes"
+	"encoding/xml"
 	"fmt"
-    "io"
-    "io/ioutil"
-    "log"
-    "os"
-    "path/filepath"
-    "time"
-    
-//    "github.com/satori/go.uuid"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
+	//    "github.com/satori/go.uuid"
 )
 
 const (
-    containerFilename = "container.xml"
+	containerFilename     = "container.xml"
 	containerFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
@@ -25,76 +25,76 @@ const (
 </container>
 `
 	contentFolderName = "EPUB"
-    // Permissions for any new directories we create
-    dirPermissions = 0755    
-    // Permissions for any new files we create
-    filePermissions = 0644
-    metaInfFolderName = "META-INF"
-    mimetypeContent = "application/epub+zip"
-    mimetypeFilename = "mimetype"
-    pkgdocFilename = "package.opf"
-    tempDirPrefix = "go-epub"
-    tocFilename = "toc.ncx"
+	// Permissions for any new directories we create
+	dirPermissions = 0755
+	// Permissions for any new files we create
+	filePermissions   = 0644
+	metaInfFolderName = "META-INF"
+	mimetypeContent   = "application/epub+zip"
+	mimetypeFilename  = "mimetype"
+	pkgdocFilename    = "package.opf"
+	tempDirPrefix     = "go-epub"
+	tocFilename       = "toc.ncx"
 )
 
 func (e *epub) Write(destFilePath string) error {
-    // Files to include in the built epub
-//    filesToInclude := []string{}
+	// Files to include in the built epub
+	//    filesToInclude := []string{}
 
-    tempDir, err := ioutil.TempDir("", tempDirPrefix)
-    defer os.Remove(tempDir)
-    if err != nil {
-        log.Fatalf("os.Remove error: %s", err)
-    }
+	tempDir, err := ioutil.TempDir("", tempDirPrefix)
+	defer os.Remove(tempDir)
+	if err != nil {
+		log.Fatalf("os.Remove error: %s", err)
+	}
 
-    err = writeMimetype(tempDir)
-    if err != nil {
-        return err
-    }
-    
-    err = writeContainerFile(tempDir)
-    if err != nil {
-        return err
-    }
-    
+	err = writeMimetype(tempDir)
+	if err != nil {
+		return err
+	}
+
+	err = writeContainerFile(tempDir)
+	if err != nil {
+		return err
+	}
+
 	err = e.writePkgdocFile(tempDir)
-    if err != nil {
-        return err
-    }
-    
-    err = e.writeEpub(tempDir, destFilePath)
-    if err != nil {
-        return err
-    }
-    
-    return nil
+	if err != nil {
+		return err
+	}
+
+	err = e.writeEpub(tempDir, destFilePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func writeContainerFile(tempDir string) error {
-    metaInfFolderPath := filepath.Join(tempDir, metaInfFolderName)
-    if err := os.Mkdir(metaInfFolderPath, dirPermissions); err != nil {
-        return err
-    }
-    
-    containerFilePath := filepath.Join(metaInfFolderPath, containerFilename)
-    if err := ioutil.WriteFile(
-    		containerFilePath,
-    		[]byte(
-    			fmt.Sprintf(
-					containerFileTemplate, 
-					contentFolderName,
-					pkgdocFilename,
-	    		),
-	    	),
-    		filePermissions,
-			); err != nil {
-        return err
-    }
-    
-    return nil
+	metaInfFolderPath := filepath.Join(tempDir, metaInfFolderName)
+	if err := os.Mkdir(metaInfFolderPath, dirPermissions); err != nil {
+		return err
+	}
+
+	containerFilePath := filepath.Join(metaInfFolderPath, containerFilename)
+	if err := ioutil.WriteFile(
+		containerFilePath,
+		[]byte(
+			fmt.Sprintf(
+				containerFileTemplate,
+				contentFolderName,
+				pkgdocFilename,
+			),
+		),
+		filePermissions,
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-/*   
+/*
     type Rootfile struct {
         FullPath string `xml:"full-path,attr"`
         MediaType string `xml:"media-type,attr"`
@@ -111,11 +111,11 @@ func writeContainerFile(tempDir string) error {
     }
 
     v := &Container{Version: containerVersion}
-    
+
     v.Rootfiles.Rootfile = append(
-        v.Rootfiles.Rootfile, 
+        v.Rootfiles.Rootfile,
         Rootfile{
-            FullPath: filepath.Join(oebpsFolderName, contentFilename), 
+            FullPath: filepath.Join(oebpsFolderName, contentFilename),
             MediaType: mediaTypeOebpsPackage,
         },
     )
@@ -128,32 +128,32 @@ func writeContainerFile(tempDir string) error {
     containerContent := append([]byte(xml.Header), output...)
     // It's generally nice to have files end with a newline
     containerContent = append(containerContent, "\n"...)
-    
+
     containerFilePath := filepath.Join(metaInfFolderPath, containerFilename)
     if err := ioutil.WriteFile(containerFilePath, containerContent, filePermissions); err != nil {
         return err
     }
-    
+
     return nil
 }
 
 /*
-func writeContentFile(tempDir string) error {    
+func writeContentFile(tempDir string) error {
     oebpsFolderPath := filepath.Join(tempDir, oebpsFolderName)
     if err := os.Mkdir(oebpsFolderPath, dirPermissions); err != nil {
         return err
     }
-    
+
     type Package struct {
         XMLName xml.Name `xml:"http://www.idpf.org/2007/opf package"`
         UniqueIdentifier string `xml:"unique-identifier,attr"`
         Version string `xml:"version,attr"`
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     type Rootfile struct {
         FullPath string `xml:"full-path,attr"`
         MediaType string `xml:"media-type,attr"`
@@ -170,11 +170,11 @@ func writeContentFile(tempDir string) error {
     }
 
     v := &Container{Version: containerVersion}
-    
+
     v.Rootfiles.Rootfile = append(
-        v.Rootfiles.Rootfile, 
+        v.Rootfiles.Rootfile,
         Rootfile{
-            FullPath: filepath.Join(oebpsFolderName, contentFilename), 
+            FullPath: filepath.Join(oebpsFolderName, contentFilename),
             MediaType: mediaTypeOebpsPackage,
         },
     )
@@ -187,23 +187,23 @@ func writeContentFile(tempDir string) error {
     containerContent := append([]byte(xml.Header), output...)
     // It's generally nice to have files end with a newline
     containerContent = append(containerContent, "\n"...)
-    
+
     containerFilePath := filepath.Join(metaInfFolderPath, containerFilename)
     if err := ioutil.WriteFile(containerFilePath, containerContent, filePermissions); err != nil {
         return err
     }
-    
+
     return nil
 }
 */
 func writeMimetype(tempDir string) error {
-    mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
-    
-    if err := ioutil.WriteFile(mimetypeFilePath, []byte(mimetypeContent), filePermissions); err != nil {
-        return err
-    }
-    
-    return nil
+	mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
+
+	if err := ioutil.WriteFile(mimetypeFilePath, []byte(mimetypeContent), filePermissions); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (e *epub) writeEpub(tempDir string, destFilePath string) error {
@@ -232,7 +232,7 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 		}
 
 		if skipMimetypeFile == true {
-			// Skip the mimetype file 
+			// Skip the mimetype file
 			if path == filepath.Join(tempDir, mimetypeFilename) {
 				return nil
 			}
@@ -271,7 +271,7 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 
 		return nil
 	}
-	
+
 	// Add the mimetype file first
 	mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
 	mimetypeInfo, err := os.Lstat(mimetypeFilePath)
@@ -294,25 +294,25 @@ func (e *epub) writePkgdocFile(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	e.pkgdoc.setModified(now)
 
-    contentFolderPath := filepath.Join(tempDir, contentFolderName)
-    if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
-        return err
-    }
-    
-    pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
-    
-    output, err := xml.MarshalIndent(e.pkgdoc, "", `   `)
+	contentFolderPath := filepath.Join(tempDir, contentFolderName)
+	if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
+		return err
+	}
+
+	pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
+
+	output, err := xml.MarshalIndent(e.pkgdoc, "", `   `)
 	if err != nil {
 		return err
 	}
-    // Add the xml header to the output
-    pkgdocFileContent := append([]byte(xml.Header), output...)
-    // It's generally nice to have files end with a newline
-    pkgdocFileContent = append(pkgdocFileContent, "\n"...)
-    
-    if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
-        return err
-    }
-    
-    return nil
+	// Add the xml header to the output
+	pkgdocFileContent := append([]byte(xml.Header), output...)
+	// It's generally nice to have files end with a newline
+	pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+
+	if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+		return err
+	}
+
+	return nil
 }

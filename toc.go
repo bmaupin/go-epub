@@ -61,7 +61,7 @@ func newToc() (*toc, error) {
 
 	t.navDoc.setBody(string(navDocBodyContent))
 
-// TODO
+	// TODO
 	output, err := xml.MarshalIndent(t.navDoc, "", `   `)
 	log.Println(string(output))
 

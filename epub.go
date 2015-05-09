@@ -1,15 +1,15 @@
 package epub
 
 import (
-    "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 )
 
 type epub struct {
-	lang string
+	lang   string
 	pkgdoc *pkgdoc
-	title string
-	toc *toc
-	uuid string
+	title  string
+	toc    *toc
+	uuid   string
 }
 
 func NewEpub(title string) (*epub, error) {
@@ -22,7 +22,7 @@ func NewEpub(title string) (*epub, error) {
 	e.SetLang("en")
 	e.SetTitle(title)
 	e.SetUUID(uuid.NewV4().String())
-	
+
 	return e, err
 }
 
