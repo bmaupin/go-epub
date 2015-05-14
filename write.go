@@ -62,6 +62,11 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
+	err = e.toc.write(tempDir)
+	if err != nil {
+		return err
+	}
+
 	err = e.writeEpub(tempDir, destFilePath)
 	if err != nil {
 		return err

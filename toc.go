@@ -2,7 +2,8 @@ package epub
 
 import (
 	"encoding/xml"
-	"log"
+	"io/ioutil"
+	"path/filepath"
 )
 
 const (
@@ -15,7 +16,7 @@ const (
 `
 	navDocFilename = "nav.xhtml"
 	navDocEpubType = "toc"
-	xmlnsEpub      = `xmlns:epub="http://www.idpf.org/2007/ops"`
+	xmlnsEpub      = "http://www.idpf.org/2007/ops"
 )
 
 type tocXmlNavLink struct {
@@ -43,50 +44,50 @@ func newToc() (*toc, error) {
 	t.navDoc = &xhtml{}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &t.navDoc)
 	if err != nil {
-		log.Println("xml.Unmarshal error: %s", err)
+		return t, err
 	}
+
+	t.navDoc.XmlnsEpub = xmlnsEpub
 
 	n := &tocXmlNav{
 		EpubType: navDocEpubType,
 	}
 	err = xml.Unmarshal([]byte(navDocBodyTemplate), &n)
 	if err != nil {
-		log.Println("xml.Unmarshal error: %s", err)
+		return t, err
 	}
 
 	navDocBodyContent, err := xml.MarshalIndent(n, "", `   `)
 	if err != nil {
-		log.Println("xml.Unmarshal error: %s", err)
+		return t, err
 	}
 
-	t.navDoc.setBody(string(navDocBodyContent))
+	t.navDoc.setBody("\n" + string(navDocBodyContent) + "\n")
 
-	// TODO
-	output, err := xml.MarshalIndent(t.navDoc, "", `   `)
-	log.Println(string(output))
-
-	return t, err
+	return t, nil
 }
 
-/*
-func (t *toc) write() {
-	contentFolderPath := filepath.Join(tempDir, contentFolderName)
+func (t *toc) setTitle(title string) {
+	t.navDoc.setTitle(title)
+}
 
-	navDocFilePath := filepath.Join(contentFolderPath, navDocFilename)
+func (t *toc) write(tempDir string) error {
+	navDocFilePath := filepath.Join(tempDir, contentFolderName, navDocFilename)
 
-	output, err := xml.MarshalIndent(e.pkgdoc, "", `   `)
+	navDocFileContent, err := xml.MarshalIndent(t.navDoc, "", `   `)
 	if err != nil {
 		return err
 	}
+	// Add the doctype declaration to the output
+	navDocFileContent = append([]byte(xhtmlDoctype), navDocFileContent...)
 	// Add the xml header to the output
-	pkgdocFileContent := append([]byte(xml.Header), output...)
+	navDocFileContent = append([]byte(xml.Header), navDocFileContent...)
 	// It's generally nice to have files end with a newline
-	pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+	navDocFileContent = append(navDocFileContent, "\n"...)
 
-	if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+	if err := ioutil.WriteFile(navDocFilePath, []byte(navDocFileContent), filePermissions); err != nil {
 		return err
 	}
 
 	return nil
 }
-*/

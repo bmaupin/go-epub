@@ -72,8 +72,8 @@ type identifier struct {
 type metadata struct {
 	XmlnsDc    string     `xml:"xmlns:dc,attr"`
 	Identifier identifier `xml:"dc:identifier"`
-	Title      string     `xml:"title"`
-	Language   string     `xml:"language"`
+	Title      string     `xml:"dc:title"`
+	Language   string     `xml:"dc:language"`
 	Meta       meta       `xml:"meta"`
 }
 

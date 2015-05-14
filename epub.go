@@ -2,6 +2,9 @@ package epub
 
 import (
 	"github.com/satori/go.uuid"
+
+	"encoding/xml"
+	"fmt"
 )
 
 type epub struct {
@@ -23,6 +26,12 @@ func NewEpub(title string) (*epub, error) {
 	e.SetTitle(title)
 	e.SetUUID(uuid.NewV4().String())
 
+// TODO
+	output, err := xml.MarshalIndent(e.toc.navDoc, "", `   `)
+	output = append([]byte(xhtmlDoctype), output...)
+	output = append([]byte(xml.Header), output...)
+	fmt.Println(string(output))
+
 	return e, err
 }
 
@@ -38,6 +47,7 @@ func (e *epub) SetLang(lang string) {
 func (e *epub) SetTitle(title string) {
 	e.title = title
 	e.pkgdoc.setTitle(title)
+	e.toc.setTitle(title)
 }
 
 func (e *epub) SetUUID(uuid string) {
