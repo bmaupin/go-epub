@@ -18,7 +18,7 @@ const (
 `
 )
 
-type xhtml struct {
+type xhtmlRoot struct {
 	XMLName   xml.Name      `xml:"http://www.w3.org/1999/xhtml html"`
 	XmlnsEpub string        `xml:"xmlns:epub,attr,omitempty"`
 	Title     string        `xml:"head>title"`
@@ -29,10 +29,10 @@ type xhtmlInnerxml struct {
 	XML string `xml:",innerxml"`
 }
 
-func (x *xhtml) setBody(body string) {
+func (x *xhtmlRoot) setBody(body string) {
 	x.Body.XML = body
 }
 
-func (x *xhtml) setTitle(title string) {
+func (x *xhtmlRoot) setTitle(title string) {
 	x.Title = title
 }

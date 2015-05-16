@@ -34,7 +34,7 @@ const (
 )
 
 type toc struct {
-	navXml *xhtml
+	navXml *xhtmlRoot
 	ncxXml *tocNcxRoot
 }
 
@@ -95,8 +95,8 @@ func newToc() (*toc, error) {
 	return t, nil
 }
 
-func newTocNavXml() (*xhtml, error) {
-	n := &xhtml{
+func newTocNavXml() (*xhtmlRoot, error) {
+	n := &xhtmlRoot{
 		XmlnsEpub: xmlnsEpub,
 	}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &n)
