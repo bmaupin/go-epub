@@ -28,7 +28,7 @@ const (
 	metaInfFolderName = "META-INF"
 	mimetypeContent   = "application/epub+zip"
 	mimetypeFilename  = "mimetype"
-	pkgdocFilename    = "package.opf"
+	pkgFilename       = "package.opf"
 	tempDirPrefix     = "go-epub"
 	tocFilename       = "toc.ncx"
 )
@@ -55,7 +55,7 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
-	err = e.pkgdoc.write(tempDir)
+	err = e.pkg.write(tempDir)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (e *epub) Write(destFilePath string) error {
 	/*
 	   output, err := xml.MarshalIndent(e.toc.ncxDoc, "", "  ")
 	*/
-	output, err := xml.MarshalIndent(e.pkgdoc, "", "  ")
+	output, err := xml.MarshalIndent(e.pkg, "", "  ")
 
 	output = append([]byte(xml.Header), output...)
 	fmt.Println(string(output))
@@ -103,7 +103,7 @@ func writeContainerFile(tempDir string) error {
 			fmt.Sprintf(
 				containerFileTemplate,
 				contentFolderName,
-				pkgdocFilename,
+				pkgFilename,
 			),
 		),
 		filePermissions,

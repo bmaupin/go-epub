@@ -9,7 +9,7 @@ const (
 type epub struct {
 	author string
 	lang   string
-	pkgdoc *pkgdoc
+	pkg    *pkg
 	title  string
 	toc    *toc
 	uuid   string
@@ -19,7 +19,7 @@ func NewEpub(title string) (*epub, error) {
 	var err error
 
 	e := &epub{}
-	e.pkgdoc = newPkgdoc()
+	e.pkg = newPackage()
 	e.toc, err = newToc()
 	if err != nil {
 		return e, err
@@ -37,23 +37,23 @@ func (e *epub) Lang() string {
 }
 
 func (e *epub) SetAuthor(author string) {
-	e.pkgdoc.setAuthor(author)
+	e.pkg.setAuthor(author)
 }
 
 func (e *epub) SetLang(lang string) {
 	e.lang = lang
-	e.pkgdoc.setLang(lang)
+	e.pkg.setLang(lang)
 }
 
 func (e *epub) SetTitle(title string) {
 	e.title = title
-	e.pkgdoc.setTitle(title)
+	e.pkg.setTitle(title)
 	e.toc.setTitle(title)
 }
 
 func (e *epub) SetUUID(uuid string) {
 	e.uuid = uuid
-	e.pkgdoc.setUUID(uuid)
+	e.pkg.setUUID(uuid)
 	e.toc.setUUID(uuid)
 }
 

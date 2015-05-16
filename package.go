@@ -30,7 +30,7 @@ const (
   </spine>
 </package>
 `
-	packageFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+	pkgFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="pub-id"></dc:identifier>
@@ -47,63 +47,63 @@ const (
 	contentUniqueIdentifier = "pub-id"
 	contentXmlnsDc          = "http://purl.org/dc/elements/1.1/"
 
-	pkgdocModifiedProperty = "dcterms:modified"
+	pkgModifiedProperty = "dcterms:modified"
 )
 
-type pkgdoc struct {
-	XMLName          xml.Name       `xml:"http://www.idpf.org/2007/opf package"`
-	UniqueIdentifier string         `xml:"unique-identifier,attr"`
-	Version          string         `xml:"version,attr"`
-	Metadata         pkgdocMetadata `xml:"metadata"`
-	Item             []pkgdocItem   `xml:"manifest>item"`
-	Spine            pkgdocSpine    `xml:"spine"`
+type pkg struct {
+	XMLName          xml.Name    `xml:"http://www.idpf.org/2007/opf package"`
+	UniqueIdentifier string      `xml:"unique-identifier,attr"`
+	Version          string      `xml:"version,attr"`
+	Metadata         pkgMetadata `xml:"metadata"`
+	Item             []pkgItem   `xml:"manifest>item"`
+	Spine            pkgSpine    `xml:"spine"`
 }
 
-type pkgdocIdentifier struct {
+type pkgIdentifier struct {
 	Id   string `xml:"id,attr"`
 	Data string `xml:",chardata"`
 }
 
-type pkgdocItem struct {
+type pkgItem struct {
 	Href       string `xml:"href,attr"`
 	Id         string `xml:"id,attr"`
 	MediaType  string `xml:"media-type,attr"`
 	Properties string `xml:"properties,attr"`
 }
 
-type pkgdocItemref struct {
+type pkgItemref struct {
 	Idref string `xml:"idref,attr"`
 }
 
-type pkgdocMeta struct {
+type pkgMeta struct {
 	Property string `xml:"property,attr"`
 	Data     string `xml:",chardata"`
 }
 
-type pkgdocMetadata struct {
-	XmlnsDc    string           `xml:"xmlns:dc,attr"`
-	Identifier pkgdocIdentifier `xml:"dc:identifier"`
-	Title      string           `xml:"dc:title"`
-	Language   string           `xml:"dc:language"`
-	Creator    string           `xml:"dc:creator,omitempty"`
-	Meta       []pkgdocMeta     `xml:"meta"`
+type pkgMetadata struct {
+	XmlnsDc    string        `xml:"xmlns:dc,attr"`
+	Identifier pkgIdentifier `xml:"dc:identifier"`
+	Title      string        `xml:"dc:title"`
+	Language   string        `xml:"dc:language"`
+	Creator    string        `xml:"dc:creator,omitempty"`
+	Meta       []pkgMeta     `xml:"meta"`
 }
 
-type pkgdocSpine struct {
-	Itemref []pkgdocItemref `xml:"itemref"`
+type pkgSpine struct {
+	Itemref []pkgItemref `xml:"itemref"`
 }
 
-func newPkgdoc() *pkgdoc {
-	v := &pkgdoc{
-		Metadata: pkgdocMetadata{
+func newPackage() *pkg {
+	v := &pkg{
+		Metadata: pkgMetadata{
 			XmlnsDc: contentXmlnsDc,
-			Identifier: pkgdocIdentifier{
+			Identifier: pkgIdentifier{
 				Id: contentUniqueIdentifier,
 			},
 		},
 	}
 
-	err := xml.Unmarshal([]byte(packageFileTemplate), &v)
+	err := xml.Unmarshal([]byte(pkgFileTemplate), &v)
 	if err != nil {
 		log.Fatalf("xml.Unmarshal error: %s", err)
 	}
@@ -111,32 +111,32 @@ func newPkgdoc() *pkgdoc {
 	return v
 }
 
-func (p *pkgdoc) setAuthor(author string) {
+func (p *pkg) setAuthor(author string) {
 	p.Metadata.Creator = author
 }
 
-func (p *pkgdoc) setLang(lang string) {
+func (p *pkg) setLang(lang string) {
 	p.Metadata.Language = lang
 }
 
-func (p *pkgdoc) setModified(timestamp string) {
+func (p *pkg) setModified(timestamp string) {
 	//	p.Metadata.Meta.Data = timestamp
-	m := pkgdocMeta{
+	m := pkgMeta{
 		Data:     timestamp,
-		Property: pkgdocModifiedProperty,
+		Property: pkgModifiedProperty,
 	}
 	p.Metadata.Meta = append(p.Metadata.Meta, m)
 }
 
-func (p *pkgdoc) setTitle(title string) {
+func (p *pkg) setTitle(title string) {
 	p.Metadata.Title = title
 }
 
-func (p *pkgdoc) setUUID(uuid string) {
+func (p *pkg) setUUID(uuid string) {
 	p.Metadata.Identifier.Data = uuid
 }
 
-func (p *pkgdoc) write(tempDir string) error {
+func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
 
@@ -145,18 +145,18 @@ func (p *pkgdoc) write(tempDir string) error {
 		return err
 	}
 
-	pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
+	pkgFilePath := filepath.Join(contentFolderPath, pkgFilename)
 
 	output, err := xml.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return err
 	}
 	// Add the xml header to the output
-	pkgdocFileContent := append([]byte(xml.Header), output...)
+	pkgFileContent := append([]byte(xml.Header), output...)
 	// It's generally nice to have files end with a newline
-	pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+	pkgFileContent = append(pkgFileContent, "\n"...)
 
-	if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+	if err := ioutil.WriteFile(pkgFilePath, []byte(pkgFileContent), filePermissions); err != nil {
 		return err
 	}
 
