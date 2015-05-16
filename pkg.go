@@ -133,6 +133,33 @@ func newPackage() *pkg {
 	return p
 }
 
+func replaceOrAppendMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
+	indexToReplace := -1
+
+	if len(a) > 0 {
+		// If we've already added the modified meta element to the meta array
+		for i, meta := range a {
+			if meta == *m {
+				indexToReplace = i
+				break
+			}
+		}
+	}
+
+	// If the array is empty or the meta element isn't in it
+	if indexToReplace == -1 {
+		// Add the meta element to the array of meta elements
+		a = append(a, *m)
+
+		// If the meta element is found
+	} else {
+		// Replace it
+		a[indexToReplace] = *m
+	}
+
+	return a
+}
+
 func (p *pkg) setAuthor(author string) {
 	p.xml.Metadata.Creator = &pkgCreator{
 		Data: author,
@@ -145,6 +172,8 @@ func (p *pkg) setAuthor(author string) {
 		Refines:  pkgAuthorRefines,
 		Scheme:   pkgAuthorScheme,
 	}
+
+	p.xml.Metadata.Meta = replaceOrAppendMeta(p.xml.Metadata.Meta, p.authorMeta)
 }
 
 func (p *pkg) setLang(lang string) {
@@ -152,26 +181,14 @@ func (p *pkg) setLang(lang string) {
 }
 
 func (p *pkg) setModified(timestamp string) {
-	var indexToReplace int
+	//	var indexToReplace int
 
 	p.modifiedMeta = &pkgMeta{
 		Data:     timestamp,
 		Property: pkgModifiedProperty,
 	}
 
-	if len(p.xml.Metadata.Meta) > 0 {
-		// If we've already added the modified meta element to the meta array
-		for i, meta := range p.xml.Metadata.Meta {
-			if &meta == p.modifiedMeta {
-				indexToReplace = i
-				break
-			}
-		}
-		// Replace it
-		p.xml.Metadata.Meta[indexToReplace] = *p.modifiedMeta
-	} else {
-		p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.modifiedMeta)
-	}
+	p.xml.Metadata.Meta = replaceOrAppendMeta(p.xml.Metadata.Meta, p.modifiedMeta)
 }
 
 func (p *pkg) setTitle(title string) {
@@ -185,10 +202,6 @@ func (p *pkg) setUUID(uuid string) {
 func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
-
-	if p.xml.Metadata.Creator != nil {
-		p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.authorMeta)
-	}
 
 	contentFolderPath := filepath.Join(tempDir, contentFolderName)
 	if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
