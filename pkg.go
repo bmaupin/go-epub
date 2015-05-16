@@ -30,7 +30,12 @@ const (
   </spine>
 </package>
 `
-	pkgFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+	pkgAuthorId       = "role"
+	pkgAuthorData     = "aut"
+	pkgAuthorProperty = "role"
+	pkgAuthorRefines  = "#creator"
+	pkgAuthorScheme   = "marc:relators"
+	pkgFileTemplate   = `<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="pub-id"></dc:identifier>
@@ -50,7 +55,9 @@ const (
 )
 
 type pkg struct {
-	xml *pkgRoot
+	xml          *pkgRoot
+	authorMeta   *pkgMeta
+	modifiedMeta *pkgMeta
 }
 
 type pkgRoot struct {
@@ -79,7 +86,10 @@ type pkgItemref struct {
 }
 
 type pkgMeta struct {
+	Refines  string `xml:"refines,attr,omitempty"`
 	Property string `xml:"property,attr"`
+	Scheme   string `xml:"scheme,attr,omitempty"`
+	Id       string `xml:"id,attr,omitempty"`
 	Data     string `xml:",chardata"`
 }
 
@@ -118,6 +128,13 @@ func newPackage() *pkg {
 
 func (p *pkg) setAuthor(author string) {
 	p.xml.Metadata.Creator = author
+	p.authorMeta = &pkgMeta{
+		Data:     pkgAuthorData,
+		Id:       pkgAuthorId,
+		Property: pkgModifiedProperty,
+		Refines:  pkgAuthorRefines,
+		Scheme:   pkgAuthorScheme,
+	}
 }
 
 func (p *pkg) setLang(lang string) {
@@ -125,12 +142,10 @@ func (p *pkg) setLang(lang string) {
 }
 
 func (p *pkg) setModified(timestamp string) {
-	//	p.Metadata.Meta.Data = timestamp
-	m := pkgMeta{
+	p.modifiedMeta = &pkgMeta{
 		Data:     timestamp,
 		Property: pkgModifiedProperty,
 	}
-	p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, m)
 }
 
 func (p *pkg) setTitle(title string) {
@@ -144,6 +159,11 @@ func (p *pkg) setUUID(uuid string) {
 func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
+
+	if p.xml.Metadata.Creator != "" {
+		p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.authorMeta)
+	}
+	p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.modifiedMeta)
 
 	contentFolderPath := filepath.Join(tempDir, contentFolderName)
 	if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {

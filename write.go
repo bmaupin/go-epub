@@ -71,12 +71,12 @@ func (e *epub) Write(destFilePath string) error {
 
 	// TODO
 
-	output, err := xml.MarshalIndent(e.toc.navXml, "", "  ")
-	output = append([]byte(xhtmlDoctype), output...)
+	//	output, err := xml.MarshalIndent(e.toc.navXml, "", "  ")
+	//	output = append([]byte(xhtmlDoctype), output...)
 
 	//	output, err := xml.MarshalIndent(e.toc.ncxXml, "", "  ")
 
-	//	output, err := xml.MarshalIndent(e.pkg.xml, "", "  ")
+	output, err := xml.MarshalIndent(e.pkg.xml, "", "  ")
 
 	output = append([]byte(xml.Header), output...)
 	fmt.Println(string(output))
