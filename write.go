@@ -2,17 +2,12 @@ package epub
 
 import (
 	"archive/zip"
-	//    "bytes"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"time"
-
-	//    "github.com/satori/go.uuid"
 )
 
 const (
@@ -47,6 +42,11 @@ func (e *epub) Write(destFilePath string) error {
 		log.Fatalf("os.Remove error: %s", err)
 	}
 
+	err = createContentFolders(tempDir)
+	if err != nil {
+		return err
+	}
+
 	err = writeMimetype(tempDir)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
-	err = e.writePkgdocFile(tempDir)
+	err = e.pkgdoc.write(tempDir)
 	if err != nil {
 		return err
 	}
@@ -75,13 +75,17 @@ func (e *epub) Write(destFilePath string) error {
 	return nil
 }
 
-func writeContainerFile(tempDir string) error {
+func createContentFolders(tempDir string) error {
 	metaInfFolderPath := filepath.Join(tempDir, metaInfFolderName)
 	if err := os.Mkdir(metaInfFolderPath, dirPermissions); err != nil {
 		return err
 	}
 
-	containerFilePath := filepath.Join(metaInfFolderPath, containerFilename)
+	return nil
+}
+
+func writeContainerFile(tempDir string) error {
+	containerFilePath := filepath.Join(tempDir, metaInfFolderName, containerFilename)
 	if err := ioutil.WriteFile(
 		containerFilePath,
 		[]byte(
@@ -290,33 +294,6 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 	err = filepath.Walk(tempDir, addFileToZip)
 	if err != nil {
 		log.Fatalf("os.Lstat error: %s", err)
-	}
-
-	return nil
-}
-
-func (e *epub) writePkgdocFile(tempDir string) error {
-	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
-	e.pkgdoc.setModified(now)
-
-	contentFolderPath := filepath.Join(tempDir, contentFolderName)
-	if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
-		return err
-	}
-
-	pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
-
-	output, err := xml.MarshalIndent(e.pkgdoc, "", `   `)
-	if err != nil {
-		return err
-	}
-	// Add the xml header to the output
-	pkgdocFileContent := append([]byte(xml.Header), output...)
-	// It's generally nice to have files end with a newline
-	pkgdocFileContent = append(pkgdocFileContent, "\n"...)
-
-	if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
-		return err
 	}
 
 	return nil

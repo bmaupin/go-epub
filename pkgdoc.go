@@ -115,3 +115,30 @@ func (p *pkgdoc) setTitle(title string) {
 func (p *pkgdoc) setUUID(uuid string) {
 	p.Metadata.Identifier.Data = uuid
 }
+
+func (p *pkgdoc) write(tempDir string) error {
+  now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+  e.pkgdoc.setModified(now)
+
+  contentFolderPath := filepath.Join(tempDir, contentFolderName)
+  if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
+    return err
+  }
+
+  pkgdocFilePath := filepath.Join(contentFolderPath, pkgdocFilename)
+
+  output, err := xml.MarshalIndent(p, "", `   `)
+  if err != nil {
+    return err
+  }
+  // Add the xml header to the output
+  pkgdocFileContent := append([]byte(xml.Header), output...)
+  // It's generally nice to have files end with a newline
+  pkgdocFileContent = append(pkgdocFileContent, "\n"...)
+
+  if err := ioutil.WriteFile(pkgdocFilePath, []byte(pkgdocFileContent), filePermissions); err != nil {
+    return err
+  }
+
+  return nil
+}
