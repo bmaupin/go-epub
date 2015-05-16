@@ -26,8 +26,8 @@ func NewEpub(title string) (*epub, error) {
 	e.SetTitle(title)
 	e.SetUUID(uuid.NewV4().String())
 
-// TODO
-	output, err := xml.MarshalIndent(e.toc.navDoc, "", `   `)
+	// TODO
+	output, err := xml.MarshalIndent(e.toc.navDoc, "", "  ")
 	output = append([]byte(xhtmlDoctype), output...)
 	output = append([]byte(xml.Header), output...)
 	fmt.Println(string(output))

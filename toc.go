@@ -57,7 +57,7 @@ func newToc() (*toc, error) {
 		return t, err
 	}
 
-	navDocBodyContent, err := xml.MarshalIndent(n, "", `   `)
+	navDocBodyContent, err := xml.MarshalIndent(n, "    ", "  ")
 	if err != nil {
 		return t, err
 	}
@@ -74,7 +74,7 @@ func (t *toc) setTitle(title string) {
 func (t *toc) write(tempDir string) error {
 	navDocFilePath := filepath.Join(tempDir, contentFolderName, navDocFilename)
 
-	navDocFileContent, err := xml.MarshalIndent(t.navDoc, "", `   `)
+	navDocFileContent, err := xml.MarshalIndent(t.navDoc, "", "  ")
 	if err != nil {
 		return err
 	}

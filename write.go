@@ -33,9 +33,6 @@ const (
 )
 
 func (e *epub) Write(destFilePath string) error {
-	// Files to include in the built epub
-	//    filesToInclude := []string{}
-
 	tempDir, err := ioutil.TempDir("", tempDirPrefix)
 	defer os.Remove(tempDir)
 	if err != nil {
