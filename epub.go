@@ -1,17 +1,13 @@
 package epub
 
-import (
-	"github.com/satori/go.uuid"
-
-	"encoding/xml"
-	"fmt"
-)
+import "github.com/satori/go.uuid"
 
 const (
 	urnUuid = "urn:uuid:"
 )
 
 type epub struct {
+	author string
 	lang   string
 	pkgdoc *pkgdoc
 	title  string
@@ -33,25 +29,15 @@ func NewEpub(title string) (*epub, error) {
 	e.SetTitle(title)
 	e.SetUUID(urnUuid + uuid.NewV4().String())
 
-	// TODO
-	/*
-		output, err := xml.MarshalIndent(e.toc.navDoc, "", "  ")
-		output = append([]byte(xhtmlDoctype), output...)
-		output = append([]byte(xml.Header), output...)
-		fmt.Println(string(output))
-	*/
-	output, err := xml.MarshalIndent(e.toc.ncxDoc, "", "  ")
-	if err != nil {
-		return e, err
-	}
-	output = append([]byte(xml.Header), output...)
-	fmt.Println(string(output))
-
 	return e, nil
 }
 
 func (e *epub) Lang() string {
 	return e.lang
+}
+
+func (e *epub) SetAuthor(author string) {
+	e.pkgdoc.setAuthor(author)
 }
 
 func (e *epub) SetLang(lang string) {

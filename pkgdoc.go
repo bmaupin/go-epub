@@ -17,6 +17,7 @@ const (
     <dc:identifier id="pub-id">urn:uuid:fe93046f-af57-475a-a0cb-a0d4bc99ba6d</dc:identifier>
     <dc:title>Your title here</dc:title>
     <dc:language>en</dc:language>
+    <meta refines="#creator" property="role" scheme="marc:relators" id="role">aut</meta>
     <meta property="dcterms:modified">2011-01-01T12:00:00Z</meta>
   </metadata>
   <manifest>
@@ -35,7 +36,6 @@ const (
     <dc:identifier id="pub-id"></dc:identifier>
     <dc:title></dc:title>
     <dc:language></dc:language>
-    <meta property="dcterms:modified"></meta>
   </metadata>
   <manifest>
   </manifest>
@@ -46,6 +46,8 @@ const (
 
 	contentUniqueIdentifier = "pub-id"
 	contentXmlnsDc          = "http://purl.org/dc/elements/1.1/"
+
+	pkgdocModifiedProperty = "dcterms:modified"
 )
 
 type pkgdoc struct {
@@ -83,7 +85,8 @@ type pkgdocMetadata struct {
 	Identifier pkgdocIdentifier `xml:"dc:identifier"`
 	Title      string           `xml:"dc:title"`
 	Language   string           `xml:"dc:language"`
-	Meta       pkgdocMeta       `xml:"meta"`
+	Creator    string           `xml:"dc:creator,omitempty"`
+	Meta       []pkgdocMeta     `xml:"meta"`
 }
 
 type pkgdocSpine struct {
@@ -108,12 +111,21 @@ func newPkgdoc() *pkgdoc {
 	return v
 }
 
+func (p *pkgdoc) setAuthor(author string) {
+	p.Metadata.Creator = author
+}
+
 func (p *pkgdoc) setLang(lang string) {
 	p.Metadata.Language = lang
 }
 
 func (p *pkgdoc) setModified(timestamp string) {
-	p.Metadata.Meta.Data = timestamp
+	//	p.Metadata.Meta.Data = timestamp
+	m := pkgdocMeta{
+		Data:     timestamp,
+		Property: pkgdocModifiedProperty,
+	}
+	p.Metadata.Meta = append(p.Metadata.Meta, m)
 }
 
 func (p *pkgdoc) setTitle(title string) {

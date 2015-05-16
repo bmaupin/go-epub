@@ -2,6 +2,7 @@ package epub
 
 import (
 	"archive/zip"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -68,6 +69,19 @@ func (e *epub) Write(destFilePath string) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO
+	/*
+	   output, err := xml.MarshalIndent(e.toc.navDoc, "", "  ")
+	   output = append([]byte(xhtmlDoctype), output...)
+	*/
+	/*
+	   output, err := xml.MarshalIndent(e.toc.ncxDoc, "", "  ")
+	*/
+	output, err := xml.MarshalIndent(e.pkgdoc, "", "  ")
+
+	output = append([]byte(xml.Header), output...)
+	fmt.Println(string(output))
 
 	return nil
 }
