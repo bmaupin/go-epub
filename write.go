@@ -78,7 +78,7 @@ func (e *epub) Write(destFilePath string) error {
 	/*
 	   output, err := xml.MarshalIndent(e.toc.ncxDoc, "", "  ")
 	*/
-	output, err := xml.MarshalIndent(e.pkg, "", "  ")
+	output, err := xml.MarshalIndent(e.pkg.xml, "", "  ")
 
 	output = append([]byte(xml.Header), output...)
 	fmt.Println(string(output))

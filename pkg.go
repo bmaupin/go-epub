@@ -51,6 +51,10 @@ const (
 )
 
 type pkg struct {
+	xml *pkgRoot
+}
+
+type pkgRoot struct {
 	XMLName          xml.Name    `xml:"http://www.idpf.org/2007/opf package"`
 	UniqueIdentifier string      `xml:"unique-identifier,attr"`
 	Version          string      `xml:"version,attr"`
@@ -94,29 +98,31 @@ type pkgSpine struct {
 }
 
 func newPackage() *pkg {
-	v := &pkg{
-		Metadata: pkgMetadata{
-			XmlnsDc: contentXmlnsDc,
-			Identifier: pkgIdentifier{
-				Id: contentUniqueIdentifier,
+	p := &pkg{
+		xml: &pkgRoot{
+			Metadata: pkgMetadata{
+				XmlnsDc: contentXmlnsDc,
+				Identifier: pkgIdentifier{
+					Id: contentUniqueIdentifier,
+				},
 			},
 		},
 	}
 
-	err := xml.Unmarshal([]byte(pkgFileTemplate), &v)
+	err := xml.Unmarshal([]byte(pkgFileTemplate), &p.xml)
 	if err != nil {
 		log.Fatalf("xml.Unmarshal error: %s", err)
 	}
 
-	return v
+	return p
 }
 
 func (p *pkg) setAuthor(author string) {
-	p.Metadata.Creator = author
+	p.xml.Metadata.Creator = author
 }
 
 func (p *pkg) setLang(lang string) {
-	p.Metadata.Language = lang
+	p.xml.Metadata.Language = lang
 }
 
 func (p *pkg) setModified(timestamp string) {
@@ -125,15 +131,15 @@ func (p *pkg) setModified(timestamp string) {
 		Data:     timestamp,
 		Property: pkgModifiedProperty,
 	}
-	p.Metadata.Meta = append(p.Metadata.Meta, m)
+	p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, m)
 }
 
 func (p *pkg) setTitle(title string) {
-	p.Metadata.Title = title
+	p.xml.Metadata.Title = title
 }
 
 func (p *pkg) setUUID(uuid string) {
-	p.Metadata.Identifier.Data = uuid
+	p.xml.Metadata.Identifier.Data = uuid
 }
 
 func (p *pkg) write(tempDir string) error {
@@ -147,7 +153,7 @@ func (p *pkg) write(tempDir string) error {
 
 	pkgFilePath := filepath.Join(contentFolderPath, pkgFilename)
 
-	output, err := xml.MarshalIndent(p, "", "  ")
+	output, err := xml.MarshalIndent(p.xml, "", "  ")
 	if err != nil {
 		return err
 	}
