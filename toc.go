@@ -31,6 +31,11 @@ const (
 </ncx>`
 )
 
+type toc struct {
+	navDoc *xhtml
+	ncxDoc *tocNcx
+}
+
 type tocNav struct {
 	XMLName  xml.Name     `xml:"nav"`
 	EpubType string       `xml:"epub:type,attr"`
@@ -70,16 +75,17 @@ type tocNcxNavPoint struct {
 	Content tocNcxContent `xml:"content"`
 }
 
-type toc struct {
-	navDoc *xhtml
-}
-
 func newToc() (*toc, error) {
 	var err error
 
 	t := &toc{}
 
 	t.navDoc, err = newTocNavDoc()
+	if err != nil {
+		return t, err
+	}
+
+	t.ncxDoc, err = newTocNcxDoc()
 	if err != nil {
 		return t, err
 	}
@@ -112,6 +118,17 @@ func newTocNavDoc() (*xhtml, error) {
 	navDoc.setBody("\n" + string(navDocBodyContent) + "\n")
 
 	return navDoc, nil
+}
+
+func newTocNcxDoc() (*tocNcx, error) {
+	ncxDoc := &tocNcx{}
+
+	err := xml.Unmarshal([]byte(ncxTemplate), &ncxDoc)
+	if err != nil {
+		return ncxDoc, err
+	}
+
+	return ncxDoc, nil
 }
 
 func (t *toc) setTitle(title string) {

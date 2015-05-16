@@ -21,18 +21,29 @@ func NewEpub(title string) (*epub, error) {
 	e := &epub{}
 	e.pkgdoc = newPkgdoc()
 	e.toc, err = newToc()
+	if err != nil {
+		return e, err
+	}
 	// Set minimal required attributes
 	e.SetLang("en")
 	e.SetTitle(title)
 	e.SetUUID(uuid.NewV4().String())
 
 	// TODO
-	output, err := xml.MarshalIndent(e.toc.navDoc, "", "  ")
-	output = append([]byte(xhtmlDoctype), output...)
+	/*
+		output, err := xml.MarshalIndent(e.toc.navDoc, "", "  ")
+		output = append([]byte(xhtmlDoctype), output...)
+		output = append([]byte(xml.Header), output...)
+		fmt.Println(string(output))
+	*/
+	output, err := xml.MarshalIndent(e.toc.ncxDoc, "", "  ")
+	if err != nil {
+		return e, err
+	}
 	output = append([]byte(xml.Header), output...)
 	fmt.Println(string(output))
 
-	return e, err
+	return e, nil
 }
 
 func (e *epub) Lang() string {
