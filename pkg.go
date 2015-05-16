@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"time"
 )
@@ -203,12 +202,7 @@ func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
 
-	contentFolderPath := filepath.Join(tempDir, contentFolderName)
-	if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
-		return err
-	}
-
-	pkgFilePath := filepath.Join(contentFolderPath, pkgFilename)
+	pkgFilePath := filepath.Join(tempDir, contentFolderName, pkgFilename)
 
 	output, err := xml.MarshalIndent(p.xml, "", "  ")
 	if err != nil {

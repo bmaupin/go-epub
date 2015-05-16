@@ -30,6 +30,7 @@ const (
 	mimetypeFilename  = "mimetype"
 	pkgFilename       = "package.opf"
 	tempDirPrefix     = "go-epub"
+	xhtmlFolderName   = "xhtml"
 )
 
 func (e *epub) Write(destFilePath string) error {
@@ -39,7 +40,7 @@ func (e *epub) Write(destFilePath string) error {
 		log.Fatalf("os.Remove error: %s", err)
 	}
 
-	err = createContentFolders(tempDir)
+	err = createEpubFolders(tempDir)
 	if err != nil {
 		return err
 	}
@@ -84,9 +85,32 @@ func (e *epub) Write(destFilePath string) error {
 	return nil
 }
 
-func createContentFolders(tempDir string) error {
-	metaInfFolderPath := filepath.Join(tempDir, metaInfFolderName)
-	if err := os.Mkdir(metaInfFolderPath, dirPermissions); err != nil {
+func createEpubFolders(tempDir string) error {
+	if err := os.Mkdir(
+		filepath.Join(
+			tempDir,
+			contentFolderName,
+		),
+		dirPermissions); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(
+		filepath.Join(
+			tempDir,
+			contentFolderName,
+			xhtmlFolderName,
+		),
+		dirPermissions); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(
+		filepath.Join(
+			tempDir,
+			metaInfFolderName,
+		),
+		dirPermissions); err != nil {
 		return err
 	}
 
