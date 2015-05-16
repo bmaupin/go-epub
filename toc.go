@@ -16,9 +16,9 @@ const (
 `
 	navDocFilename = "nav.xhtml"
 	navDocEpubType = "toc"
-	xmlnsEpub      = "http://www.idpf.org/2007/ops"
 
-	ncxTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+	ncxDocFilename = "toc.ncx"
+	ncxDocTemplate = `
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
     <meta name="dtb:uid" content="" />
@@ -29,6 +29,8 @@ const (
   <navMap>
   </navMap>
 </ncx>`
+
+	xmlnsEpub = "http://www.idpf.org/2007/ops"
 )
 
 type toc struct {
@@ -123,7 +125,7 @@ func newTocNavDoc() (*xhtml, error) {
 func newTocNcxDoc() (*tocNcx, error) {
 	ncxDoc := &tocNcx{}
 
-	err := xml.Unmarshal([]byte(ncxTemplate), &ncxDoc)
+	err := xml.Unmarshal([]byte(ncxDocTemplate), &ncxDoc)
 	if err != nil {
 		return ncxDoc, err
 	}
@@ -133,9 +135,27 @@ func newTocNcxDoc() (*tocNcx, error) {
 
 func (t *toc) setTitle(title string) {
 	t.navDoc.setTitle(title)
+	t.ncxDoc.Title = title
+}
+
+func (t *toc) setUUID(uuid string) {
+	t.ncxDoc.Meta.Content = uuid
 }
 
 func (t *toc) write(tempDir string) error {
+	err := t.writeNavDoc(tempDir)
+	if err != nil {
+		return err
+	}
+	err = t.writeNcxDoc(tempDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *toc) writeNavDoc(tempDir string) error {
 	navDocFilePath := filepath.Join(tempDir, contentFolderName, navDocFilename)
 
 	navDocFileContent, err := xml.MarshalIndent(t.navDoc, "", "  ")
@@ -150,6 +170,25 @@ func (t *toc) write(tempDir string) error {
 	navDocFileContent = append(navDocFileContent, "\n"...)
 
 	if err := ioutil.WriteFile(navDocFilePath, []byte(navDocFileContent), filePermissions); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *toc) writeNcxDoc(tempDir string) error {
+	ncxDocFilePath := filepath.Join(tempDir, contentFolderName, ncxDocFilename)
+
+	ncxDocFileContent, err := xml.MarshalIndent(t.ncxDoc, "", "  ")
+	if err != nil {
+		return err
+	}
+	// Add the xml header to the output
+	ncxDocFileContent = append([]byte(xml.Header), ncxDocFileContent...)
+	// It's generally nice to have files end with a newline
+	ncxDocFileContent = append(ncxDocFileContent, "\n"...)
+
+	if err := ioutil.WriteFile(ncxDocFilePath, []byte(ncxDocFileContent), filePermissions); err != nil {
 		return err
 	}
 

@@ -7,6 +7,10 @@ import (
 	"fmt"
 )
 
+const (
+	urnUuid = "urn:uuid:"
+)
+
 type epub struct {
 	lang   string
 	pkgdoc *pkgdoc
@@ -27,7 +31,7 @@ func NewEpub(title string) (*epub, error) {
 	// Set minimal required attributes
 	e.SetLang("en")
 	e.SetTitle(title)
-	e.SetUUID(uuid.NewV4().String())
+	e.SetUUID(urnUuid + uuid.NewV4().String())
 
 	// TODO
 	/*
@@ -64,6 +68,7 @@ func (e *epub) SetTitle(title string) {
 func (e *epub) SetUUID(uuid string) {
 	e.uuid = uuid
 	e.pkgdoc.setUUID(uuid)
+	e.toc.setUUID(uuid)
 }
 
 func (e *epub) Title() string {
