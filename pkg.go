@@ -35,6 +35,7 @@ const (
 	pkgAuthorProperty = "role"
 	pkgAuthorRefines  = "#creator"
 	pkgAuthorScheme   = "marc:relators"
+	pkgCreatorId      = "creator"
 	pkgFileTemplate   = `<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -69,6 +70,12 @@ type pkgRoot struct {
 	Spine            pkgSpine    `xml:"spine"`
 }
 
+type pkgCreator struct {
+	XMLName xml.Name `xml:"dc:creator"`
+	Id      string   `xml:"id,attr"`
+	Data    string   `xml:",chardata"`
+}
+
 type pkgIdentifier struct {
 	Id   string `xml:"id,attr"`
 	Data string `xml:",chardata"`
@@ -98,8 +105,8 @@ type pkgMetadata struct {
 	Identifier pkgIdentifier `xml:"dc:identifier"`
 	Title      string        `xml:"dc:title"`
 	Language   string        `xml:"dc:language"`
-	Creator    string        `xml:"dc:creator,omitempty"`
-	Meta       []pkgMeta     `xml:"meta"`
+	Creator    *pkgCreator
+	Meta       []pkgMeta `xml:"meta"`
 }
 
 type pkgSpine struct {
@@ -127,11 +134,14 @@ func newPackage() *pkg {
 }
 
 func (p *pkg) setAuthor(author string) {
-	p.xml.Metadata.Creator = author
+	p.xml.Metadata.Creator = &pkgCreator{
+		Data: author,
+		Id:   pkgCreatorId,
+	}
 	p.authorMeta = &pkgMeta{
 		Data:     pkgAuthorData,
 		Id:       pkgAuthorId,
-		Property: pkgModifiedProperty,
+		Property: pkgAuthorProperty,
 		Refines:  pkgAuthorRefines,
 		Scheme:   pkgAuthorScheme,
 	}
@@ -160,7 +170,7 @@ func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
 
-	if p.xml.Metadata.Creator != "" {
+	if p.xml.Metadata.Creator != nil {
 		p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.authorMeta)
 	}
 	p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.modifiedMeta)
