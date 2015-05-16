@@ -133,7 +133,46 @@ func newPackage() *pkg {
 	return p
 }
 
-func replaceOrAppendMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
+func (p *pkg) setAuthor(author string) {
+	p.xml.Metadata.Creator = &pkgCreator{
+		Data: author,
+		Id:   pkgCreatorId,
+	}
+	p.authorMeta = &pkgMeta{
+		Data:     pkgAuthorData,
+		Id:       pkgAuthorId,
+		Property: pkgAuthorProperty,
+		Refines:  pkgAuthorRefines,
+		Scheme:   pkgAuthorScheme,
+	}
+
+	p.xml.Metadata.Meta = updateMeta(p.xml.Metadata.Meta, p.authorMeta)
+}
+
+func (p *pkg) setLang(lang string) {
+	p.xml.Metadata.Language = lang
+}
+
+func (p *pkg) setModified(timestamp string) {
+	//	var indexToReplace int
+
+	p.modifiedMeta = &pkgMeta{
+		Data:     timestamp,
+		Property: pkgModifiedProperty,
+	}
+
+	p.xml.Metadata.Meta = updateMeta(p.xml.Metadata.Meta, p.modifiedMeta)
+}
+
+func (p *pkg) setTitle(title string) {
+	p.xml.Metadata.Title = title
+}
+
+func (p *pkg) setUUID(uuid string) {
+	p.xml.Metadata.Identifier.Data = uuid
+}
+
+func updateMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
 	indexToReplace := -1
 
 	if len(a) > 0 {
@@ -158,45 +197,6 @@ func replaceOrAppendMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
 	}
 
 	return a
-}
-
-func (p *pkg) setAuthor(author string) {
-	p.xml.Metadata.Creator = &pkgCreator{
-		Data: author,
-		Id:   pkgCreatorId,
-	}
-	p.authorMeta = &pkgMeta{
-		Data:     pkgAuthorData,
-		Id:       pkgAuthorId,
-		Property: pkgAuthorProperty,
-		Refines:  pkgAuthorRefines,
-		Scheme:   pkgAuthorScheme,
-	}
-
-	p.xml.Metadata.Meta = replaceOrAppendMeta(p.xml.Metadata.Meta, p.authorMeta)
-}
-
-func (p *pkg) setLang(lang string) {
-	p.xml.Metadata.Language = lang
-}
-
-func (p *pkg) setModified(timestamp string) {
-	//	var indexToReplace int
-
-	p.modifiedMeta = &pkgMeta{
-		Data:     timestamp,
-		Property: pkgModifiedProperty,
-	}
-
-	p.xml.Metadata.Meta = replaceOrAppendMeta(p.xml.Metadata.Meta, p.modifiedMeta)
-}
-
-func (p *pkg) setTitle(title string) {
-	p.xml.Metadata.Title = title
-}
-
-func (p *pkg) setUUID(uuid string) {
-	p.xml.Metadata.Identifier.Data = uuid
 }
 
 func (p *pkg) write(tempDir string) error {
