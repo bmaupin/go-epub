@@ -48,46 +48,46 @@ const (
 	contentXmlnsDc          = "http://purl.org/dc/elements/1.1/"
 )
 
-type itemref struct {
-	Idref string `xml:"idref,attr"`
+type pkgdoc struct {
+	XMLName          xml.Name       `xml:"http://www.idpf.org/2007/opf package"`
+	UniqueIdentifier string         `xml:"unique-identifier,attr"`
+	Version          string         `xml:"version,attr"`
+	Metadata         pkgdocMetadata `xml:"metadata"`
+	Item             []pkgdocItem   `xml:"manifest>item"`
+	Spine            pkgdocSpine    `xml:"spine"`
 }
 
-type spine struct {
-	Itemref []itemref `xml:"itemref"`
+type pkgdocIdentifier struct {
+	Id   string `xml:"id,attr"`
+	Data string `xml:",chardata"`
 }
 
-type item struct {
+type pkgdocItem struct {
 	Href       string `xml:"href,attr"`
 	Id         string `xml:"id,attr"`
 	MediaType  string `xml:"media-type,attr"`
 	Properties string `xml:"properties,attr"`
 }
 
-type meta struct {
+type pkgdocItemref struct {
+	Idref string `xml:"idref,attr"`
+}
+
+type pkgdocMeta struct {
 	Property string `xml:"property,attr"`
 	Data     string `xml:",chardata"`
 }
 
-type identifier struct {
-	Id   string `xml:"id,attr"`
-	Data string `xml:",chardata"`
+type pkgdocMetadata struct {
+	XmlnsDc    string           `xml:"xmlns:dc,attr"`
+	Identifier pkgdocIdentifier `xml:"dc:identifier"`
+	Title      string           `xml:"dc:title"`
+	Language   string           `xml:"dc:language"`
+	Meta       pkgdocMeta       `xml:"meta"`
 }
 
-type metadata struct {
-	XmlnsDc    string     `xml:"xmlns:dc,attr"`
-	Identifier identifier `xml:"dc:identifier"`
-	Title      string     `xml:"dc:title"`
-	Language   string     `xml:"dc:language"`
-	Meta       meta       `xml:"meta"`
-}
-
-type pkgdoc struct {
-	XMLName          xml.Name `xml:"http://www.idpf.org/2007/opf package"`
-	UniqueIdentifier string   `xml:"unique-identifier,attr"`
-	Version          string   `xml:"version,attr"`
-	Metadata         metadata `xml:"metadata"`
-	Item             []item   `xml:"manifest>item"`
-	Spine            spine    `xml:"spine"`
+type pkgdocSpine struct {
+	Itemref []pkgdocItemref `xml:"itemref"`
 }
 
 func newPkgdoc() *pkgdoc {

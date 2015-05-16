@@ -19,19 +19,19 @@ const (
 	xmlnsEpub      = "http://www.idpf.org/2007/ops"
 )
 
-type tocXmlNavLink struct {
+type tocNav struct {
+	XMLName  xml.Name     `xml:"nav"`
+	EpubType string       `xml:"epub:type,attr"`
+	H1       string       `xml:"h1"`
+	Links    []tocNavLink `xml:"ol>li"`
+}
+
+type tocNavLink struct {
 	A struct {
 		XMLName xml.Name `xml:"a"`
 		Href    string   `xml:"href,attr"`
 		Data    string   `xml:",chardata"`
 	} `xml:a`
-}
-
-type tocXmlNav struct {
-	XMLName  xml.Name        `xml:"nav"`
-	EpubType string          `xml:"epub:type,attr"`
-	H1       string          `xml:"h1"`
-	Links    []tocXmlNavLink `xml:"ol>li"`
 }
 
 type toc struct {
@@ -49,7 +49,7 @@ func newToc() (*toc, error) {
 
 	t.navDoc.XmlnsEpub = xmlnsEpub
 
-	n := &tocXmlNav{
+	n := &tocNav{
 		EpubType: navDocEpubType,
 	}
 	err = xml.Unmarshal([]byte(navDocBodyTemplate), &n)
