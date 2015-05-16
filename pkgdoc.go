@@ -91,15 +91,19 @@ type pkgdocSpine struct {
 }
 
 func newPkgdoc() *pkgdoc {
-	v := &pkgdoc{}
+	v := &pkgdoc{
+		Metadata: pkgdocMetadata{
+			XmlnsDc: contentXmlnsDc,
+			Identifier: pkgdocIdentifier{
+				Id: contentUniqueIdentifier,
+			},
+		},
+	}
 
 	err := xml.Unmarshal([]byte(packageFileTemplate), &v)
 	if err != nil {
 		log.Fatalf("xml.Unmarshal error: %s", err)
 	}
-
-	v.Metadata.XmlnsDc = contentXmlnsDc
-	v.Metadata.Identifier.Id = contentUniqueIdentifier
 
 	return v
 }

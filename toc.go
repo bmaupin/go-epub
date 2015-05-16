@@ -41,13 +41,13 @@ type toc struct {
 func newToc() (*toc, error) {
 	t := &toc{}
 
-	t.navDoc = &xhtml{}
+	t.navDoc = &xhtml{
+		XmlnsEpub: xmlnsEpub,
+	}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &t.navDoc)
 	if err != nil {
 		return t, err
 	}
-
-	t.navDoc.XmlnsEpub = xmlnsEpub
 
 	n := &tocNav{
 		EpubType: navDocEpubType,
