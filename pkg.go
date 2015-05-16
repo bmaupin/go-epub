@@ -152,9 +152,25 @@ func (p *pkg) setLang(lang string) {
 }
 
 func (p *pkg) setModified(timestamp string) {
+	var indexToReplace int
+
 	p.modifiedMeta = &pkgMeta{
 		Data:     timestamp,
 		Property: pkgModifiedProperty,
+	}
+
+	if len(p.xml.Metadata.Meta) > 0 {
+		// If we've already added the modified meta element to the meta array
+		for i, meta := range p.xml.Metadata.Meta {
+			if &meta == p.modifiedMeta {
+				indexToReplace = i
+				break
+			}
+		}
+		// Replace it
+		p.xml.Metadata.Meta[indexToReplace] = *p.modifiedMeta
+	} else {
+		p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.modifiedMeta)
 	}
 }
 
@@ -173,7 +189,6 @@ func (p *pkg) write(tempDir string) error {
 	if p.xml.Metadata.Creator != nil {
 		p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.authorMeta)
 	}
-	p.xml.Metadata.Meta = append(p.xml.Metadata.Meta, *p.modifiedMeta)
 
 	contentFolderPath := filepath.Join(tempDir, contentFolderName)
 	if err := os.Mkdir(contentFolderPath, dirPermissions); err != nil {
