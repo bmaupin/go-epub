@@ -17,6 +17,18 @@ const (
 	navDocFilename = "nav.xhtml"
 	navDocEpubType = "toc"
 	xmlnsEpub      = "http://www.idpf.org/2007/ops"
+
+	ncxTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="dtb:uid" content="" />
+  </head>
+  <docTitle>
+    <text></text>
+  </docTitle>
+  <navMap>
+  </navMap>
+</ncx>`
 )
 
 type tocNav struct {
@@ -34,19 +46,54 @@ type tocNavLink struct {
 	} `xml:a`
 }
 
+type tocNcx struct {
+	XMLName xml.Name         `xml:"http://www.daisy.org/z3986/2005/ncx/ ncx"`
+	Version string           `xml:"version,attr"`
+	Meta    tocNcxMeta       `xml:"head>meta"`
+	Title   string           `xml:"docTitle>text"`
+	NavMap  []tocNcxNavPoint `xml:"navMap>navPoint"`
+}
+
+type tocNcxContent struct {
+	Src string `xml:"src,attr"`
+}
+
+type tocNcxMeta struct {
+	Name    string `xml:"name,attr"`
+	Content string `xml:"content,attr"`
+}
+
+type tocNcxNavPoint struct {
+	XMLName xml.Name      `xml:"navPoint"`
+	Id      string        `xml:"id,attr"`
+	Text    string        `xml:"navLabel>text"`
+	Content tocNcxContent `xml:"content"`
+}
+
 type toc struct {
 	navDoc *xhtml
 }
 
 func newToc() (*toc, error) {
+	var err error
+
 	t := &toc{}
 
-	t.navDoc = &xhtml{
-		XmlnsEpub: xmlnsEpub,
-	}
-	err := xml.Unmarshal([]byte(xhtmlTemplate), &t.navDoc)
+	t.navDoc, err = newTocNavDoc()
 	if err != nil {
 		return t, err
+	}
+
+	return t, nil
+}
+
+func newTocNavDoc() (*xhtml, error) {
+	navDoc := &xhtml{
+		XmlnsEpub: xmlnsEpub,
+	}
+	err := xml.Unmarshal([]byte(xhtmlTemplate), &navDoc)
+	if err != nil {
+		return navDoc, err
 	}
 
 	n := &tocNav{
@@ -54,17 +101,17 @@ func newToc() (*toc, error) {
 	}
 	err = xml.Unmarshal([]byte(navDocBodyTemplate), &n)
 	if err != nil {
-		return t, err
+		return navDoc, err
 	}
 
 	navDocBodyContent, err := xml.MarshalIndent(n, "    ", "  ")
 	if err != nil {
-		return t, err
+		return navDoc, err
 	}
 
-	t.navDoc.setBody("\n" + string(navDocBodyContent) + "\n")
+	navDoc.setBody("\n" + string(navDocBodyContent) + "\n")
 
-	return t, nil
+	return navDoc, nil
 }
 
 func (t *toc) setTitle(title string) {
