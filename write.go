@@ -30,7 +30,6 @@ const (
 	mimetypeFilename  = "mimetype"
 	pkgFilename       = "package.opf"
 	tempDirPrefix     = "go-epub"
-	tocFilename       = "toc.ncx"
 )
 
 func (e *epub) Write(destFilePath string) error {

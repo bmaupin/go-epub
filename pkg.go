@@ -43,11 +43,10 @@ const (
   </spine>
 </package>
 `
-
-	contentUniqueIdentifier = "pub-id"
-	contentXmlnsDc          = "http://purl.org/dc/elements/1.1/"
-
 	pkgModifiedProperty = "dcterms:modified"
+	pkgUniqueIdentifier = "pub-id"
+
+	xmlnsDc = "http://purl.org/dc/elements/1.1/"
 )
 
 type pkg struct {
@@ -101,9 +100,9 @@ func newPackage() *pkg {
 	p := &pkg{
 		xml: &pkgRoot{
 			Metadata: pkgMetadata{
-				XmlnsDc: contentXmlnsDc,
+				XmlnsDc: xmlnsDc,
 				Identifier: pkgIdentifier{
-					Id: contentUniqueIdentifier,
+					Id: pkgUniqueIdentifier,
 				},
 			},
 		},
