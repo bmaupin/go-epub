@@ -32,11 +32,16 @@ func NewEpub(title string) (*epub, error) {
 	return e, nil
 }
 
+func (e *epub) Author() string {
+	return e.author
+}
+
 func (e *epub) Lang() string {
 	return e.lang
 }
 
 func (e *epub) SetAuthor(author string) {
+	e.author = author
 	e.pkg.setAuthor(author)
 }
 
