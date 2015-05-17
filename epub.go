@@ -10,9 +10,10 @@ type epub struct {
 	author string
 	lang   string
 	pkg    *pkg
-	title  string
-	toc    *toc
-	uuid   string
+	//	sections []section
+	title string
+	toc   *toc
+	uuid  string
 }
 
 func NewEpub(title string) (*epub, error) {

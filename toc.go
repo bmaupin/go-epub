@@ -34,7 +34,7 @@ const (
 )
 
 type toc struct {
-	navXml *xhtmlRoot
+	navDoc *xhtml
 	ncxXml *tocNcxRoot
 }
 
@@ -82,7 +82,7 @@ func newToc() (*toc, error) {
 
 	t := &toc{}
 
-	t.navXml, err = newTocNavXml()
+	t.navDoc, err = newTocNavDoc()
 	if err != nil {
 		return t, err
 	}
@@ -95,6 +95,28 @@ func newToc() (*toc, error) {
 	return t, nil
 }
 
+func newTocNavDoc() (*xhtml, error) {
+	var err error
+
+	b := &tocNavBody{
+		EpubType: tocNavEpubType,
+	}
+	err = xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
+	if err != nil {
+		return nil, err
+	}
+
+	navBodyContent, err := xml.MarshalIndent(b, "    ", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	n, err := newXhtml("", string(navBodyContent))
+
+	return n, err
+}
+
+/*
 func newTocNavXml() (*xhtmlRoot, error) {
 	n := &xhtmlRoot{
 		XmlnsEpub: xmlnsEpub,
@@ -121,6 +143,7 @@ func newTocNavXml() (*xhtmlRoot, error) {
 
 	return n, nil
 }
+*/
 
 func newTocNcxXml() (*tocNcxRoot, error) {
 	n := &tocNcxRoot{}
@@ -134,7 +157,7 @@ func newTocNcxXml() (*tocNcxRoot, error) {
 }
 
 func (t *toc) setTitle(title string) {
-	t.navXml.setTitle(title)
+	t.navDoc.setTitle(title)
 	t.ncxXml.Title = title
 }
 
@@ -158,7 +181,7 @@ func (t *toc) write(tempDir string) error {
 func (t *toc) writeNavDoc(tempDir string) error {
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
 
-	navFileContent, err := xml.MarshalIndent(t.navXml, "", "  ")
+	navFileContent, err := xml.MarshalIndent(t.navDoc.xml, "", "  ")
 	if err != nil {
 		return err
 	}
