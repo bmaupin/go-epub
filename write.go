@@ -29,6 +29,7 @@ const (
 	mimetypeContent   = "application/epub+zip"
 	mimetypeFilename  = "mimetype"
 	pkgFilename       = "package.opf"
+	sectionFileFormat = "section%04d.xhtml"
 	tempDirPrefix     = "go-epub"
 	xhtmlFolderName   = "xhtml"
 )
@@ -61,6 +62,11 @@ func (e *epub) Write(destFilePath string) error {
 	}
 
 	err = e.toc.write(tempDir)
+	if err != nil {
+		return err
+	}
+
+	err = e.writeSections(tempDir)
 	if err != nil {
 		return err
 	}
@@ -243,6 +249,19 @@ func writeMimetype(tempDir string) error {
 
 	if err := ioutil.WriteFile(mimetypeFilePath, []byte(mimetypeContent), filePermissions); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (e *epub) writeSections(tempDir string) error {
+	for i, section := range e.sections {
+		sectionFilename := fmt.Sprintf(sectionFileFormat, i+1)
+		sectionFilePath := filepath.Join(tempDir, contentFolderName, sectionFilename)
+
+		if err := section.write(sectionFilePath); err != nil {
+			return err
+		}
 	}
 
 	return nil

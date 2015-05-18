@@ -11,9 +11,10 @@ type epub struct {
 	lang   string
 	pkg    *pkg
 	//	sections []section
-	title string
-	toc   *toc
-	uuid  string
+	sections []xhtml
+	title    string
+	toc      *toc
+	uuid     string
 }
 
 func NewEpub(title string) (*epub, error) {
@@ -31,6 +32,18 @@ func NewEpub(title string) (*epub, error) {
 	e.SetUUID(urnUuid + uuid.NewV4().String())
 
 	return e, nil
+}
+
+func (e *epub) AddSection(title string, content string) error {
+	x, err := newXhtml(content)
+	if err != nil {
+		return err
+	}
+	x.setTitle(title)
+
+	e.sections = append(e.sections, *x)
+
+	return nil
 }
 
 func (e *epub) Author() string {

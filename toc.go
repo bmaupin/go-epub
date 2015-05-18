@@ -145,7 +145,7 @@ func (t *toc) write(tempDir string) error {
 		return err
 	}
 
-	err = t.writeNcxDoc(tempDir)
+	err := t.writeNcxDoc(tempDir)
 	if err != nil {
 		return err
 	}
