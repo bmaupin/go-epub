@@ -257,7 +257,7 @@ func writeMimetype(tempDir string) error {
 func (e *epub) writeSections(tempDir string) error {
 	for i, section := range e.sections {
 		sectionFilename := fmt.Sprintf(sectionFileFormat, i+1)
-		sectionFilePath := filepath.Join(tempDir, contentFolderName, sectionFilename)
+		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
 
 		if err := section.write(sectionFilePath); err != nil {
 			return err
