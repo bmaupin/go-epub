@@ -97,53 +97,27 @@ func newToc() (*toc, error) {
 
 func newTocNavDoc() (*xhtml, error) {
 	var err error
+	var n *xhtml
 
 	b := &tocNavBody{
 		EpubType: tocNavEpubType,
 	}
 	err = xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
 	if err != nil {
-		return nil, err
+		return n, err
 	}
 
 	navBodyContent, err := xml.MarshalIndent(b, "    ", "  ")
 	if err != nil {
-		return nil, err
+		return n, err
 	}
 
-	n, err := newXhtml("", string(navBodyContent))
+	n, err = newXhtml(string(navBodyContent))
+
+	n.setXmlnsEpub(xmlnsEpub)
 
 	return n, err
 }
-
-/*
-func newTocNavXml() (*xhtmlRoot, error) {
-	n := &xhtmlRoot{
-		XmlnsEpub: xmlnsEpub,
-	}
-	err := xml.Unmarshal([]byte(xhtmlTemplate), &n)
-	if err != nil {
-		return n, err
-	}
-
-	b := &tocNavBody{
-		EpubType: tocNavEpubType,
-	}
-	err = xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
-	if err != nil {
-		return n, err
-	}
-
-	navBodyContent, err := xml.MarshalIndent(b, "    ", "  ")
-	if err != nil {
-		return n, err
-	}
-
-	n.setBody("\n" + string(navBodyContent) + "\n")
-
-	return n, nil
-}
-*/
 
 func newTocNcxXml() (*tocNcxRoot, error) {
 	n := &tocNcxRoot{}

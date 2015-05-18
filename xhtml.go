@@ -33,36 +33,24 @@ type xhtmlInnerxml struct {
 	XML string `xml:",innerxml"`
 }
 
-func (x *xhtml) setBody(body string) {
-	x.xml.Body.XML = body
-}
+func newXhtml(content string) (*xhtml, error) {
+	var x *xhtml
 
-func (x *xhtml) setTitle(title string) {
-	x.xml.Title = title
-}
-
-func newXhtml(title string, content string) (*xhtml, error) {
-	r, err := newXhtmlRoot(content)
-	if err != nil {
-		return nil, err
-	}
-
-	x := &xhtml{
-		xml: r,
-	}
-
-	xhtmlBodyContent, err := xml.MarshalIndent(content, "    ", "  ")
+	r, err := newXhtmlRoot()
 	if err != nil {
 		return x, err
 	}
 
-	x.setBody("\n" + string(xhtmlBodyContent) + "\n")
-	x.setTitle(title)
+	x = &xhtml{
+		xml: r,
+	}
+
+	x.setBody(content)
 
 	return x, nil
 }
 
-func newXhtmlRoot(content string) (*xhtmlRoot, error) {
+func newXhtmlRoot() (*xhtmlRoot, error) {
 	r := &xhtmlRoot{}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &r)
 	if err != nil {
@@ -70,4 +58,16 @@ func newXhtmlRoot(content string) (*xhtmlRoot, error) {
 	}
 
 	return r, nil
+}
+
+func (x *xhtml) setBody(body string) {
+	x.xml.Body.XML = "\n" + body + "\n"
+}
+
+func (x *xhtml) setTitle(title string) {
+	x.xml.Title = title
+}
+
+func (x *xhtml) setXmlnsEpub(xmlns string) {
+	x.xml.XmlnsEpub = xmlns
 }
