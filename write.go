@@ -51,6 +51,11 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
+	err = e.writeSections(tempDir)
+	if err != nil {
+		return err
+	}
+
 	err = writeContainerFile(tempDir)
 	if err != nil {
 		return err
@@ -66,11 +71,6 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
-	err = e.writeSections(tempDir)
-	if err != nil {
-		return err
-	}
-
 	err = e.writeEpub(tempDir, destFilePath)
 	if err != nil {
 		return err
@@ -78,10 +78,10 @@ func (e *epub) Write(destFilePath string) error {
 
 	// TODO
 
-	output, err := xml.MarshalIndent(e.toc.navDoc.xml, "", "  ")
-	output = append([]byte(xhtmlDoctype), output...)
+	//	output, err := xml.MarshalIndent(e.toc.navDoc.xml, "", "  ")
+	//	output = append([]byte(xhtmlDoctype), output...)
 
-	//	output, err := xml.MarshalIndent(e.toc.ncxXml, "", "  ")
+	output, err := xml.MarshalIndent(e.toc.ncxXml, "", "  ")
 
 	//	output, err := xml.MarshalIndent(e.pkg.xml, "", "  ")
 
@@ -256,12 +256,16 @@ func writeMimetype(tempDir string) error {
 
 func (e *epub) writeSections(tempDir string) error {
 	for i, section := range e.sections {
-		sectionFilename := fmt.Sprintf(sectionFileFormat, i+1)
+		sectionIndex := i + 1
+		sectionFilename := fmt.Sprintf(sectionFileFormat, sectionIndex)
 		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
 
 		if err := section.write(sectionFilePath); err != nil {
 			return err
 		}
+
+		relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
+		e.toc.addSection(sectionIndex, section.Title(), relativePath)
 	}
 
 	return nil

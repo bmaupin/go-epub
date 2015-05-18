@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
 )
 
 const (
@@ -130,6 +131,17 @@ func newTocNcxXml() (*tocNcxRoot, error) {
 	return n, nil
 }
 
+func (t *toc) addSection(index int, title string, relativePath string) {
+	np := &tocNcxNavPoint{
+		Id:   "navPoint-" + strconv.Itoa(index),
+		Text: title,
+		Content: tocNcxContent{
+			Src: relativePath,
+		},
+	}
+	t.ncxXml.NavMap = append(t.ncxXml.NavMap, *np)
+}
+
 func (t *toc) setTitle(title string) {
 	t.navDoc.setTitle(title)
 	t.ncxXml.Title = title
@@ -160,6 +172,7 @@ func (t *toc) writeNcxDoc(tempDir string) error {
 	if err != nil {
 		return err
 	}
+
 	// Add the xml header to the output
 	ncxFileContent = append([]byte(xml.Header), ncxFileContent...)
 	// It's generally nice to have files end with a newline

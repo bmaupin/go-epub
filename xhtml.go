@@ -67,10 +67,15 @@ func (x *xhtml) setBody(body string) {
 
 func (x *xhtml) setTitle(title string) {
 	x.xml.Title = title
+
 }
 
 func (x *xhtml) setXmlnsEpub(xmlns string) {
 	x.xml.XmlnsEpub = xmlns
+}
+
+func (x *xhtml) Title() string {
+	return x.xml.Title
 }
 
 func (x *xhtml) write(xhtmlFilePath string) error {
