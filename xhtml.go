@@ -2,6 +2,7 @@ package epub
 
 import (
 	"encoding/xml"
+	"io/ioutil"
 )
 
 const (
@@ -70,4 +71,23 @@ func (x *xhtml) setTitle(title string) {
 
 func (x *xhtml) setXmlnsEpub(xmlns string) {
 	x.xml.XmlnsEpub = xmlns
+}
+
+func (x *xhtml) write(xhtmlFilePath string) error {
+	xhtmlFileContent, err := xml.MarshalIndent(x.xml, "", "  ")
+	if err != nil {
+		return err
+	}
+	// Add the doctype declaration to the output
+	xhtmlFileContent = append([]byte(xhtmlDoctype), xhtmlFileContent...)
+	// Add the xml header to the output
+	xhtmlFileContent = append([]byte(xml.Header), xhtmlFileContent...)
+	// It's generally nice to have files end with a newline
+	xhtmlFileContent = append(xhtmlFileContent, "\n"...)
+
+	if err := ioutil.WriteFile(xhtmlFilePath, []byte(xhtmlFileContent), filePermissions); err != nil {
+		return err
+	}
+
+	return nil
 }

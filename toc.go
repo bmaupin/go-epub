@@ -140,33 +140,13 @@ func (t *toc) setUUID(uuid string) {
 }
 
 func (t *toc) write(tempDir string) error {
-	err := t.writeNavDoc(tempDir)
-	if err != nil {
+	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
+	if err := t.navDoc.write(navFilePath); err != nil {
 		return err
 	}
+
 	err = t.writeNcxDoc(tempDir)
 	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (t *toc) writeNavDoc(tempDir string) error {
-	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
-
-	navFileContent, err := xml.MarshalIndent(t.navDoc.xml, "", "  ")
-	if err != nil {
-		return err
-	}
-	// Add the doctype declaration to the output
-	navFileContent = append([]byte(xhtmlDoctype), navFileContent...)
-	// Add the xml header to the output
-	navFileContent = append([]byte(xml.Header), navFileContent...)
-	// It's generally nice to have files end with a newline
-	navFileContent = append(navFileContent, "\n"...)
-
-	if err := ioutil.WriteFile(navFilePath, []byte(navFileContent), filePermissions); err != nil {
 		return err
 	}
 
