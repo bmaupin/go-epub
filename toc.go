@@ -35,7 +35,7 @@ const (
 )
 
 type toc struct {
-	navDoc *xhtml
+	navXml *tocNavBody
 	ncxXml *tocNcxRoot
 }
 
@@ -43,15 +43,17 @@ type tocNavBody struct {
 	XMLName  xml.Name     `xml:"nav"`
 	EpubType string       `xml:"epub:type,attr"`
 	H1       string       `xml:"h1"`
-	Links    []tocNavLink `xml:"ol>li"`
+	Links    []tocNavItem `xml:"ol>li"`
+}
+
+type tocNavItem struct {
+	A tocNavLink `xml:a`
 }
 
 type tocNavLink struct {
-	A struct {
-		XMLName xml.Name `xml:"a"`
-		Href    string   `xml:"href,attr"`
-		Data    string   `xml:",chardata"`
-	} `xml:a`
+	XMLName xml.Name `xml:"a"`
+	Href    string   `xml:"href,attr"`
+	Data    string   `xml:",chardata"`
 }
 
 type tocNcxRoot struct {
@@ -83,7 +85,7 @@ func newToc() (*toc, error) {
 
 	t := &toc{}
 
-	t.navDoc, err = newTocNavDoc()
+	t.navXml, err = newTocNavXml()
 	if err != nil {
 		return t, err
 	}
@@ -96,28 +98,16 @@ func newToc() (*toc, error) {
 	return t, nil
 }
 
-func newTocNavDoc() (*xhtml, error) {
-	var err error
-	var n *xhtml
-
+func newTocNavXml() (*tocNavBody, error) {
 	b := &tocNavBody{
 		EpubType: tocNavEpubType,
 	}
-	err = xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
+	err := xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
 	if err != nil {
-		return n, err
+		return b, err
 	}
 
-	navBodyContent, err := xml.MarshalIndent(b, "    ", "  ")
-	if err != nil {
-		return n, err
-	}
-
-	n, err = newXhtml(string(navBodyContent))
-
-	n.setXmlnsEpub(xmlnsEpub)
-
-	return n, err
+	return b, nil
 }
 
 func newTocNcxXml() (*tocNcxRoot, error) {
@@ -132,6 +122,14 @@ func newTocNcxXml() (*tocNcxRoot, error) {
 }
 
 func (t *toc) addSection(index int, title string, relativePath string) {
+	l := &tocNavItem{
+		A: tocNavLink{
+			Href: relativePath,
+			Data: title,
+		},
+	}
+	t.navXml.Links = append(t.navXml.Links, *l)
+
 	np := &tocNcxNavPoint{
 		Id:   "navPoint-" + strconv.Itoa(index),
 		Text: title,
@@ -143,7 +141,6 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 }
 
 func (t *toc) setTitle(title string) {
-	t.navDoc.setTitle(title)
 	t.ncxXml.Title = title
 }
 
@@ -152,12 +149,12 @@ func (t *toc) setUUID(uuid string) {
 }
 
 func (t *toc) write(tempDir string) error {
-	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
-	if err := t.navDoc.write(navFilePath); err != nil {
+	err := t.writeNavDoc(tempDir)
+	if err != nil {
 		return err
 	}
 
-	err := t.writeNcxDoc(tempDir)
+	err = t.writeNcxDoc(tempDir)
 	if err != nil {
 		return err
 	}
@@ -165,9 +162,29 @@ func (t *toc) write(tempDir string) error {
 	return nil
 }
 
-func (t *toc) writeNcxDoc(tempDir string) error {
-	ncxFilePath := filepath.Join(tempDir, contentFolderName, tocNcxFilename)
+func (t *toc) writeNavDoc(tempDir string) error {
+	navBodyContent, err := xml.MarshalIndent(t.navXml, "    ", "  ")
+	if err != nil {
+		return err
+	}
 
+	n, err := newXhtml(string(navBodyContent))
+	if err != nil {
+		return err
+	}
+
+	n.setXmlnsEpub(xmlnsEpub)
+	n.setTitle(t.ncxXml.Title)
+
+	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
+	if err := n.write(navFilePath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *toc) writeNcxDoc(tempDir string) error {
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXml, "", "  ")
 	if err != nil {
 		return err
@@ -178,6 +195,7 @@ func (t *toc) writeNcxDoc(tempDir string) error {
 	// It's generally nice to have files end with a newline
 	ncxFileContent = append(ncxFileContent, "\n"...)
 
+	ncxFilePath := filepath.Join(tempDir, contentFolderName, tocNcxFilename)
 	if err := ioutil.WriteFile(ncxFilePath, []byte(ncxFileContent), filePermissions); err != nil {
 		return err
 	}
