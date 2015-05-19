@@ -65,7 +65,7 @@ type pkgRoot struct {
 	UniqueIdentifier string      `xml:"unique-identifier,attr"`
 	Version          string      `xml:"version,attr"`
 	Metadata         pkgMetadata `xml:"metadata"`
-	Item             []pkgItem   `xml:"manifest>item"`
+	Items            []pkgItem   `xml:"manifest>item"`
 	Spine            pkgSpine    `xml:"spine"`
 }
 
@@ -81,10 +81,10 @@ type pkgIdentifier struct {
 }
 
 type pkgItem struct {
-	Href       string `xml:"href,attr"`
 	Id         string `xml:"id,attr"`
+	Href       string `xml:"href,attr"`
 	MediaType  string `xml:"media-type,attr"`
-	Properties string `xml:"properties,attr"`
+	Properties string `xml:"properties,attr,omitempty"`
 }
 
 type pkgItemref struct {
@@ -130,6 +130,17 @@ func newPackage() *pkg {
 	}
 
 	return p
+}
+
+func (p *pkg) addItem(id string, href string, mediaType string, properties string) {
+	//<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
+	i := &pkgItem{
+		Id:         id,
+		Href:       href,
+		MediaType:  mediaType,
+		Properties: properties,
+	}
+	p.xml.Items = append(p.xml.Items, *i)
 }
 
 func (p *pkg) setAuthor(author string) {

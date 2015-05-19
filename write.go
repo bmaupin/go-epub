@@ -25,8 +25,10 @@ const (
 	dirPermissions = 0755
 	// Permissions for any new files we create
 	filePermissions   = 0644
+	mediaTypeNcx      = "application/x-dtbncx+xml"
+	mediaTypeEpub     = "application/epub+zip"
+	mediaTypeXhtml    = "application/xhtml+xml"
 	metaInfFolderName = "META-INF"
-	mimetypeContent   = "application/epub+zip"
 	mimetypeFilename  = "mimetype"
 	pkgFilename       = "package.opf"
 	sectionFileFormat = "section%04d.xhtml"
@@ -61,7 +63,7 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
-	err = e.pkg.write(tempDir)
+	err = e.writePackageFile(tempDir)
 	if err != nil {
 		return err
 	}
@@ -247,7 +249,7 @@ func writeContentFile(tempDir string) error {
 func writeMimetype(tempDir string) error {
 	mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
 
-	if err := ioutil.WriteFile(mimetypeFilePath, []byte(mimetypeContent), filePermissions); err != nil {
+	if err := ioutil.WriteFile(mimetypeFilePath, []byte(mediaTypeEpub), filePermissions); err != nil {
 		return err
 	}
 
@@ -350,6 +352,18 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 	err = filepath.Walk(tempDir, addFileToZip)
 	if err != nil {
 		log.Fatalf("os.Lstat error: %s", err)
+	}
+
+	return nil
+}
+
+func (e *epub) writePackageFile(tempDir string) error {
+	e.pkg.addItem(tocNavItemId, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
+	e.pkg.addItem(tocNcxItemId, tocNcxFilename, mediaTypeNcx, "")
+
+	err := e.pkg.write(tempDir)
+	if err != nil {
+		return err
 	}
 
 	return nil

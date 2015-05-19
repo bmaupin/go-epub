@@ -15,10 +15,13 @@ const (
       </ol>
     </nav>
 `
-	tocNavFilename = "nav.xhtml"
-	tocNavEpubType = "toc"
+	tocNavFilename       = "nav.xhtml"
+	tocNavItemId         = "nav"
+	tocNavItemProperties = "nav"
+	tocNavEpubType       = "toc"
 
 	tocNcxFilename = "toc.ncx"
+	tocNcxItemId   = "ncx"
 	tocNcxTemplate = `
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
