@@ -362,6 +362,7 @@ func (e *epub) writeSections(tempDir string) error {
 		relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
 		e.toc.addSection(sectionIndex, section.Title(), relativePath)
 		e.pkg.addToManifest(sectionFilename, relativePath, mediaTypeXhtml, "")
+		e.pkg.addToSpine(sectionFilename)
 	}
 
 	return nil

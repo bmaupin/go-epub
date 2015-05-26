@@ -65,7 +65,7 @@ type pkgRoot struct {
 	UniqueIdentifier string      `xml:"unique-identifier,attr"`
 	Version          string      `xml:"version,attr"`
 	Metadata         pkgMetadata `xml:"metadata"`
-	Items            []pkgItem   `xml:"manifest>item"`
+	ManifestItems    []pkgItem   `xml:"manifest>item"`
 	Spine            pkgSpine    `xml:"spine"`
 }
 
@@ -109,7 +109,8 @@ type pkgMetadata struct {
 }
 
 type pkgSpine struct {
-	Itemref []pkgItemref `xml:"itemref"`
+	Items []pkgItemref `xml:"itemref"`
+	Toc   string       `xml:"toc,attr"`
 }
 
 func newPackage() *pkg {
@@ -133,14 +134,21 @@ func newPackage() *pkg {
 }
 
 func (p *pkg) addToManifest(id string, href string, mediaType string, properties string) {
-	//<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
 	i := &pkgItem{
 		Id:         id,
 		Href:       href,
 		MediaType:  mediaType,
 		Properties: properties,
 	}
-	p.xml.Items = append(p.xml.Items, *i)
+	p.xml.ManifestItems = append(p.xml.ManifestItems, *i)
+}
+
+func (p *pkg) addToSpine(id string) {
+	i := &pkgItemref{
+		Idref: id,
+	}
+
+	p.xml.Spine.Items = append(p.xml.Spine.Items, *i)
 }
 
 func (p *pkg) setAuthor(author string) {
