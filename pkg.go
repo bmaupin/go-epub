@@ -132,7 +132,7 @@ func newPackage() *pkg {
 	return p
 }
 
-func (p *pkg) addItem(id string, href string, mediaType string, properties string) {
+func (p *pkg) addToManifest(id string, href string, mediaType string, properties string) {
 	//<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
 	i := &pkgItem{
 		Id:         id,

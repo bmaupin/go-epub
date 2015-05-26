@@ -53,6 +53,11 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
+	err = e.writeToc(tempDir)
+	if err != nil {
+		return err
+	}
+
 	err = e.writeSections(tempDir)
 	if err != nil {
 		return err
@@ -64,11 +69,6 @@ func (e *epub) Write(destFilePath string) error {
 	}
 
 	err = e.writePackageFile(tempDir)
-	if err != nil {
-		return err
-	}
-
-	err = e.toc.write(tempDir)
 	if err != nil {
 		return err
 	}
@@ -256,23 +256,6 @@ func writeMimetype(tempDir string) error {
 	return nil
 }
 
-func (e *epub) writeSections(tempDir string) error {
-	for i, section := range e.sections {
-		sectionIndex := i + 1
-		sectionFilename := fmt.Sprintf(sectionFileFormat, sectionIndex)
-		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
-
-		if err := section.write(sectionFilePath); err != nil {
-			return err
-		}
-
-		relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
-		e.toc.addSection(sectionIndex, section.Title(), relativePath)
-	}
-
-	return nil
-}
-
 func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
@@ -358,10 +341,37 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 }
 
 func (e *epub) writePackageFile(tempDir string) error {
-	e.pkg.addItem(tocNavItemId, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
-	e.pkg.addItem(tocNcxItemId, tocNcxFilename, mediaTypeNcx, "")
-
 	err := e.pkg.write(tempDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *epub) writeSections(tempDir string) error {
+	for i, section := range e.sections {
+		sectionIndex := i + 1
+		sectionFilename := fmt.Sprintf(sectionFileFormat, sectionIndex)
+		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
+
+		if err := section.write(sectionFilePath); err != nil {
+			return err
+		}
+
+		relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
+		e.toc.addSection(sectionIndex, section.Title(), relativePath)
+		e.pkg.addToManifest(sectionFilename, relativePath, mediaTypeXhtml, "")
+	}
+
+	return nil
+}
+
+func (e *epub) writeToc(tempDir string) error {
+	e.pkg.addToManifest(tocNavItemId, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
+	e.pkg.addToManifest(tocNcxItemId, tocNcxFilename, mediaTypeNcx, "")
+
+	err := e.toc.write(tempDir)
 	if err != nil {
 		return err
 	}
