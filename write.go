@@ -53,12 +53,12 @@ func (e *epub) Write(destFilePath string) error {
 		return err
 	}
 
-	err = e.writeToc(tempDir)
+	err = e.writeSections(tempDir)
 	if err != nil {
 		return err
 	}
 
-	err = e.writeSections(tempDir)
+	err = e.writeToc(tempDir)
 	if err != nil {
 		return err
 	}
