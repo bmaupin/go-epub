@@ -281,13 +281,6 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 			return err
 		}
 
-		if skipMimetypeFile == true {
-			// Skip the mimetype file
-			if path == filepath.Join(tempDir, mimetypeFilename) {
-				return nil
-			}
-		}
-
 		// Get the path of the file relative to the folder we're zipping
 		relativePath, err := filepath.Rel(tempDir, path)
 		if err != nil {
@@ -299,6 +292,24 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 			return nil
 		}
 
+		var w io.Writer
+		if path == filepath.Join(tempDir, mimetypeFilename) {
+			// Skip the mimetype file
+			if skipMimetypeFile == true {
+				return nil
+			}
+			// The mimetype file must be uncompressed according to the EPUB spec
+			w, err = z.CreateHeader(&zip.FileHeader{
+				Name:   relativePath,
+				Method: zip.Store,
+			})
+		} else {
+			w, err = z.Create(relativePath)
+		}
+		if err != nil {
+			log.Fatalf("zip.Writer.Create error: %s", err)
+		}
+
 		r, err := os.Open(path)
 		if err != nil {
 			log.Fatalf("os.Open error: %s", err)
@@ -308,11 +319,6 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 				log.Fatalf("os.File.Close error: %s", err)
 			}
 		}()
-
-		w, err := z.Create(relativePath)
-		if err != nil {
-			log.Fatalf("zip.Writer.Create error: %s", err)
-		}
 
 		_, err = io.Copy(w, r)
 		if err != nil {
