@@ -36,7 +36,7 @@ const (
 	xhtmlFolderName   = "xhtml"
 )
 
-func (e *epub) Write(destFilePath string) error {
+func (e *Epub) Write(destFilePath string) error {
 	tempDir, err := ioutil.TempDir("", tempDirPrefix)
 	defer os.Remove(tempDir)
 	if err != nil {
@@ -256,7 +256,7 @@ func writeMimetype(tempDir string) error {
 	return nil
 }
 
-func (e *epub) writeEpub(tempDir string, destFilePath string) error {
+func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
 		log.Fatalf("os.Create error: %s", err)
@@ -346,7 +346,7 @@ func (e *epub) writeEpub(tempDir string, destFilePath string) error {
 	return nil
 }
 
-func (e *epub) writePackageFile(tempDir string) error {
+func (e *Epub) writePackageFile(tempDir string) error {
 	err := e.pkg.write(tempDir)
 	if err != nil {
 		return err
@@ -355,7 +355,7 @@ func (e *epub) writePackageFile(tempDir string) error {
 	return nil
 }
 
-func (e *epub) writeSections(tempDir string) error {
+func (e *Epub) writeSections(tempDir string) error {
 	for i, section := range e.sections {
 		sectionIndex := i + 1
 		sectionFilename := fmt.Sprintf(sectionFileFormat, sectionIndex)
@@ -374,7 +374,7 @@ func (e *epub) writeSections(tempDir string) error {
 	return nil
 }
 
-func (e *epub) writeToc(tempDir string) error {
+func (e *Epub) writeToc(tempDir string) error {
 	e.pkg.addToManifest(tocNavItemId, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
 	e.pkg.addToManifest(tocNcxItemId, tocNcxFilename, mediaTypeNcx, "")
 

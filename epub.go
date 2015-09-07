@@ -6,7 +6,7 @@ const (
 	urnUuid = "urn:uuid:"
 )
 
-type epub struct {
+type Epub struct {
 	author string
 	lang   string
 	pkg    *pkg
@@ -17,10 +17,10 @@ type epub struct {
 	uuid     string
 }
 
-func NewEpub(title string) (*epub, error) {
+func NewEpub(title string) (*Epub, error) {
 	var err error
 
-	e := &epub{}
+	e := &Epub{}
 	e.pkg = newPackage()
 	e.toc, err = newToc()
 	if err != nil {
@@ -34,7 +34,7 @@ func NewEpub(title string) (*epub, error) {
 	return e, nil
 }
 
-func (e *epub) AddSection(title string, content string) error {
+func (e *Epub) AddSection(title string, content string) error {
 	x, err := newXhtml(content)
 	if err != nil {
 		return err
@@ -46,40 +46,40 @@ func (e *epub) AddSection(title string, content string) error {
 	return nil
 }
 
-func (e *epub) Author() string {
+func (e *Epub) Author() string {
 	return e.author
 }
 
-func (e *epub) Lang() string {
+func (e *Epub) Lang() string {
 	return e.lang
 }
 
-func (e *epub) SetAuthor(author string) {
+func (e *Epub) SetAuthor(author string) {
 	e.author = author
 	e.pkg.setAuthor(author)
 }
 
-func (e *epub) SetLang(lang string) {
+func (e *Epub) SetLang(lang string) {
 	e.lang = lang
 	e.pkg.setLang(lang)
 }
 
-func (e *epub) SetTitle(title string) {
+func (e *Epub) SetTitle(title string) {
 	e.title = title
 	e.pkg.setTitle(title)
 	e.toc.setTitle(title)
 }
 
-func (e *epub) SetUUID(uuid string) {
+func (e *Epub) SetUUID(uuid string) {
 	e.uuid = uuid
 	e.pkg.setUUID(uuid)
 	e.toc.setUUID(uuid)
 }
 
-func (e *epub) Title() string {
+func (e *Epub) Title() string {
 	return e.title
 }
 
-func (e *epub) Uuid() string {
+func (e *Epub) Uuid() string {
 	return e.uuid
 }
