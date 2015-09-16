@@ -6,6 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 )
@@ -43,7 +45,13 @@ func (e *Epub) Write(destFilePath string) error {
 		log.Fatalf("os.Remove error: %s", err)
 	}
 
+	// Must be run first
 	err = createEpubFolders(tempDir)
+	if err != nil {
+		return err
+	}
+
+	err = e.writeImages(tempDir)
 	if err != nil {
 		return err
 	}
@@ -138,6 +146,58 @@ func writeContainerFile(tempDir string) error {
 		filePermissions,
 	); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (e *Epub) writeImages(tempDir string) error {
+	imageFolderPath := filepath.Join(tempDir, contentFolderName, imageFolderName)
+	if err := os.Mkdir(imageFolderPath, dirPermissions); err != nil {
+		return err
+	}
+
+	for imageFilename, imageSource := range e.images {
+		u, err := url.Parse(imageSource)
+		if err != nil {
+			return err
+		}
+
+		var r io.ReadCloser
+		var resp *http.Response
+		// If it's a URL
+		if u.Scheme == "http" || u.Scheme == "https" {
+			resp, err = http.Get(imageSource)
+			r = resp.Body
+
+			// Otherwise, assume it's a local file
+		} else {
+			r, err = os.Open(imageSource)
+		}
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = r.Close()
+		}()
+
+		imageFilePath := filepath.Join(
+			imageFolderPath,
+			imageFilename,
+		)
+
+		w, err := os.Create(imageFilePath)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = w.Close()
+		}()
+
+		_, err = io.Copy(w, r)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
