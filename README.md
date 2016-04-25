@@ -1,8 +1,12 @@
 Work in progress.
 
-Generates valid EPUB 3.0 files with additional EPUB 2.0 table of contents ([as seen here](https://github.com/bmaupin/epub-samples)) for maximum backwards-compatibility.
-
 See the latest documentation here: https://godoc.org/github.com/bmaupin/go-epub
+
+**Features:**
+
+- Clean API
+- Creates valid EPUB 3.0 files
+- Adds an additional EPUB 2.0 table of contents ([as seen here](https://github.com/bmaupin/epub-samples)) for maximum compatibility
 
 **Basic usage:**
 
