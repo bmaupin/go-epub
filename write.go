@@ -73,16 +73,19 @@ func (e *Epub) Write(destFilePath string) error {
 		return err
 	}
 
+	// Write the container file (container.xml)
 	err = writeContainerFile(tempDir)
 	if err != nil {
 		return err
 	}
 
+	// Write the package file (package.opf)
 	err = e.writePackageFile(tempDir)
 	if err != nil {
 		return err
 	}
 
+	// Now write the EPUB file itself. Must be run last.
 	err = e.writeEpub(tempDir, destFilePath)
 	if err != nil {
 		return err

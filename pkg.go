@@ -54,12 +54,18 @@ const (
 	xmlnsDc = "http://purl.org/dc/elements/1.1/"
 )
 
+// pkg implements the package file (package.opf), which contains metadata about
+// the EPUB (title, author, etc) as well as a list of files the EPUB contains.
+//
+// Spec: http://www.idpf.org/epub/301/spec/epub-publications.html
+// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/EPUB/package.opf
 type pkg struct {
 	xml          *pkgRoot
 	authorMeta   *pkgMeta
 	modifiedMeta *pkgMeta
 }
 
+// This holds the actual XML for the package file
 type pkgRoot struct {
 	XMLName          xml.Name    `xml:"http://www.idpf.org/2007/opf package"`
 	UniqueIdentifier string      `xml:"unique-identifier,attr"`
@@ -69,17 +75,20 @@ type pkgRoot struct {
 	Spine            pkgSpine    `xml:"spine"`
 }
 
+// <dc:creator>, e.g. the author
 type pkgCreator struct {
 	XMLName xml.Name `xml:"dc:creator"`
 	Id      string   `xml:"id,attr"`
 	Data    string   `xml:",chardata"`
 }
 
+// <dc:identifier>, where the UUID is stored
 type pkgIdentifier struct {
 	Id   string `xml:"id,attr"`
 	Data string `xml:",chardata"`
 }
 
+// <item> elements, one per each file stored in the EPUB
 type pkgItem struct {
 	Id         string `xml:"id,attr"`
 	Href       string `xml:"href,attr"`
@@ -87,10 +96,13 @@ type pkgItem struct {
 	Properties string `xml:"properties,attr,omitempty"`
 }
 
+// <itemref> elements, which define the reading order
 type pkgItemref struct {
 	Idref string `xml:"idref,attr"`
 }
 
+// The <meta> element, which contains modified date, role of the creator (e.g.
+// author), etc
 type pkgMeta struct {
 	Refines  string `xml:"refines,attr,omitempty"`
 	Property string `xml:"property,attr"`
@@ -99,6 +111,7 @@ type pkgMeta struct {
 	Data     string `xml:",chardata"`
 }
 
+// The <metadata> element
 type pkgMetadata struct {
 	XmlnsDc    string        `xml:"xmlns:dc,attr"`
 	Identifier pkgIdentifier `xml:"dc:identifier"`
@@ -108,11 +121,13 @@ type pkgMetadata struct {
 	Meta       []pkgMeta `xml:"meta"`
 }
 
+// The <spine> element
 type pkgSpine struct {
 	Items []pkgItemref `xml:"itemref"`
 	Toc   string       `xml:"toc,attr"`
 }
 
+// Constructor for pkg
 func newPackage() *pkg {
 	p := &pkg{
 		xml: &pkgRoot{
@@ -172,8 +187,6 @@ func (p *pkg) setLang(lang string) {
 }
 
 func (p *pkg) setModified(timestamp string) {
-	//	var indexToReplace int
-
 	p.modifiedMeta = &pkgMeta{
 		Data:     timestamp,
 		Property: pkgModifiedProperty,
@@ -190,6 +203,7 @@ func (p *pkg) setUUID(uuid string) {
 	p.xml.Metadata.Identifier.Data = uuid
 }
 
+// Update the <meta> element
 func updateMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
 	indexToReplace := -1
 

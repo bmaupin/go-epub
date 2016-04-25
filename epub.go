@@ -17,9 +17,9 @@ type Epub struct {
 	author string
 	images map[string]string // Images added to the EPUB
 	lang   string            // Language
-	pkg    *pkg              // The EPUB container
+	pkg    *pkg              // The package file (package.opf)
 	//	sections []section
-	sections []xhtml
+	sections []xhtml // Sections (chapters)
 	title    string
 	toc      *toc // Table of contents
 	uuid     string
