@@ -7,10 +7,7 @@ See the latest documentation here: https://godoc.org/github.com/bmaupin/go-epub
 **Basic usage:**
 
     // Create a new EPUB
-	e, err := epub.NewEpub("My title")
-	if err != nil {
-		fmt.Println("epub.NewEpub error: %s", err)
-	}
+	e:= epub.NewEpub("My title")
 
     // Set the author
 	e.SetAuthor("Hingle McCringleberry")
@@ -34,7 +31,8 @@ See the latest documentation here: https://godoc.org/github.com/bmaupin/go-epub
 
 - Clean up error handling
 - Add support for cover pages
-- Add documentation
+- Add more documentation
 - Add tests
 - Add support for CSS
 - Add functionality to read EPUB files
+- Add [examples](https://golang.org/pkg/testing/#hdr-Examples)

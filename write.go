@@ -38,6 +38,8 @@ const (
 	xhtmlFolderName   = "xhtml"
 )
 
+// Write writes the EPUB file. The destination path must be the full path to
+// the resulting file, including filename and extension.
 func (e *Epub) Write(destFilePath string) error {
 	tempDir, err := ioutil.TempDir("", tempDirPrefix)
 	defer os.Remove(tempDir)

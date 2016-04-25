@@ -2,6 +2,7 @@ package epub
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
@@ -83,45 +84,49 @@ type tocNcxNavPoint struct {
 	Content tocNcxContent `xml:"content"`
 }
 
-func newToc() (*toc, error) {
-	var err error
-
+func newToc() *toc {
 	t := &toc{}
 
-	t.navXml, err = newTocNavXml()
-	if err != nil {
-		return t, err
-	}
+	t.navXml = newTocNavXml()
 
-	t.ncxXml, err = newTocNcxXml()
-	if err != nil {
-		return t, err
-	}
+	t.ncxXml = newTocNcxXml()
 
-	return t, nil
+	return t
 }
 
-func newTocNavXml() (*tocNavBody, error) {
+func newTocNavXml() *tocNavBody {
 	b := &tocNavBody{
 		EpubType: tocNavEpubType,
 	}
 	err := xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
 	if err != nil {
-		return b, err
+		panic(fmt.Sprintf(
+			"Error unmarshalling tocNavBody: %s\n"+
+				"\ttocNavBody=%#v\n"+
+				"\ttocNavBodyTemplate=%s",
+			err,
+			*b,
+			tocNavBodyTemplate))
 	}
 
-	return b, nil
+	return b
 }
 
-func newTocNcxXml() (*tocNcxRoot, error) {
+func newTocNcxXml() *tocNcxRoot {
 	n := &tocNcxRoot{}
 
 	err := xml.Unmarshal([]byte(tocNcxTemplate), &n)
 	if err != nil {
-		return n, err
+		panic(fmt.Sprintf(
+			"Error unmarshalling tocNcxRoot: %s\n"+
+				"\ttocNcxRoot=%#v\n"+
+				"\ttocNcxTemplate=%s",
+			err,
+			*n,
+			tocNcxTemplate))
 	}
 
-	return n, nil
+	return n
 }
 
 func (t *toc) addSection(index int, title string, relativePath string) {

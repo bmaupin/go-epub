@@ -12,39 +12,37 @@ const (
 	urnUuid = "urn:uuid:"
 )
 
-// Epub implements an EPUB file
+// Epub implements an EPUB file.
 type Epub struct {
 	author string
-	images map[string]string
-	lang   string
-	pkg    *pkg
+	images map[string]string // Images added to the EPUB
+	lang   string            // Language
+	pkg    *pkg              // The EPUB container
 	//	sections []section
 	sections []xhtml
 	title    string
-	toc      *toc
+	toc      *toc // Table of contents
 	uuid     string
 }
 
-// NewWriter returns an Epub. A title must be provided as it is a required EPUB
-// element. It can be changed using SetTitle.
-func NewEpub(title string) (*Epub, error) {
-	var err error
-
+// NewEpub returns a new Epub.
+func NewEpub(title string) *Epub {
 	e := &Epub{}
 	e.images = make(map[string]string)
 	e.pkg = newPackage()
-	e.toc, err = newToc()
-	if err != nil {
-		return e, err
-	}
+	e.toc = newToc()
 	// Set minimal required attributes
 	e.SetLang("en")
 	e.SetTitle(title)
 	e.SetUUID(urnUuid + uuid.NewV4().String())
 
-	return e, nil
+	return e
 }
 
+// AddImage adds an image to the EPUB and returns a relative path that can be
+// used in the content of a section. The image source should either be a URL or
+// a path to a local file. The image filename will be used when storing the
+// image in the EPUB and must be unique.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
 	if _, ok := e.images[imageFilename]; ok {
 		return "", errors.New(fmt.Sprintf("Image filename %s already used", imageFilename))
@@ -59,6 +57,9 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 	), nil
 }
 
+// AddSection adds a new section (chapter, etc) to the EPUB. The title will be
+// used for the table of contents. The content must be valid XHTML that will go
+// between the <body> tags. The content will not be validated.
 func (e *Epub) AddSection(title string, content string) error {
 	x, err := newXhtml(content)
 	if err != nil {
@@ -113,7 +114,7 @@ func (e *Epub) Title() string {
 	return e.title
 }
 
-// UUID returns the UUID of the EPUB
+// UUID returns the UUID of the EPUB.
 func (e *Epub) UUID() string {
 	return e.uuid
 }
