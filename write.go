@@ -112,7 +112,7 @@ func (e *Epub) Write(destFilePath string) error {
 
 	//	output, err := xml.MarshalIndent(e.pkg.xml, "", "  ")
 
-	//  output, err := xml.MarshalIndent(e.toc.ncxXml, "", "  ")
+	//  output, err := xml.MarshalIndent(e.toc.ncxXML, "", "  ")
 	//	output = append([]byte(xml.Header), output...)
 	//	fmt.Println(string(output))
 
@@ -367,8 +367,8 @@ func (e *Epub) writeSections(tempDir string) error {
 // Write the TOC file to the temporary directory and add the TOC entries to the
 // package file
 func (e *Epub) writeToc(tempDir string) error {
-	e.pkg.addToManifest(tocNavItemId, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
-	e.pkg.addToManifest(tocNcxItemId, tocNcxFilename, mediaTypeNcx, "")
+	e.pkg.addToManifest(tocNavItemID, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
+	e.pkg.addToManifest(tocNcxItemID, tocNcxFilename, mediaTypeNcx, "")
 
 	err := e.toc.write(tempDir)
 	if err != nil {

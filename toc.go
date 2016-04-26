@@ -17,12 +17,12 @@ const (
     </nav>
 `
 	tocNavFilename       = "nav.xhtml"
-	tocNavItemId         = "nav"
+	tocNavItemID         = "nav"
 	tocNavItemProperties = "nav"
 	tocNavEpubType       = "toc"
 
 	tocNcxFilename = "toc.ncx"
-	tocNcxItemId   = "ncx"
+	tocNcxItemID   = "ncx"
 	tocNcxTemplate = `
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
@@ -45,14 +45,14 @@ type toc struct {
 	//
 	// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/EPUB/nav.xhtml
 	// Spec: http://www.idpf.org/epub/301/spec/epub-contentdocs.html#sec-xhtml-nav
-	navXml *tocNavBody
+	navXML *tocNavBody
 
 	// This holds the XML for the EPUB v2 TOC file (toc.ncx). This is added so the
 	// resulting EPUB v3 file will still work with devices that only support EPUB v2
 	//
 	// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/EPUB/toc.ncx
 	// Spec: http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
-	ncxXml *tocNcxRoot
+	ncxXML *tocNcxRoot
 
 	title string // EPUB title
 }
@@ -93,7 +93,7 @@ type tocNcxMeta struct {
 
 type tocNcxNavPoint struct {
 	XMLName xml.Name      `xml:"navPoint"`
-	Id      string        `xml:"id,attr"`
+	ID      string        `xml:"id,attr"`
 	Text    string        `xml:"navLabel>text"`
 	Content tocNcxContent `xml:"content"`
 }
@@ -102,15 +102,15 @@ type tocNcxNavPoint struct {
 func newToc() *toc {
 	t := &toc{}
 
-	t.navXml = newTocNavXml()
+	t.navXML = newTocNavXML()
 
-	t.ncxXml = newTocNcxXml()
+	t.ncxXML = newTocNcxXML()
 
 	return t
 }
 
 // Constructor for tocNavBody
-func newTocNavXml() *tocNavBody {
+func newTocNavXML() *tocNavBody {
 	b := &tocNavBody{
 		EpubType: tocNavEpubType,
 	}
@@ -129,7 +129,7 @@ func newTocNavXml() *tocNavBody {
 }
 
 // Constructor for tocNcxRoot
-func newTocNcxXml() *tocNcxRoot {
+func newTocNcxXML() *tocNcxRoot {
 	n := &tocNcxRoot{}
 
 	err := xml.Unmarshal([]byte(tocNcxTemplate), &n)
@@ -146,7 +146,7 @@ func newTocNcxXml() *tocNcxRoot {
 	return n
 }
 
-// Add a section to the TOC (navXml as well as ncxXml)
+// Add a section to the TOC (navXML as well as ncxXML)
 func (t *toc) addSection(index int, title string, relativePath string) {
 	l := &tocNavItem{
 		A: tocNavLink{
@@ -154,16 +154,16 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 			Data: title,
 		},
 	}
-	t.navXml.Links = append(t.navXml.Links, *l)
+	t.navXML.Links = append(t.navXML.Links, *l)
 
 	np := &tocNcxNavPoint{
-		Id:   "navPoint-" + strconv.Itoa(index),
+		ID:   "navPoint-" + strconv.Itoa(index),
 		Text: title,
 		Content: tocNcxContent{
 			Src: relativePath,
 		},
 	}
-	t.ncxXml.NavMap = append(t.ncxXml.NavMap, *np)
+	t.ncxXML.NavMap = append(t.ncxXML.NavMap, *np)
 }
 
 func (t *toc) setTitle(title string) {
@@ -171,7 +171,7 @@ func (t *toc) setTitle(title string) {
 }
 
 func (t *toc) setUUID(uuid string) {
-	t.ncxXml.Meta.Content = uuid
+	t.ncxXML.Meta.Content = uuid
 }
 
 // Write the TOC files
@@ -191,7 +191,7 @@ func (t *toc) write(tempDir string) error {
 
 // Write the the EPUB v3 TOC file (nav.xhtml) to the temporary directory
 func (t *toc) writeNavDoc(tempDir string) error {
-	navBodyContent, err := xml.MarshalIndent(t.navXml, "    ", "  ")
+	navBodyContent, err := xml.MarshalIndent(t.navXML, "    ", "  ")
 	if err != nil {
 		return err
 	}
@@ -214,9 +214,9 @@ func (t *toc) writeNavDoc(tempDir string) error {
 
 // Write the EPUB v2 TOC file (toc.ncx) to the temporary directory
 func (t *toc) writeNcxDoc(tempDir string) error {
-	t.ncxXml.Title = t.title
+	t.ncxXML.Title = t.title
 
-	ncxFileContent, err := xml.MarshalIndent(t.ncxXml, "", "  ")
+	ncxFileContent, err := xml.MarshalIndent(t.ncxXML, "", "  ")
 	if err != nil {
 		return err
 	}

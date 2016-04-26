@@ -29,12 +29,12 @@ const (
   </spine>
 </package>
 `
-	pkgAuthorId       = "role"
+	pkgAuthorID       = "role"
 	pkgAuthorData     = "aut"
 	pkgAuthorProperty = "role"
 	pkgAuthorRefines  = "#creator"
 	pkgAuthorScheme   = "marc:relators"
-	pkgCreatorId      = "creator"
+	pkgCreatorID      = "creator"
 	pkgFileTemplate   = `<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -78,19 +78,19 @@ type pkgRoot struct {
 // <dc:creator>, e.g. the author
 type pkgCreator struct {
 	XMLName xml.Name `xml:"dc:creator"`
-	Id      string   `xml:"id,attr"`
+	ID      string   `xml:"id,attr"`
 	Data    string   `xml:",chardata"`
 }
 
 // <dc:identifier>, where the UUID is stored
 type pkgIdentifier struct {
-	Id   string `xml:"id,attr"`
+	ID   string `xml:"id,attr"`
 	Data string `xml:",chardata"`
 }
 
 // <item> elements, one per each file stored in the EPUB
 type pkgItem struct {
-	Id         string `xml:"id,attr"`
+	ID         string `xml:"id,attr"`
 	Href       string `xml:"href,attr"`
 	MediaType  string `xml:"media-type,attr"`
 	Properties string `xml:"properties,attr,omitempty"`
@@ -107,7 +107,7 @@ type pkgMeta struct {
 	Refines  string `xml:"refines,attr,omitempty"`
 	Property string `xml:"property,attr"`
 	Scheme   string `xml:"scheme,attr,omitempty"`
-	Id       string `xml:"id,attr,omitempty"`
+	ID       string `xml:"id,attr,omitempty"`
 	Data     string `xml:",chardata"`
 }
 
@@ -134,7 +134,7 @@ func newPackage() *pkg {
 			Metadata: pkgMetadata{
 				XmlnsDc: xmlnsDc,
 				Identifier: pkgIdentifier{
-					Id: pkgUniqueIdentifier,
+					ID: pkgUniqueIdentifier,
 				},
 			},
 		},
@@ -150,7 +150,7 @@ func newPackage() *pkg {
 
 func (p *pkg) addToManifest(id string, href string, mediaType string, properties string) {
 	i := &pkgItem{
-		Id:         id,
+		ID:         id,
 		Href:       href,
 		MediaType:  mediaType,
 		Properties: properties,
@@ -169,11 +169,11 @@ func (p *pkg) addToSpine(id string) {
 func (p *pkg) setAuthor(author string) {
 	p.xml.Metadata.Creator = &pkgCreator{
 		Data: author,
-		Id:   pkgCreatorId,
+		ID:   pkgCreatorID,
 	}
 	p.authorMeta = &pkgMeta{
 		Data:     pkgAuthorData,
-		Id:       pkgAuthorId,
+		ID:       pkgAuthorID,
 		Property: pkgAuthorProperty,
 		Refines:  pkgAuthorRefines,
 		Scheme:   pkgAuthorScheme,

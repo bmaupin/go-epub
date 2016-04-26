@@ -1,7 +1,6 @@
 package epub
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -9,7 +8,7 @@ import (
 )
 
 const (
-	urnUuid = "urn:uuid:"
+	urnUUID = "urn:uuid:"
 )
 
 // Epub implements an EPUB file.
@@ -34,7 +33,7 @@ func NewEpub(title string) *Epub {
 	// Set minimal required attributes
 	e.SetLang("en")
 	e.SetTitle(title)
-	e.SetUUID(urnUuid + uuid.NewV4().String())
+	e.SetUUID(urnUUID + uuid.NewV4().String())
 
 	return e
 }
@@ -46,7 +45,7 @@ func NewEpub(title string) *Epub {
 // the EPUB and must be unique.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
 	if _, ok := e.images[imageFilename]; ok {
-		return "", errors.New(fmt.Sprintf("Image filename %s already used", imageFilename))
+		return "", fmt.Errorf("Image filename %s already used", imageFilename)
 	}
 
 	e.images[imageFilename] = imageSource
