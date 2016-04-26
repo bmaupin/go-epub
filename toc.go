@@ -41,6 +41,8 @@ const (
 type toc struct {
 	navXml *tocNavBody
 	ncxXml *tocNcxRoot
+
+	title string // EPUB title
 }
 
 type tocNavBody struct {
@@ -149,7 +151,7 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 }
 
 func (t *toc) setTitle(title string) {
-	t.ncxXml.Title = title
+	t.title = title
 }
 
 func (t *toc) setUUID(uuid string) {
@@ -182,7 +184,7 @@ func (t *toc) writeNavDoc(tempDir string) error {
 	}
 
 	n.setXmlnsEpub(xmlnsEpub)
-	n.setTitle(t.ncxXml.Title)
+	n.setTitle(t.title)
 
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
 	if err := n.write(navFilePath); err != nil {
@@ -193,6 +195,8 @@ func (t *toc) writeNavDoc(tempDir string) error {
 }
 
 func (t *toc) writeNcxDoc(tempDir string) error {
+	t.ncxXml.Title = t.title
+
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXml, "", "  ")
 	if err != nil {
 		return err
