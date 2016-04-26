@@ -2,6 +2,7 @@ package epub
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 )
 
@@ -40,32 +41,30 @@ type xhtmlInnerxml struct {
 }
 
 // Constructor for xhtml
-func newXhtml(content string) (*xhtml, error) {
-	var x *xhtml
-
-	r, err := newXhtmlRoot()
-	if err != nil {
-		return x, err
+func newXhtml(content string) *xhtml {
+	x := &xhtml{
+		xml: newXhtmlRoot(),
 	}
-
-	x = &xhtml{
-		xml: r,
-	}
-
 	x.setBody(content)
 
-	return x, nil
+	return x
 }
 
 // Constructor for xhtmlRoot
-func newXhtmlRoot() (*xhtmlRoot, error) {
+func newXhtmlRoot() *xhtmlRoot {
 	r := &xhtmlRoot{}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &r)
 	if err != nil {
-		return r, err
+		panic(fmt.Sprintf(
+			"Error unmarshalling xhtmlRoot: %s\n"+
+				"\txhtmlRoot=%#v\n"+
+				"\txhtmlTemplate=%s",
+			err,
+			*r,
+			xhtmlTemplate))
 	}
 
-	return r, nil
+	return r
 }
 
 func (x *xhtml) setBody(body string) {
@@ -86,11 +85,16 @@ func (x *xhtml) Title() string {
 }
 
 // Write the XHTML file to the specified path
-func (x *xhtml) write(xhtmlFilePath string) error {
+func (x *xhtml) write(xhtmlFilePath string) {
 	xhtmlFileContent, err := xml.MarshalIndent(x.xml, "", "  ")
 	if err != nil {
-		return err
+		panic(fmt.Sprintf(
+			"Error marshalling XML for XHTML file: %s\n"+
+				"\tXML=%#v",
+			err,
+			x.xml))
 	}
+
 	// Add the doctype declaration to the output
 	xhtmlFileContent = append([]byte(xhtmlDoctype), xhtmlFileContent...)
 	// Add the xml header to the output
@@ -99,8 +103,6 @@ func (x *xhtml) write(xhtmlFilePath string) error {
 	xhtmlFileContent = append(xhtmlFileContent, "\n"...)
 
 	if err := ioutil.WriteFile(xhtmlFilePath, []byte(xhtmlFileContent), filePermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error writing file: %s", err))
 	}
-
-	return nil
 }

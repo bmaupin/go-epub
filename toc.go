@@ -196,18 +196,12 @@ func (t *toc) writeNavDoc(tempDir string) error {
 		return err
 	}
 
-	n, err := newXhtml(string(navBodyContent))
-	if err != nil {
-		return err
-	}
-
+	n := newXhtml(string(navBodyContent))
 	n.setXmlnsEpub(xmlnsEpub)
 	n.setTitle(t.title)
 
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
-	if err := n.write(navFilePath); err != nil {
-		return err
-	}
+	n.write(navFilePath)
 
 	return nil
 }

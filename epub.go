@@ -16,17 +16,11 @@ Basic usage:
 	// Add a section
 	section1Content := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	err := e.AddSection("Section 1", section1Content)
-	if err != nil {
-		// handle error
-	}
+	e.AddSection("Section 1", section1Content)
 
 	section2Content := `    <h1>Section 2</h1>
 	<p>This is a paragraph.</p>`
-	err = e.AddSection("Section 2", section2Content)
-	if err != nil {
-		// handle error
-	}
+	e.AddSection("Section 2", section2Content)
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")
@@ -97,16 +91,11 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // AddSection adds a new section (chapter, etc) to the EPUB. The title will be
 // used for the table of contents. The content must be valid XHTML that will go
 // between the <body> tags. The content will not be validated.
-func (e *Epub) AddSection(title string, content string) error {
-	x, err := newXhtml(content)
-	if err != nil {
-		return err
-	}
+func (e *Epub) AddSection(title string, content string) {
+	x := newXhtml(content)
 	x.setTitle(title)
 
 	e.sections = append(e.sections, *x)
-
-	return nil
 }
 
 // Author returns the author of the EPUB.

@@ -350,10 +350,7 @@ func (e *Epub) writeSections(tempDir string) error {
 		sectionIndex := i + 1
 		sectionFilename := fmt.Sprintf(sectionFileFormat, sectionIndex)
 		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
-
-		if err := section.write(sectionFilePath); err != nil {
-			return err
-		}
+		section.write(sectionFilePath)
 
 		relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
 		e.toc.addSection(sectionIndex, section.Title(), relativePath)
