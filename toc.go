@@ -38,8 +38,20 @@ const (
 	xmlnsEpub = "http://www.idpf.org/2007/ops"
 )
 
+// toc implements the EPUB table of contents
 type toc struct {
+	// This holds the body XML for the EPUB v3 TOC file (nav.xhtml). Since this is
+	// an XHTML file, the rest of the structure is handled by the xhtml type
+	//
+	// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/EPUB/nav.xhtml
+	// Spec: http://www.idpf.org/epub/301/spec/epub-contentdocs.html#sec-xhtml-nav
 	navXml *tocNavBody
+
+	// This holds the XML for the EPUB v2 TOC file (toc.ncx). This is added so the
+	// resulting EPUB v3 file will still work with devices that only support EPUB v2
+	//
+	// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/EPUB/toc.ncx
+	// Spec: http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
 	ncxXml *tocNcxRoot
 
 	title string // EPUB title
@@ -86,6 +98,7 @@ type tocNcxNavPoint struct {
 	Content tocNcxContent `xml:"content"`
 }
 
+// Constructor for toc
 func newToc() *toc {
 	t := &toc{}
 
@@ -96,6 +109,7 @@ func newToc() *toc {
 	return t
 }
 
+// Constructor for tocNavBody
 func newTocNavXml() *tocNavBody {
 	b := &tocNavBody{
 		EpubType: tocNavEpubType,
@@ -114,6 +128,7 @@ func newTocNavXml() *tocNavBody {
 	return b
 }
 
+// Constructor for tocNcxRoot
 func newTocNcxXml() *tocNcxRoot {
 	n := &tocNcxRoot{}
 
@@ -131,6 +146,7 @@ func newTocNcxXml() *tocNcxRoot {
 	return n
 }
 
+// Add a section to the TOC (navXml as well as ncxXml)
 func (t *toc) addSection(index int, title string, relativePath string) {
 	l := &tocNavItem{
 		A: tocNavLink{
@@ -158,6 +174,7 @@ func (t *toc) setUUID(uuid string) {
 	t.ncxXml.Meta.Content = uuid
 }
 
+// Write the TOC files
 func (t *toc) write(tempDir string) error {
 	err := t.writeNavDoc(tempDir)
 	if err != nil {
@@ -172,6 +189,7 @@ func (t *toc) write(tempDir string) error {
 	return nil
 }
 
+// Write the the EPUB v3 TOC file (nav.xhtml) to the temporary directory
 func (t *toc) writeNavDoc(tempDir string) error {
 	navBodyContent, err := xml.MarshalIndent(t.navXml, "    ", "  ")
 	if err != nil {
@@ -194,6 +212,7 @@ func (t *toc) writeNavDoc(tempDir string) error {
 	return nil
 }
 
+// Write the EPUB v2 TOC file (toc.ncx) to the temporary directory
 func (t *toc) writeNcxDoc(tempDir string) error {
 	t.ncxXml.Title = t.title
 

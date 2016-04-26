@@ -19,10 +19,12 @@ const (
 `
 )
 
+// xhtml implements an XHTML document
 type xhtml struct {
 	xml *xhtmlRoot
 }
 
+// This holds the actual XHTML content
 type xhtmlRoot struct {
 	XMLName   xml.Name      `xml:"http://www.w3.org/1999/xhtml html"`
 	XmlnsEpub string        `xml:"xmlns:epub,attr,omitempty"`
@@ -30,10 +32,14 @@ type xhtmlRoot struct {
 	Body      xhtmlInnerxml `xml:"body"`
 }
 
+// This holds the content of the XHTML document between the <body> tags. It is
+// implemented as a string because we don't know what it will contain and we
+// leave it up to the user of the package to validate the content
 type xhtmlInnerxml struct {
 	XML string `xml:",innerxml"`
 }
 
+// Constructor for xhtml
 func newXhtml(content string) (*xhtml, error) {
 	var x *xhtml
 
@@ -51,6 +57,7 @@ func newXhtml(content string) (*xhtml, error) {
 	return x, nil
 }
 
+// Constructor for xhtmlRoot
 func newXhtmlRoot() (*xhtmlRoot, error) {
 	r := &xhtmlRoot{}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &r)
@@ -78,6 +85,7 @@ func (x *xhtml) Title() string {
 	return x.xml.Title
 }
 
+// Write the XHTML file to the specified path
 func (x *xhtml) write(xhtmlFilePath string) error {
 	xhtmlFileContent, err := xml.MarshalIndent(x.xml, "", "  ")
 	if err != nil {

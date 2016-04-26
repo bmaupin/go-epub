@@ -47,45 +47,59 @@ func (e *Epub) Write(destFilePath string) error {
 		log.Fatalf("os.Remove error: %s", err)
 	}
 
-	// Must be run first
+	// Must be called first
 	err = createEpubFolders(tempDir)
 	if err != nil {
 		return err
 	}
 
+	// Must be called after:
+	// createEpubFolders()
 	err = e.writeImages(tempDir)
 	if err != nil {
 		return err
 	}
 
+	// Must be called after:
+	// createEpubFolders()
 	err = writeMimetype(tempDir)
 	if err != nil {
 		return err
 	}
 
+	// Must be called after:
+	// createEpubFolders()
 	err = e.writeSections(tempDir)
 	if err != nil {
 		return err
 	}
 
+	// Must be called after:
+	// createEpubFolders()
+	// writeSections()
 	err = e.writeToc(tempDir)
 	if err != nil {
 		return err
 	}
 
-	// Write the container file (container.xml)
+	// Must be called after:
+	// createEpubFolders()
 	err = writeContainerFile(tempDir)
 	if err != nil {
 		return err
 	}
 
-	// Write the package file (package.opf)
+	// Must be called after:
+	// createEpubFolders()
+	// writeImages()
+	// writeSections()
+	// writeToc()
 	err = e.writePackageFile(tempDir)
 	if err != nil {
 		return err
 	}
 
-	// Now write the EPUB file itself. Must be run last.
+	// Must be called last
 	err = e.writeEpub(tempDir, destFilePath)
 	if err != nil {
 		return err
@@ -105,6 +119,7 @@ func (e *Epub) Write(destFilePath string) error {
 	return nil
 }
 
+// Create the EPUB folder structure in a temp directory
 func createEpubFolders(tempDir string) error {
 	if err := os.Mkdir(
 		filepath.Join(
@@ -137,6 +152,11 @@ func createEpubFolders(tempDir string) error {
 	return nil
 }
 
+// Write the contatiner file (container.xml), which mostly just points to the
+// package file (package.opf)
+//
+// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/META-INF/container.xml
+// Spec: http://www.idpf.org/epub/301/spec/epub-ocf.html#sec-container-metainf-container.xml
 func writeContainerFile(tempDir string) error {
 	containerFilePath := filepath.Join(tempDir, metaInfFolderName, containerFilename)
 	if err := ioutil.WriteFile(
@@ -156,6 +176,7 @@ func writeContainerFile(tempDir string) error {
 	return nil
 }
 
+// Write the EPUB file itself by zipping up everything from a temp directory
 func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
@@ -194,7 +215,7 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 
 		var w io.Writer
 		if path == filepath.Join(tempDir, mimetypeFilename) {
-			// Skip the mimetype file
+			// Skip the mimetype file if it's already been written
 			if skipMimetypeFile == true {
 				return nil
 			}
@@ -246,6 +267,7 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	return nil
 }
 
+// Get images from their source and save them in the temporary directory
 func (e *Epub) writeImages(tempDir string) error {
 	imageFolderPath := filepath.Join(tempDir, contentFolderName, imageFolderName)
 	if err := os.Mkdir(imageFolderPath, dirPermissions); err != nil {
@@ -298,6 +320,10 @@ func (e *Epub) writeImages(tempDir string) error {
 	return nil
 }
 
+// Write the mimetype file
+//
+// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/mimetype
+// Spec: http://www.idpf.org/epub/301/spec/epub-ocf.html#sec-zip-container-mime
 func writeMimetype(tempDir string) error {
 	mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
 
@@ -317,6 +343,8 @@ func (e *Epub) writePackageFile(tempDir string) error {
 	return nil
 }
 
+// Write the section files to the temporary directory and add the sections to
+// the TOC and package files
 func (e *Epub) writeSections(tempDir string) error {
 	for i, section := range e.sections {
 		sectionIndex := i + 1
@@ -336,6 +364,8 @@ func (e *Epub) writeSections(tempDir string) error {
 	return nil
 }
 
+// Write the TOC file to the temporary directory and add the TOC entries to the
+// package file
 func (e *Epub) writeToc(tempDir string) error {
 	e.pkg.addToManifest(tocNavItemId, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
 	e.pkg.addToManifest(tocNcxItemId, tocNcxFilename, mediaTypeNcx, "")

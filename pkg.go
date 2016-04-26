@@ -57,8 +57,8 @@ const (
 // pkg implements the package file (package.opf), which contains metadata about
 // the EPUB (title, author, etc) as well as a list of files the EPUB contains.
 //
-// Spec: http://www.idpf.org/epub/301/spec/epub-publications.html
 // Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/EPUB/package.opf
+// Spec: http://www.idpf.org/epub/301/spec/epub-publications.html
 type pkg struct {
 	xml          *pkgRoot
 	authorMeta   *pkgMeta
@@ -231,6 +231,7 @@ func updateMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
 	return a
 }
 
+// Write the package file to the temporary directory
 func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
