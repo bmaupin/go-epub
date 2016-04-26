@@ -1,2 +1,4 @@
 # Ignore Gedit backup files
 *~
+
+vendor/
