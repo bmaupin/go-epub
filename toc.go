@@ -65,7 +65,7 @@ type tocNavBody struct {
 }
 
 type tocNavItem struct {
-	A tocNavLink `xml:a`
+	A tocNavLink `xml:"a"`
 }
 
 type tocNavLink struct {
