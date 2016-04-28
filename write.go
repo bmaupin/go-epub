@@ -116,7 +116,10 @@ func (e *Epub) Write(destFilePath string) error {
 	//	output = append([]byte(xml.Header), output...)
 	//	fmt.Println(string(output))
 
-	os.RemoveAll(tempDir)
+	err = os.RemoveAll(tempDir)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
