@@ -5,8 +5,6 @@ compatibility.
 
 Basic usage:
 
-	import epub "github.com/bmaupin/go-epub"
-
 	// Create a new EPUB
 	e := epub.NewEpub("My title")
 
