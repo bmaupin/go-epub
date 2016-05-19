@@ -42,34 +42,26 @@ const (
 	testTempDirPrefix = "go-epub"
 )
 
-var tempDir, err = ioutil.TempDir("", tempDirPrefix)
+var testTempDir = ""
 
 func TestMain(m *testing.M) {
 	// Run the tests
 	retCode := m.Run()
 
 	// Cleanup and exit
-	os.Remove(testEpubFilename)
-	//os.RemoveAll(tempDir)
+	//os.Remove(testEpubFilename)
+	cleanup(testEpubFilename, testTempDir)
 	os.Exit(retCode)
 }
 
 func TestEpubWrite(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 
-	err := e.Write(testEpubFilename)
-	if err != nil {
-		t.Errorf("Unexpected error writing EPUB: %s", err)
-	}
-
-	err = unzipFile(testEpubFilename, tempDir)
-	if err != nil {
-		t.Errorf("Unexpected error extracting EPUB: %s", err)
-	}
+	testTempDir = writeAndExtractEpub(t, e, testEpubFilename)
 }
 
 func TestEpubMimetypeContents(t *testing.T) {
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
+	contents, err := ioutil.ReadFile(filepath.Join(testTempDir, mimetypeFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading mimetype file: %s", err)
 	}
@@ -84,7 +76,7 @@ func TestEpubMimetypeContents(t *testing.T) {
 }
 
 func TestEpubContainerContents(t *testing.T) {
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, metaInfFolderName, containerFilename))
+	contents, err := ioutil.ReadFile(filepath.Join(testTempDir, metaInfFolderName, containerFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading container file: %s", err)
 	}
@@ -99,7 +91,7 @@ func TestEpubContainerContents(t *testing.T) {
 }
 
 func TestEpubPkgContents(t *testing.T) {
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := ioutil.ReadFile(filepath.Join(testTempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -117,25 +109,13 @@ func TestEpubPkgContents(t *testing.T) {
 
 func TestEpubAuthor(t *testing.T) {
 	authorTestEpubFilename := testEpubFilename + "author"
-	authorTempDir, err := ioutil.TempDir("", tempDirPrefix)
-	if err != nil {
-		t.Errorf("Unexpected error creating temp dir: %s", err)
-	}
 
 	e := NewEpub(testEpubTitle)
 	e.SetAuthor(testEpubAuthor)
 
-	err = e.Write(authorTestEpubFilename)
-	if err != nil {
-		t.Errorf("Unexpected error writing EPUB: %s", err)
-	}
+	tempDir := writeAndExtractEpub(t, e, authorTestEpubFilename)
 
-	err = unzipFile(authorTestEpubFilename, authorTempDir)
-	if err != nil {
-		t.Errorf("Unexpected error extracting EPUB: %s", err)
-	}
-
-	contents, err := ioutil.ReadFile(filepath.Join(authorTempDir, contentFolderName, pkgFilename))
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -148,8 +128,12 @@ func TestEpubAuthor(t *testing.T) {
 			testAuthorElement)
 	}
 
-	os.Remove(authorTestEpubFilename)
-	os.RemoveAll(authorTempDir)
+	cleanup(authorTestEpubFilename, tempDir)
+}
+
+func cleanup(epubFilename string, tempDir string) {
+	os.Remove(epubFilename)
+	os.RemoveAll(tempDir)
 }
 
 // TrimAllSpace trims all space from each line of the string and removes empty
@@ -224,4 +208,23 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	}
 
 	return nil
+}
+
+func writeAndExtractEpub(t *testing.T, e *Epub, epubFilename string) string {
+	tempDir, err := ioutil.TempDir("", tempDirPrefix)
+	if err != nil {
+		t.Errorf("Unexpected error creating temp dir: %s", err)
+	}
+
+	err = e.Write(epubFilename)
+	if err != nil {
+		t.Errorf("Unexpected error writing EPUB: %s", err)
+	}
+
+	err = unzipFile(epubFilename, tempDir)
+	if err != nil {
+		t.Errorf("Unexpected error extracting EPUB: %s", err)
+	}
+
+	return tempDir
 }
