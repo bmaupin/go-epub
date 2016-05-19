@@ -37,7 +37,8 @@ import (
 )
 
 const (
-	urnUUID = "urn:uuid:"
+	defaultEpubLang = "en"
+	urnUUIDPrefix   = "urn:uuid:"
 )
 
 // Epub implements an EPUB file.
@@ -60,7 +61,7 @@ func NewEpub(title string) *Epub {
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
-	e.SetLang("en")
+	e.SetLang(defaultEpubLang)
 	e.SetTitle(title)
 	e.SetUUID(uuid.NewV4().String())
 
@@ -129,8 +130,8 @@ func (e *Epub) SetTitle(title string) {
 // for you when the NewEpub method is run.
 func (e *Epub) SetUUID(uuid string) {
 	e.uuid = uuid
-	e.pkg.setUUID(urnUUID + uuid)
-	e.toc.setUUID(urnUUID + uuid)
+	e.pkg.setUUID(urnUUIDPrefix + uuid)
+	e.toc.setUUID(urnUUIDPrefix + uuid)
 }
 
 // Title returns the title of the EPUB.
