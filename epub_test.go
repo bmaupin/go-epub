@@ -40,6 +40,7 @@ const (
   <spine toc="ncx"></spine>
 </package>`
 	testTempDirPrefix = "go-epub"
+	testTitleTemplate = `<dc:title>%s</dc:title>`
 )
 
 var testTempDir = ""
@@ -113,6 +114,15 @@ func TestEpubAuthor(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	e.SetAuthor(testEpubAuthor)
 
+	if e.Author() != testEpubAuthor {
+		t.Errorf(
+			"Author doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			e.Author(),
+			testEpubAuthor)
+	}
+
 	tempDir := writeAndExtractEpub(t, e, authorTestEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
@@ -129,6 +139,67 @@ func TestEpubAuthor(t *testing.T) {
 	}
 
 	cleanup(authorTestEpubFilename, tempDir)
+}
+
+func TestEpubTitle(t *testing.T) {
+	// First, test the title we provide when creating the epub
+	titleTestEpubFilename := testEpubFilename + "title"
+
+	e := NewEpub(testEpubTitle)
+	if e.Title() != testEpubTitle {
+		t.Errorf(
+			"Title doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			e.Title(),
+			testEpubTitle)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, titleTestEpubFilename)
+
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testTitleElement := fmt.Sprintf(testTitleTemplate, testEpubTitle)
+	if !strings.Contains(string(contents), testTitleElement) {
+		t.Errorf(
+			"Title doesn't match\n"+
+				"Expected: %s",
+			testTitleElement)
+	}
+
+	cleanup(titleTestEpubFilename, tempDir)
+
+	// Now test changing the title
+	e.SetTitle(testEpubAuthor)
+
+	if e.Title() != testEpubAuthor {
+		t.Errorf(
+			"Title doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			e.Title(),
+			testEpubAuthor)
+	}
+
+	tempDir = writeAndExtractEpub(t, e, titleTestEpubFilename)
+
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testTitleElement = fmt.Sprintf(testTitleTemplate, testEpubAuthor)
+	if !strings.Contains(string(contents), testTitleElement) {
+		t.Errorf(
+			"Title doesn't match\n"+
+				"Expected: %s",
+			testTitleElement)
+	}
+
+	cleanup(titleTestEpubFilename, tempDir)
 }
 
 func cleanup(epubFilename string, tempDir string) {
