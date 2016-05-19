@@ -23,8 +23,10 @@ const (
 	testDirPerm            = 0775
 	testEpubAuthor         = "Hingle McCringleberry"
 	testEpubFilename       = "My EPUB.epub"
+	testEpubLang           = "fr"
 	testEpubTitle          = "My title"
 	testEpubUUID           = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
+	testLangTemplate       = `<dc:language>%s</dc:language>`
 	testMimetypeContents   = "application/epub+zip"
 	testPkgContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
@@ -136,11 +138,48 @@ func TestEpubAuthor(t *testing.T) {
 	if !strings.Contains(string(contents), testAuthorElement) {
 		t.Errorf(
 			"Author doesn't match\n"+
+				"Got: %s\n"+
 				"Expected: %s",
+			contents,
 			testAuthorElement)
 	}
 
 	cleanup(testEpubAuthorFilename, tempDir)
+}
+
+func TestEpubLang(t *testing.T) {
+	testEpubLangFilename := testEpubFilename + "lang"
+
+	e := NewEpub(testEpubTitle)
+	e.SetLang(testEpubLang)
+
+	if e.Lang() != testEpubLang {
+		t.Errorf(
+			"Language doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			e.Lang(),
+			testEpubLang)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, testEpubLangFilename)
+
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testLangElement := fmt.Sprintf(testLangTemplate, testEpubLang)
+	if !strings.Contains(string(contents), testLangElement) {
+		t.Errorf(
+			"Language doesn't match\n"+
+				"Got: %s"+
+				"Expected: %s",
+			contents,
+			testLangElement)
+	}
+
+	cleanup(testEpubLangFilename, tempDir)
 }
 
 func TestEpubTitle(t *testing.T) {
@@ -168,7 +207,9 @@ func TestEpubTitle(t *testing.T) {
 	if !strings.Contains(string(contents), testTitleElement) {
 		t.Errorf(
 			"Title doesn't match\n"+
+				"Got: %s\n"+
 				"Expected: %s",
+			contents,
 			testTitleElement)
 	}
 
@@ -197,7 +238,9 @@ func TestEpubTitle(t *testing.T) {
 	if !strings.Contains(string(contents), testTitleElement) {
 		t.Errorf(
 			"Title doesn't match\n"+
+				"Got: %s\n"+
 				"Expected: %s",
+			contents,
 			testTitleElement)
 	}
 
