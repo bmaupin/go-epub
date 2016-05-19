@@ -2,6 +2,7 @@ package epub
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -126,8 +127,7 @@ func trimAllSpace(s string) string {
 	return strings.Join(trimmedLines, "\n")
 }
 
-// UnzipFile unzips the source zip file to the destination directory. It will
-// first check to make sure the destination directory exists and is a directory
+// UnzipFile unzips a file located at sourceFilePath to the provided destination directory
 func unzipFile(sourceFilePath string, destDirPath string) error {
 	// First, make sure the destination exists and is a directory
 	info, err := os.Stat(destDirPath)
@@ -135,10 +135,13 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		return err
 	}
 	if !info.Mode().IsDir() {
-		return fmt.Errorf("Destination is not a directory: %s", destDirPath)
+		return errors.New("destination is not a directory")
 	}
 
 	r, err := zip.OpenReader(sourceFilePath)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		if err := r.Close(); err != nil {
 			panic(err)
