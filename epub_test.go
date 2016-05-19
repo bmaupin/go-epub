@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	testAuthorTemplate    = `<dc:creator id="creator">%s</dc:creator>`
 	testContainerContents = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
@@ -20,6 +21,7 @@ const (
   </rootfiles>
 </container>`
 	testDirPerm            = 0775
+	testEpubAuthor         = "Hingle McCringleberry"
 	testEpubFilename       = "My EPUB.epub"
 	testEpubTitle          = "My title"
 	testMimetypeContents   = "application/epub+zip"
@@ -111,6 +113,43 @@ func TestEpubPkgContents(t *testing.T) {
 			contents,
 			testPkgContents)
 	}
+}
+
+func TestEpubAuthor(t *testing.T) {
+	authorTestEpubFilename := testEpubFilename + "author"
+	authorTempDir, err := ioutil.TempDir("", tempDirPrefix)
+	if err != nil {
+		t.Errorf("Unexpected error creating temp dir: %s", err)
+	}
+
+	e := NewEpub(testEpubTitle)
+	e.SetAuthor(testEpubAuthor)
+
+	err = e.Write(authorTestEpubFilename)
+	if err != nil {
+		t.Errorf("Unexpected error writing EPUB: %s", err)
+	}
+
+	err = unzipFile(authorTestEpubFilename, authorTempDir)
+	if err != nil {
+		t.Errorf("Unexpected error extracting EPUB: %s", err)
+	}
+
+	contents, err := ioutil.ReadFile(filepath.Join(authorTempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testAuthorElement := fmt.Sprintf(testAuthorTemplate, testEpubAuthor)
+	if !strings.Contains(string(contents), testAuthorElement) {
+		t.Errorf(
+			"Author doesn't match\n"+
+				"Expected: %s",
+			testAuthorElement)
+	}
+
+	os.Remove(authorTestEpubFilename)
+	os.RemoveAll(authorTempDir)
 }
 
 // TrimAllSpace trims all space from each line of the string and removes empty
