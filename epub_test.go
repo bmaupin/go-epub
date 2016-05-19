@@ -24,6 +24,7 @@ const (
 	testEpubAuthor         = "Hingle McCringleberry"
 	testEpubFilename       = "My EPUB.epub"
 	testEpubTitle          = "My title"
+	testEpubUUID           = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
 	testMimetypeContents   = "application/epub+zip"
 	testPkgContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
@@ -41,6 +42,7 @@ const (
 </package>`
 	testTempDirPrefix = "go-epub"
 	testTitleTemplate = `<dc:title>%s</dc:title>`
+	testUUIDTemplate  = `<dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>`
 )
 
 var testTempDir = ""
@@ -109,7 +111,7 @@ func TestEpubPkgContents(t *testing.T) {
 }
 
 func TestEpubAuthor(t *testing.T) {
-	authorTestEpubFilename := testEpubFilename + "author"
+	testEpubAuthorFilename := testEpubFilename + "author"
 
 	e := NewEpub(testEpubTitle)
 	e.SetAuthor(testEpubAuthor)
@@ -123,7 +125,7 @@ func TestEpubAuthor(t *testing.T) {
 			testEpubAuthor)
 	}
 
-	tempDir := writeAndExtractEpub(t, e, authorTestEpubFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubAuthorFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -138,12 +140,12 @@ func TestEpubAuthor(t *testing.T) {
 			testAuthorElement)
 	}
 
-	cleanup(authorTestEpubFilename, tempDir)
+	cleanup(testEpubAuthorFilename, tempDir)
 }
 
 func TestEpubTitle(t *testing.T) {
 	// First, test the title we provide when creating the epub
-	titleTestEpubFilename := testEpubFilename + "title"
+	testEpubTitleFilename := testEpubFilename + "title"
 
 	e := NewEpub(testEpubTitle)
 	if e.Title() != testEpubTitle {
@@ -155,7 +157,7 @@ func TestEpubTitle(t *testing.T) {
 			testEpubTitle)
 	}
 
-	tempDir := writeAndExtractEpub(t, e, titleTestEpubFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubTitleFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -170,7 +172,7 @@ func TestEpubTitle(t *testing.T) {
 			testTitleElement)
 	}
 
-	cleanup(titleTestEpubFilename, tempDir)
+	cleanup(testEpubTitleFilename, tempDir)
 
 	// Now test changing the title
 	e.SetTitle(testEpubAuthor)
@@ -184,7 +186,7 @@ func TestEpubTitle(t *testing.T) {
 			testEpubAuthor)
 	}
 
-	tempDir = writeAndExtractEpub(t, e, titleTestEpubFilename)
+	tempDir = writeAndExtractEpub(t, e, testEpubTitleFilename)
 
 	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -199,7 +201,42 @@ func TestEpubTitle(t *testing.T) {
 			testTitleElement)
 	}
 
-	cleanup(titleTestEpubFilename, tempDir)
+	cleanup(testEpubTitleFilename, tempDir)
+}
+
+func TestEpubUUID(t *testing.T) {
+	testEpubUUIDFilename := testEpubFilename + "uuid"
+
+	e := NewEpub(testEpubTitle)
+	e.SetUUID(testEpubUUID)
+
+	if e.UUID() != testEpubUUID {
+		t.Errorf(
+			"UUID doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			e.UUID(),
+			testEpubUUID)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, testEpubUUIDFilename)
+
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testUUIDElement := fmt.Sprintf(testUUIDTemplate, testEpubUUID)
+	if !strings.Contains(string(contents), testUUIDElement) {
+		t.Errorf(
+			"UUID doesn't match\n"+
+				"Got: %s"+
+				"Expected: %s",
+			contents,
+			testUUIDElement)
+	}
+
+	cleanup(testEpubUUIDFilename, tempDir)
 }
 
 func cleanup(epubFilename string, tempDir string) {
