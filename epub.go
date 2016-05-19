@@ -62,7 +62,7 @@ func NewEpub(title string) *Epub {
 	// Set minimal required attributes
 	e.SetLang("en")
 	e.SetTitle(title)
-	e.SetUUID(urnUUID + uuid.NewV4().String())
+	e.SetUUID(uuid.NewV4().String())
 
 	return e
 }
@@ -129,8 +129,8 @@ func (e *Epub) SetTitle(title string) {
 // for you when the NewEpub method is run.
 func (e *Epub) SetUUID(uuid string) {
 	e.uuid = uuid
-	e.pkg.setUUID(uuid)
-	e.toc.setUUID(uuid)
+	e.pkg.setUUID(urnUUID + uuid)
+	e.toc.setUUID(urnUUID + uuid)
 }
 
 // Title returns the title of the EPUB.
