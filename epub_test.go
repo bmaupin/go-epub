@@ -42,9 +42,23 @@ const (
   </manifest>
   <spine toc="ncx"></spine>
 </package>`
-	testTempDirPrefix = "go-epub"
-	testTitleTemplate = `<dc:title>%s</dc:title>`
-	testUUIDTemplate  = `<dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>`
+	testSectionBody = `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>`
+	testSectionContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>%s</title>
+  </head>
+  <body>
+    %s
+  </body>
+</html>`
+	testSectionFilename = "section0001.xhtml"
+	testSectionTitle    = "Section 1"
+	testTempDirPrefix   = "go-epub"
+	testTitleTemplate   = `<dc:title>%s</dc:title>`
+	testUUIDTemplate    = `<dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>`
 )
 
 var testTempDir = ""
@@ -53,8 +67,6 @@ func TestMain(m *testing.M) {
 	// Run the tests
 	retCode := m.Run()
 
-	// Cleanup and exit
-	//os.Remove(testEpubFilename)
 	cleanup(testEpubFilename, testTempDir)
 	os.Exit(retCode)
 }
@@ -110,6 +122,34 @@ func TestEpubPkgContents(t *testing.T) {
 			contents,
 			testPkgContents)
 	}
+}
+
+func TestAddSection(t *testing.T) {
+	testAddSectionFilename := testEpubFilename + "section"
+
+	e := NewEpub(testEpubTitle)
+	e.AddSection(testSectionTitle, testSectionBody)
+
+	writeAndExtractEpub(t, e, testAddSectionFilename)
+
+	tempDir := writeAndExtractEpub(t, e, testAddSectionFilename)
+
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testSectionContents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBody)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSectionContents)
+	}
+
+	cleanup(testAddSectionFilename, tempDir)
 }
 
 func TestEpubAuthor(t *testing.T) {
