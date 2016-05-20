@@ -2,6 +2,7 @@ package epub
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -26,6 +27,8 @@ const (
 	testEpubLang           = "fr"
 	testEpubTitle          = "My title"
 	testEpubUUID           = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
+	testImageFilename      = "test.png"
+	testImageSource        = "testdata/gophercolor16x16.png"
 	testLangTemplate       = `<dc:language>%s</dc:language>`
 	testMimetypeContents   = "application/epub+zip"
 	testPkgContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
@@ -124,13 +127,35 @@ func TestEpubPkgContents(t *testing.T) {
 	}
 }
 
+func TestAddImage(t *testing.T) {
+	testAddImageFilename := testEpubFilename + "image"
+
+	e := NewEpub(testEpubTitle)
+	e.AddImage(testImageSource, testImageFilename)
+
+	tempDir := writeAndExtractEpub(t, e, testAddImageFilename)
+
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
+	}
+
+	testImageContents, err := ioutil.ReadFile(testImageSource)
+	if err != nil {
+		t.Errorf("Unexpected error reading testdata image file: %s", err)
+	}
+	if bytes.Compare(contents, testImageContents) != 0 {
+		t.Errorf("Image file contents don't match")
+	}
+
+	cleanup(testAddImageFilename, tempDir)
+}
+
 func TestAddSection(t *testing.T) {
 	testAddSectionFilename := testEpubFilename + "section"
 
 	e := NewEpub(testEpubTitle)
 	e.AddSection(testSectionTitle, testSectionBody)
-
-	writeAndExtractEpub(t, e, testAddSectionFilename)
 
 	tempDir := writeAndExtractEpub(t, e, testAddSectionFilename)
 
