@@ -329,19 +329,28 @@ func TestEpubUUID(t *testing.T) {
 
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
+	e.AddImage(testImageSource, testImageFilename)
+	e.AddSection(testSectionTitle, testSectionBody)
+	e.SetAuthor(testEpubAuthor)
+	e.SetLang(testEpubLang)
+	e.SetTitle(testEpubAuthor)
+	e.SetUUID(testEpubUUID)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	output, err := validateEpub(t, testEpubFilename)
 	if err != nil {
-		t.Errorf("EPUB validation failed: %s", output)
+		t.Errorf("EPUB validation failed")
 	}
+
+	// Always print the output so we can see warnings as well
+	fmt.Println(string(output))
 
 	cleanup(testEpubFilename, tempDir)
 }
 
 func cleanup(epubFilename string, tempDir string) {
-	//os.Remove(epubFilename)
+	os.Remove(epubFilename)
 	os.RemoveAll(tempDir)
 }
 
