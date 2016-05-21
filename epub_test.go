@@ -67,24 +67,13 @@ const (
 	testUUIDTemplate    = `<dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>`
 )
 
-var testTempDir = ""
-
-func TestMain(m *testing.M) {
-	// Run the tests
-	retCode := m.Run()
-
-	cleanup(testEpubFilename, testTempDir)
-	os.Exit(retCode)
-}
-
 func TestEpubWrite(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 
-	testTempDir = writeAndExtractEpub(t, e, testEpubFilename)
-}
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-func TestEpubMimetypeContents(t *testing.T) {
-	contents, err := ioutil.ReadFile(filepath.Join(testTempDir, mimetypeFilename))
+	// Check the contents of the mimetype file
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading mimetype file: %s", err)
 	}
@@ -96,10 +85,9 @@ func TestEpubMimetypeContents(t *testing.T) {
 			contents,
 			testMimetypeContents)
 	}
-}
 
-func TestEpubContainerContents(t *testing.T) {
-	contents, err := ioutil.ReadFile(filepath.Join(testTempDir, metaInfFolderName, containerFilename))
+	// Check the contents of the container file
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, metaInfFolderName, containerFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading container file: %s", err)
 	}
@@ -111,10 +99,9 @@ func TestEpubContainerContents(t *testing.T) {
 			contents,
 			testContainerContents)
 	}
-}
 
-func TestEpubPkgContents(t *testing.T) {
-	contents, err := ioutil.ReadFile(filepath.Join(testTempDir, contentFolderName, pkgFilename))
+	// Check the contents of the package file
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -128,15 +115,15 @@ func TestEpubPkgContents(t *testing.T) {
 			contents,
 			testPkgContents)
 	}
+
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestAddImage(t *testing.T) {
-	testAddImageFilename := testEpubFilename + "image"
-
 	e := NewEpub(testEpubTitle)
 	e.AddImage(testImageSource, testImageFilename)
 
-	tempDir := writeAndExtractEpub(t, e, testAddImageFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFilename))
 	if err != nil {
@@ -151,16 +138,14 @@ func TestAddImage(t *testing.T) {
 		t.Errorf("Image file contents don't match")
 	}
 
-	cleanup(testAddImageFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestAddSection(t *testing.T) {
-	testAddSectionFilename := testEpubFilename + "section"
-
 	e := NewEpub(testEpubTitle)
 	e.AddSection(testSectionTitle, testSectionBody)
 
-	tempDir := writeAndExtractEpub(t, e, testAddSectionFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionFilename))
 	if err != nil {
@@ -177,12 +162,10 @@ func TestAddSection(t *testing.T) {
 			testSectionContents)
 	}
 
-	cleanup(testAddSectionFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestEpubAuthor(t *testing.T) {
-	testEpubAuthorFilename := testEpubFilename + "author"
-
 	e := NewEpub(testEpubTitle)
 	e.SetAuthor(testEpubAuthor)
 
@@ -195,7 +178,7 @@ func TestEpubAuthor(t *testing.T) {
 			testEpubAuthor)
 	}
 
-	tempDir := writeAndExtractEpub(t, e, testEpubAuthorFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -212,12 +195,10 @@ func TestEpubAuthor(t *testing.T) {
 			testAuthorElement)
 	}
 
-	cleanup(testEpubAuthorFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestEpubLang(t *testing.T) {
-	testEpubLangFilename := testEpubFilename + "lang"
-
 	e := NewEpub(testEpubTitle)
 	e.SetLang(testEpubLang)
 
@@ -230,7 +211,7 @@ func TestEpubLang(t *testing.T) {
 			testEpubLang)
 	}
 
-	tempDir := writeAndExtractEpub(t, e, testEpubLangFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -247,13 +228,11 @@ func TestEpubLang(t *testing.T) {
 			testLangElement)
 	}
 
-	cleanup(testEpubLangFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestEpubTitle(t *testing.T) {
 	// First, test the title we provide when creating the epub
-	testEpubTitleFilename := testEpubFilename + "title"
-
 	e := NewEpub(testEpubTitle)
 	if e.Title() != testEpubTitle {
 		t.Errorf(
@@ -264,7 +243,7 @@ func TestEpubTitle(t *testing.T) {
 			testEpubTitle)
 	}
 
-	tempDir := writeAndExtractEpub(t, e, testEpubTitleFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -281,7 +260,7 @@ func TestEpubTitle(t *testing.T) {
 			testTitleElement)
 	}
 
-	cleanup(testEpubTitleFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 
 	// Now test changing the title
 	e.SetTitle(testEpubAuthor)
@@ -295,7 +274,7 @@ func TestEpubTitle(t *testing.T) {
 			testEpubAuthor)
 	}
 
-	tempDir = writeAndExtractEpub(t, e, testEpubTitleFilename)
+	tempDir = writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -312,12 +291,10 @@ func TestEpubTitle(t *testing.T) {
 			testTitleElement)
 	}
 
-	cleanup(testEpubTitleFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestEpubUUID(t *testing.T) {
-	testEpubUUIDFilename := testEpubFilename + "uuid"
-
 	e := NewEpub(testEpubTitle)
 	e.SetUUID(testEpubUUID)
 
@@ -330,7 +307,7 @@ func TestEpubUUID(t *testing.T) {
 			testEpubUUID)
 	}
 
-	tempDir := writeAndExtractEpub(t, e, testEpubUUIDFilename)
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
@@ -347,7 +324,7 @@ func TestEpubUUID(t *testing.T) {
 			testUUIDElement)
 	}
 
-	cleanup(testEpubUUIDFilename, tempDir)
+	cleanup(testEpubFilename, tempDir)
 }
 
 func TestEpubValidity(t *testing.T) {
