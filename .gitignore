@@ -1,4 +1,5 @@
 # Ignore Gedit backup files
 *~
 
+epubcheck*
 vendor/
