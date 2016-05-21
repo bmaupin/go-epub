@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -23,6 +24,8 @@ const (
 </container>`
 	testDirPerm            = 0775
 	testEpubAuthor         = "Hingle McCringleberry"
+	testEpubcheckJarfile   = "epubcheck.jar"
+	testEpubcheckPrefix    = "epubcheck"
 	testEpubFilename       = "My EPUB.epub"
 	testEpubLang           = "fr"
 	testEpubTitle          = "My title"
@@ -347,8 +350,21 @@ func TestEpubUUID(t *testing.T) {
 	cleanup(testEpubUUIDFilename, tempDir)
 }
 
+func TestEpubValidity(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	output, err := validateEpub(t, testEpubFilename)
+	if err != nil {
+		t.Errorf("EPUB validation failed: %s", output)
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
 func cleanup(epubFilename string, tempDir string) {
-	os.Remove(epubFilename)
+	//os.Remove(epubFilename)
 	os.RemoveAll(tempDir)
 }
 
@@ -424,6 +440,45 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	}
 
 	return nil
+}
+
+// This function requires epubcheck to work (https://github.com/IDPF/epubcheck)
+func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Error("Error getting working directory")
+	}
+
+	items, err := ioutil.ReadDir(cwd)
+	if err != nil {
+		t.Error("Error getting contents of working directory")
+	}
+
+	pathToEpubcheck := ""
+	for _, i := range items {
+		if i.Name() == testEpubcheckJarfile {
+			pathToEpubcheck = i.Name()
+			break
+
+		} else if strings.HasPrefix(i.Name(), testEpubcheckPrefix) {
+			if i.Mode().IsDir() {
+				pathToEpubcheck = filepath.Join(i.Name(), testEpubcheckJarfile)
+				if _, err := os.Stat(pathToEpubcheck); err == nil {
+					break
+				} else {
+					pathToEpubcheck = ""
+				}
+			}
+		}
+	}
+
+	if pathToEpubcheck == "" {
+		fmt.Println("Epubcheck tool not installed, skipping EPUB validation.")
+		return []byte{}, nil
+	}
+
+	cmd := exec.Command("java", "-jar", pathToEpubcheck, epubFilename)
+	return cmd.CombinedOutput()
 }
 
 func writeAndExtractEpub(t *testing.T, e *Epub, epubFilename string) string {
