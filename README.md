@@ -1,6 +1,8 @@
-[![Go Report Card](http://goreportcard.com/badge/bmaupin/go-epub)](http://goreportcard.com/report/bmaupin/go-epub)
+[![Build Status](https://travis-ci.org/bmaupin/go-epub.svg?branch=master)](https://travis-ci.org/bmaupin/go-epub) [![Coverage Status](https://coveralls.io/repos/github/bmaupin/go-epub/badge.svg?branch=master)](https://coveralls.io/github/bmaupin/go-epub?branch=master) [![Go Report Card](http://goreportcard.com/badge/bmaupin/go-epub)](http://goreportcard.com/report/bmaupin/go-epub)
 
 [![GoDoc](https://godoc.org/github.com/bmaupin/go-epub?status.svg)](https://godoc.org/github.com/bmaupin/go-epub)
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/bmaupin/go-epub/master/LICENSE)
 
 Work in progress.
 
