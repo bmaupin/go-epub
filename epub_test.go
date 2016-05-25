@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,19 +23,21 @@ const (
     <rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml" />
   </rootfiles>
 </container>`
-	testDirPerm            = 0775
-	testEpubAuthor         = "Hingle McCringleberry"
-	testEpubcheckJarfile   = "epubcheck.jar"
-	testEpubcheckPrefix    = "epubcheck"
-	testEpubFilename       = "My EPUB.epub"
-	testEpubLang           = "fr"
-	testEpubTitle          = "My title"
-	testEpubUUID           = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
-	testImageFilename      = "test.png"
-	testImageSource        = "testdata/gophercolor16x16.png"
-	testLangTemplate       = `<dc:language>%s</dc:language>`
-	testMimetypeContents   = "application/epub+zip"
-	testPkgContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+	testDirPerm               = 0775
+	testEpubAuthor            = "Hingle McCringleberry"
+	testEpubcheckJarfile      = "epubcheck.jar"
+	testEpubcheckPrefix       = "epubcheck"
+	testEpubFilename          = "My EPUB.epub"
+	testEpubLang              = "fr"
+	testEpubTitle             = "My title"
+	testEpubUUID              = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
+	testImageFromFileFilename = "testfromfile.png"
+	testImageFromFileSource   = "testdata/gophercolor16x16.png"
+	testImageFromURLFilename  = "testfromurl.png"
+	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
+	testLangTemplate          = `<dc:language>%s</dc:language>`
+	testMimetypeContents      = "application/epub+zip"
+	testPkgContentTemplate    = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="pub-id">urn:uuid:21ed94b4-f2ab-44c8-b99d-4f7792587ad6</dc:identifier>
@@ -121,18 +124,36 @@ func TestEpubWrite(t *testing.T) {
 
 func TestAddImage(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.AddImage(testImageSource, testImageFilename)
+	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	e.AddImage(testImageFromURLSource, testImageFromURLFilename)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFilename))
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFromFileFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
 	}
 
-	testImageContents, err := ioutil.ReadFile(testImageSource)
+	testImageContents, err := ioutil.ReadFile(testImageFromFileSource)
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata image file: %s", err)
+	}
+	if bytes.Compare(contents, testImageContents) != 0 {
+		t.Errorf("Image file contents don't match")
+	}
+
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFromURLFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
+	}
+
+	resp, err := http.Get(testImageFromURLSource)
+	if err != nil {
+		t.Errorf("Unexpected error response from test image URL: %s", err)
+	}
+	testImageContents, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Unexpected error reading test image file from URL: %s", err)
 	}
 	if bytes.Compare(contents, testImageContents) != 0 {
 		t.Errorf("Image file contents don't match")
@@ -329,7 +350,8 @@ func TestEpubUUID(t *testing.T) {
 
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.AddImage(testImageSource, testImageFilename)
+	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	e.AddImage(testImageFromURLSource, testImageFromURLFilename)
 	e.AddSection(testSectionTitle, testSectionBody)
 	e.SetAuthor(testEpubAuthor)
 	e.SetLang(testEpubLang)
@@ -429,6 +451,9 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 }
 
 // This function requires epubcheck to work (https://github.com/IDPF/epubcheck)
+//
+//     wget https://github.com/IDPF/epubcheck/releases/download/v4.0.1/epubcheck-4.0.1.zip
+//     unzip epubcheck-4.0.1.zip
 func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
