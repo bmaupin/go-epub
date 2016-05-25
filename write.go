@@ -29,6 +29,10 @@ const (
 	imageFolderName   = "img"
 	mediaTypeNcx      = "application/x-dtbncx+xml"
 	mediaTypeEpub     = "application/epub+zip"
+	mediaTypeGif      = "image/gif"
+	mediaTypeJpeg     = "image/jpeg"
+	mediaTypePng      = "image/png"
+	mediaTypeSvg      = "image/svg+xml"
 	mediaTypeXhtml    = "application/xhtml+xml"
 	metaInfFolderName = "META-INF"
 	mimetypeFilename  = "mimetype"
@@ -157,6 +161,15 @@ func createEpubFolders(tempDir string) error {
 	return nil
 }
 
+// Return the relative path to the image within the EPUB file
+func getImageRelPath(imageFilename string) string {
+	return filepath.Join(
+		"..",
+		imageFolderName,
+		imageFilename,
+	)
+}
+
 // Write the contatiner file (container.xml), which mostly just points to the
 // package file (package.opf)
 //
@@ -280,6 +293,7 @@ func (e *Epub) writeImages(tempDir string) error {
 	}
 
 	for imageFilename, imageSource := range e.images {
+		// Get the image from the source
 		u, err := url.Parse(imageSource)
 		if err != nil {
 			return err
@@ -308,6 +322,7 @@ func (e *Epub) writeImages(tempDir string) error {
 			imageFilename,
 		)
 
+		// Add the image to the EPUB temp directory
 		w, err := os.Create(imageFilePath)
 		if err != nil {
 			return err
@@ -320,6 +335,21 @@ func (e *Epub) writeImages(tempDir string) error {
 		if err != nil {
 			return err
 		}
+
+		// Determine the media type
+		imageMediaType := ""
+		if filepath.Ext(imageFilename) == ".gif" {
+			imageMediaType = mediaTypeGif
+		} else if filepath.Ext(imageFilename) == ".jpg" || filepath.Ext(imageFilename) == ".jpeg" {
+			imageMediaType = mediaTypeJpeg
+		} else if filepath.Ext(imageFilename) == ".png" {
+			imageMediaType = mediaTypePng
+		} else if filepath.Ext(imageFilename) == ".svg" {
+			imageMediaType = mediaTypeSvg
+		}
+
+		// Add the image to the package file manifest
+		e.pkg.addToManifest(imageFilename, filepath.Join(imageFolderName, imageFilename), imageMediaType, "")
 	}
 
 	return nil
