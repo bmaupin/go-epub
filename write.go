@@ -37,7 +37,6 @@ const (
 	metaInfFolderName = "META-INF"
 	mimetypeFilename  = "mimetype"
 	pkgFilename       = "package.opf"
-	sectionFileFormat = "section%04d.xhtml"
 	tempDirPrefix     = "go-epub"
 	xhtmlFolderName   = "xhtml"
 )

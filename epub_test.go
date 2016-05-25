@@ -33,7 +33,6 @@ const (
 	testEpubUUID              = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
 	testImageFromFileFilename = "testfromfile.png"
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
-	testImageFromURLFilename  = "testfromurl.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testMimetypeContents      = "application/epub+zip"
@@ -129,7 +128,7 @@ func TestAddImage(t *testing.T) {
 		t.Errorf("Error adding image: %s", err)
 	}
 
-	_, err = e.AddImage(testImageFromURLSource, testImageFromURLFilename)
+	testImageFromURLPath, err := e.AddImage(testImageFromURLSource, "")
 	if err != nil {
 		t.Errorf("Error adding image: %s", err)
 	}
@@ -149,7 +148,8 @@ func TestAddImage(t *testing.T) {
 		t.Errorf("Image file contents don't match")
 	}
 
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFromURLFilename))
+	// The image path is relative to the XHTML folder
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromURLPath))
 	if err != nil {
 		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
 	}
@@ -176,6 +176,11 @@ func TestAddSection(t *testing.T) {
 		t.Errorf("Error adding section: %s", err)
 	}
 
+	testSectionPath, err := e.AddSection(testSectionTitle, testSectionBody, "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionFilename))
@@ -184,6 +189,20 @@ func TestAddSection(t *testing.T) {
 	}
 
 	testSectionContents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBody)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSectionContents)
+	}
+
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionPath))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
 	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
 		t.Errorf(
 			"Section file contents don't match\n"+
@@ -361,8 +380,9 @@ func TestEpubUUID(t *testing.T) {
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
-	e.AddImage(testImageFromURLSource, testImageFromURLFilename)
+	e.AddImage(testImageFromURLSource, "")
 	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
+	e.AddSection(testSectionTitle, testSectionBody, "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetLang(testEpubLang)
 	e.SetTitle(testEpubAuthor)

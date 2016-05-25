@@ -44,8 +44,10 @@ import (
 )
 
 const (
-	defaultEpubLang = "en"
-	urnUUIDPrefix   = "urn:uuid:"
+	defaultEpubLang   = "en"
+	imageFileFormat   = "image%04d%s"
+	sectionFileFormat = "section%04d.xhtml"
+	urnUUIDPrefix     = "urn:uuid:"
 )
 
 // Epub implements an EPUB file.
@@ -81,6 +83,11 @@ func NewEpub(title string) *Epub {
 // stored in the EPUB. The image filename will be used when storing the image in
 // the EPUB and must be unique.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
+	// Generate an image filename if one isn't provided
+	if imageFilename == "" {
+		imageFilename = fmt.Sprintf(imageFileFormat, len(e.images)+1, filepath.Ext(imageSource))
+	}
+
 	if _, ok := e.images[imageFilename]; ok {
 		return "", fmt.Errorf("Image filename %s already used", imageFilename)
 	}
@@ -101,6 +108,11 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
 func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFilename string) (string, error) {
+	// Generate a section filename if one isn't provided
+	if sectionFilename == "" {
+		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
+	}
+
 	if _, ok := e.sections[sectionFilename]; ok {
 		return "", fmt.Errorf("Section filename %s already used", sectionFilename)
 	}
@@ -110,11 +122,7 @@ func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFil
 
 	e.sections[sectionFilename] = *x
 
-	return filepath.Join(
-		"..",
-		xhtmlFolderName,
-		sectionFilename,
-	), nil
+	return sectionFilename, nil
 }
 
 // Author returns the author of the EPUB.
