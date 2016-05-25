@@ -14,11 +14,18 @@ Basic usage:
 	// Add a section
 	section1Content := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 1", section1Content)
+	e.AddSection("Section 1", section1Content, "section0001.xhtml")
 
+	// The section file name is optional
 	section2Content := `    <h1>Section 2</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 2", section2Content)
+	e.AddSection("Section 2", section2Content, "")
+
+	// Add an image from a local file
+	e.AddImage("testdata/gophercolor16x16.png", "go-gopher.png")
+
+	// Add an image from a URL. The image filename is also optional
+	e.AddImage("https://golang.org/doc/gopher/gophercolor16x16.png", "")
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")
@@ -43,12 +50,11 @@ const (
 
 // Epub implements an EPUB file.
 type Epub struct {
-	author string
-	images map[string]string // Images added to the EPUB
-	lang   string            // Language
-	pkg    *pkg              // The package file (package.opf)
-	//	sections []section
-	sections []xhtml // Sections (chapters)
+	author   string
+	images   map[string]string // Images added to the EPUB
+	lang     string            // Language
+	pkg      *pkg              // The package file (package.opf)
+	sections map[string]xhtml  // Sections (chapters)
 	title    string
 	toc      *toc // Table of contents
 	uuid     string
@@ -58,6 +64,7 @@ type Epub struct {
 func NewEpub(title string) *Epub {
 	e := &Epub{}
 	e.images = make(map[string]string)
+	e.sections = make(map[string]xhtml)
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
@@ -90,11 +97,24 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // AddSection adds a new section (chapter, etc) to the EPUB. The title will be
 // used for the table of contents. The content must be valid XHTML that will go
 // between the <body> tags. The content will not be validated.
-func (e *Epub) AddSection(title string, content string) {
-	x := newXhtml(content)
-	x.setTitle(title)
+//
+// The section will be shown in the table of contents in the same order it was
+// added to the EPUB.
+func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFilename string) (string, error) {
+	if _, ok := e.sections[sectionFilename]; ok {
+		return "", fmt.Errorf("Section filename %s already used", sectionFilename)
+	}
 
-	e.sections = append(e.sections, *x)
+	x := newXhtml(sectionContent)
+	x.setTitle(sectionTitle)
+
+	e.sections[sectionFilename] = *x
+
+	return filepath.Join(
+		"..",
+		xhtmlFolderName,
+		sectionFilename,
+	), nil
 }
 
 // Author returns the author of the EPUB.

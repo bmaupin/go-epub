@@ -381,9 +381,9 @@ func (e *Epub) writePackageFile(tempDir string) error {
 // Write the section files to the temporary directory and add the sections to
 // the TOC and package files
 func (e *Epub) writeSections(tempDir string) error {
-	for i, section := range e.sections {
-		sectionIndex := i + 1
-		sectionFilename := fmt.Sprintf(sectionFileFormat, sectionIndex)
+	sectionIndex := 0
+	for sectionFilename, section := range e.sections {
+		sectionIndex++
 		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
 		section.write(sectionFilePath)
 

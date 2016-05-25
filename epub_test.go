@@ -124,8 +124,15 @@ func TestEpubWrite(t *testing.T) {
 
 func TestAddImage(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
-	e.AddImage(testImageFromURLSource, testImageFromURLFilename)
+	_, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	if err != nil {
+		t.Errorf("Error adding image: %s", err)
+	}
+
+	_, err = e.AddImage(testImageFromURLSource, testImageFromURLFilename)
+	if err != nil {
+		t.Errorf("Error adding image: %s", err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -164,7 +171,10 @@ func TestAddImage(t *testing.T) {
 
 func TestAddSection(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.AddSection(testSectionTitle, testSectionBody)
+	_, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -352,7 +362,7 @@ func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, testImageFromURLFilename)
-	e.AddSection(testSectionTitle, testSectionBody)
+	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
 	e.SetAuthor(testEpubAuthor)
 	e.SetLang(testEpubLang)
 	e.SetTitle(testEpubAuthor)

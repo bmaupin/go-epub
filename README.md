@@ -16,6 +16,5 @@ Work in progress.
 
 - Clean up error handling
 - Add support for cover pages
-- Add more tests
 - Add support for CSS
 - Add functionality to read EPUB files
