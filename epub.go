@@ -37,10 +37,17 @@ Basic usage:
 package epub
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/satori/go.uuid"
+)
+
+var (
+	// ErrFilenameAlreadyUsed is thrown by AddImage and AddSection if the same
+	// filename is used more than once
+	ErrFilenameAlreadyUsed = errors.New("Filename already used")
 )
 
 const (
@@ -84,8 +91,9 @@ func NewEpub(title string) *Epub {
 // case, the image will be retrieved and stored in the EPUB.
 //
 // The image filename will be used when storing the image in the EPUB and must
-// be unique. The image filename is optional; if no filename is provided, one
-// will be generated.
+// be unique. If the same filename is used more than once,
+// ErrFilenameAlreadyUsed will be returned. The image filename is optional; if
+// no filename is provided, one will be generated.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
 	// Generate an image filename if one isn't provided
 	if imageFilename == "" {
@@ -93,7 +101,7 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 	}
 
 	if _, ok := e.images[imageFilename]; ok {
-		return "", fmt.Errorf("Image filename %s already used", imageFilename)
+		return "", ErrFilenameAlreadyUsed
 	}
 
 	e.images[imageFilename] = imageSource
@@ -115,8 +123,9 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // section XHTML file. The content will not be validated.
 //
 // The section filename will be used when storing the image in the EPUB and must
-// be unique.The section filename is optional; if no filename is provided, one
-// will be generated.
+// be unique. If the same filename is used more than once,
+// ErrFilenameAlreadyUsed will be returned. The section filename is optional;
+// if no filename is provided, one will be generated.
 //
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
@@ -127,7 +136,7 @@ func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFil
 	}
 
 	if _, ok := e.sections[sectionFilename]; ok {
-		return "", fmt.Errorf("Section filename %s already used", sectionFilename)
+		return "", ErrFilenameAlreadyUsed
 	}
 
 	x := newXhtml(sectionContent)
