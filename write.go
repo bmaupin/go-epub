@@ -77,10 +77,7 @@ func (e *Epub) Write(destFilePath string) error {
 	// Must be called after:
 	// createEpubFolders()
 	// writeSections()
-	err = e.writeToc(tempDir)
-	if err != nil {
-		return err
-	}
+	e.writeToc(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
@@ -384,14 +381,9 @@ func (e *Epub) writeSections(tempDir string) {
 
 // Write the TOC file to the temporary directory and add the TOC entries to the
 // package file
-func (e *Epub) writeToc(tempDir string) error {
+func (e *Epub) writeToc(tempDir string) {
 	e.pkg.addToManifest(tocNavItemID, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
 	e.pkg.addToManifest(tocNcxItemID, tocNcxFilename, mediaTypeNcx, "")
 
-	err := e.toc.write(tempDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	e.toc.write(tempDir)
 }

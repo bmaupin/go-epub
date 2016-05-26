@@ -175,25 +175,20 @@ func (t *toc) setUUID(uuid string) {
 }
 
 // Write the TOC files
-func (t *toc) write(tempDir string) error {
-	err := t.writeNavDoc(tempDir)
-	if err != nil {
-		return err
-	}
-
-	err = t.writeNcxDoc(tempDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (t *toc) write(tempDir string) {
+	t.writeNavDoc(tempDir)
+	t.writeNcxDoc(tempDir)
 }
 
 // Write the the EPUB v3 TOC file (nav.xhtml) to the temporary directory
-func (t *toc) writeNavDoc(tempDir string) error {
+func (t *toc) writeNavDoc(tempDir string) {
 	navBodyContent, err := xml.MarshalIndent(t.navXML, "    ", "  ")
 	if err != nil {
-		return err
+		panic(fmt.Sprintf(
+			"Error marshalling XML for EPUB v3 TOC file: %s\n"+
+				"\tXML=%#v",
+			err,
+			t.navXML))
 	}
 
 	n := newXhtml(string(navBodyContent))
@@ -202,17 +197,19 @@ func (t *toc) writeNavDoc(tempDir string) error {
 
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
 	n.write(navFilePath)
-
-	return nil
 }
 
 // Write the EPUB v2 TOC file (toc.ncx) to the temporary directory
-func (t *toc) writeNcxDoc(tempDir string) error {
+func (t *toc) writeNcxDoc(tempDir string) {
 	t.ncxXML.Title = t.title
 
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXML, "", "  ")
 	if err != nil {
-		return err
+		panic(fmt.Sprintf(
+			"Error marshalling XML for EPUB v2 TOC file: %s\n"+
+				"\tXML=%#v",
+			err,
+			t.ncxXML))
 	}
 
 	// Add the xml header to the output
@@ -222,8 +219,6 @@ func (t *toc) writeNcxDoc(tempDir string) error {
 
 	ncxFilePath := filepath.Join(tempDir, contentFolderName, tocNcxFilename)
 	if err := ioutil.WriteFile(ncxFilePath, []byte(ncxFileContent), filePermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error writing EPUB v2 TOC file: %s", err))
 	}
-
-	return nil
 }
