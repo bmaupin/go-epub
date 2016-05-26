@@ -123,7 +123,7 @@ func TestEpubWrite(t *testing.T) {
 
 func TestAddImage(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	_, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	testImageFromFilePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	if err != nil {
 		t.Errorf("Error adding image: %s", err)
 	}
@@ -135,7 +135,8 @@ func TestAddImage(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, imageFolderName, testImageFromFileFilename))
+	// The image path is relative to the XHTML folder
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromFilePath))
 	if err != nil {
 		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
 	}
@@ -148,7 +149,6 @@ func TestAddImage(t *testing.T) {
 		t.Errorf("Image file contents don't match")
 	}
 
-	// The image path is relative to the XHTML folder
 	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromURLPath))
 	if err != nil {
 		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
@@ -171,19 +171,19 @@ func TestAddImage(t *testing.T) {
 
 func TestAddSection(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	_, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
+	testSection1Path, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
 
-	testSectionPath, err := e.AddSection(testSectionTitle, testSectionBody, "")
+	testSection2Path, err := e.AddSection(testSectionTitle, testSectionBody, "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionFilename))
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
 	if err != nil {
 		t.Errorf("Unexpected error reading section file: %s", err)
 	}
@@ -198,7 +198,7 @@ func TestAddSection(t *testing.T) {
 			testSectionContents)
 	}
 
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionPath))
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
 	if err != nil {
 		t.Errorf("Unexpected error reading section file: %s", err)
 	}
