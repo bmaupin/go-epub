@@ -78,10 +78,14 @@ func NewEpub(title string) *Epub {
 }
 
 // AddImage adds an image to the EPUB and returns a relative path that can be
-// used in the content of a section. The image source should either be a URL or
-// a path to a local file; in either case, the image will be retrieved and
-// stored in the EPUB. The image filename will be used when storing the image in
-// the EPUB and must be unique.
+// used in the content of a section.
+//
+// The image source should either be a URL or a path to a local file; in either
+// case, the image will be retrieved and stored in the EPUB.
+//
+// The image filename will be used when storing the image in the EPUB and must
+// be unique. The image filename is optional; if no filename is provided, one
+// will be generated.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
 	// Generate an image filename if one isn't provided
 	if imageFilename == "" {
@@ -101,9 +105,18 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 	), nil
 }
 
-// AddSection adds a new section (chapter, etc) to the EPUB. The title will be
-// used for the table of contents. The content must be valid XHTML that will go
-// between the <body> tags. The content will not be validated.
+// AddSection adds a new section (chapter, etc) to the EPUB and returns a
+// relative path to the section that can be used from another section (for
+// links).
+//
+// The title will be used for the table of contents.
+//
+// The content must be valid XHTML that will go between the <body> tags of the
+// section XHTML file. The content will not be validated.
+//
+// The section filename will be used when storing the image in the EPUB and must
+// be unique.The section filename is optional; if no filename is provided, one
+// will be generated.
 //
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
