@@ -45,16 +45,17 @@ const (
 // the resulting file, including filename and extension.
 func (e *Epub) Write(destFilePath string) error {
 	tempDir, err := ioutil.TempDir("", tempDirPrefix)
-	defer os.Remove(tempDir)
+	defer func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			panic(fmt.Sprintf("Error removing temp directory: %s", err))
+		}
+	}()
 	if err != nil {
-		log.Fatalf("os.Remove error: %s", err)
+		panic(fmt.Sprintf("Error creating temp directory: %s", err))
 	}
 
 	// Must be called first
-	err = createEpubFolders(tempDir)
-	if err != nil {
-		return err
-	}
+	createEpubFolders(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
@@ -65,10 +66,7 @@ func (e *Epub) Write(destFilePath string) error {
 
 	// Must be called after:
 	// createEpubFolders()
-	err = writeMimetype(tempDir)
-	if err != nil {
-		return err
-	}
+	writeMimetype(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
@@ -81,10 +79,7 @@ func (e *Epub) Write(destFilePath string) error {
 
 	// Must be called after:
 	// createEpubFolders()
-	err = writeContainerFile(tempDir)
-	if err != nil {
-		return err
-	}
+	writeContainerFile(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
@@ -99,34 +94,18 @@ func (e *Epub) Write(destFilePath string) error {
 		return err
 	}
 
-	// TODO
-
-	//	output, err := xml.MarshalIndent(e.toc.navDoc.xml, "", "  ")
-	//	output = append([]byte(xhtmlDoctype), output...)
-
-	//	output, err := xml.MarshalIndent(e.pkg.xml, "", "  ")
-
-	//  output, err := xml.MarshalIndent(e.toc.ncxXML, "", "  ")
-	//	output = append([]byte(xml.Header), output...)
-	//	fmt.Println(string(output))
-
-	err = os.RemoveAll(tempDir)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // Create the EPUB folder structure in a temp directory
-func createEpubFolders(tempDir string) error {
+func createEpubFolders(tempDir string) {
 	if err := os.Mkdir(
 		filepath.Join(
 			tempDir,
 			contentFolderName,
 		),
 		dirPermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error creating EPUB subdirectory: %s", err))
 	}
 
 	if err := os.Mkdir(
@@ -136,7 +115,7 @@ func createEpubFolders(tempDir string) error {
 			xhtmlFolderName,
 		),
 		dirPermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error creating xhtml subdirectory: %s", err))
 	}
 
 	if err := os.Mkdir(
@@ -145,10 +124,8 @@ func createEpubFolders(tempDir string) error {
 			metaInfFolderName,
 		),
 		dirPermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error creating META-INF subdirectory: %s", err))
 	}
-
-	return nil
 }
 
 // Return the relative path to the image within the EPUB file
@@ -165,7 +142,7 @@ func getImageRelPath(imageFilename string) string {
 //
 // Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/META-INF/container.xml
 // Spec: http://www.idpf.org/epub/301/spec/epub-ocf.html#sec-container-metainf-container.xml
-func writeContainerFile(tempDir string) error {
+func writeContainerFile(tempDir string) {
 	containerFilePath := filepath.Join(tempDir, metaInfFolderName, containerFilename)
 	if err := ioutil.WriteFile(
 		containerFilePath,
@@ -178,10 +155,8 @@ func writeContainerFile(tempDir string) error {
 		),
 		filePermissions,
 	); err != nil {
-		return err
+		panic(fmt.Sprintf("Error writing container file: %s", err))
 	}
-
-	return nil
 }
 
 // Write the EPUB file itself by zipping up everything from a temp directory
@@ -349,14 +324,12 @@ func (e *Epub) writeImages(tempDir string) error {
 //
 // Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v32/mimetype
 // Spec: http://www.idpf.org/epub/301/spec/epub-ocf.html#sec-zip-container-mime
-func writeMimetype(tempDir string) error {
+func writeMimetype(tempDir string) {
 	mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
 
 	if err := ioutil.WriteFile(mimetypeFilePath, []byte(mediaTypeEpub), filePermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error writing mimetype file: %s", err))
 	}
-
-	return nil
 }
 
 func (e *Epub) writePackageFile(tempDir string) {
