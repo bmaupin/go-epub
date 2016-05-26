@@ -2,8 +2,8 @@ package epub
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"time"
 )
@@ -142,7 +142,13 @@ func newPackage() *pkg {
 
 	err := xml.Unmarshal([]byte(pkgFileTemplate), &p.xml)
 	if err != nil {
-		log.Fatalf("xml.Unmarshal error: %s", err)
+		panic(fmt.Sprintf(
+			"Error unmarshalling package file XML: %s\n"+
+				"\tp.xml=%#v\n"+
+				"\tpkgFileTemplate=%s",
+			err,
+			*p.xml,
+			pkgFileTemplate))
 	}
 
 	return p
@@ -232,7 +238,7 @@ func updateMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
 }
 
 // Write the package file to the temporary directory
-func (p *pkg) write(tempDir string) error {
+func (p *pkg) write(tempDir string) {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
 
@@ -240,7 +246,11 @@ func (p *pkg) write(tempDir string) error {
 
 	output, err := xml.MarshalIndent(p.xml, "", "  ")
 	if err != nil {
-		return err
+		panic(fmt.Sprintf(
+			"Error marshalling XML for package file: %s\n"+
+				"\tXML=%#v",
+			err,
+			p.xml))
 	}
 	// Add the xml header to the output
 	pkgFileContent := append([]byte(xml.Header), output...)
@@ -248,8 +258,6 @@ func (p *pkg) write(tempDir string) error {
 	pkgFileContent = append(pkgFileContent, "\n"...)
 
 	if err := ioutil.WriteFile(pkgFilePath, []byte(pkgFileContent), filePermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Error writing package file: %s", err))
 	}
-
-	return nil
 }

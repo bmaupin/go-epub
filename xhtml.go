@@ -103,6 +103,6 @@ func (x *xhtml) write(xhtmlFilePath string) {
 	xhtmlFileContent = append(xhtmlFileContent, "\n"...)
 
 	if err := ioutil.WriteFile(xhtmlFilePath, []byte(xhtmlFileContent), filePermissions); err != nil {
-		panic(fmt.Sprintf("Error writing file: %s", err))
+		panic(fmt.Sprintf("Error writing XHTML file: %s", err))
 	}
 }
