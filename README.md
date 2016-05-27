@@ -14,7 +14,6 @@ Work in progress.
 
 **Wishlist:**
 
-- Clean up error handling
 - Add support for cover pages
 - Add support for CSS
 - Add functionality to read EPUB files

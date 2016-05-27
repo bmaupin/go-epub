@@ -16,6 +16,9 @@ var (
 	// ErrUnableToCreateEpub is thrown by Epub.Write() if it cannot create the
 	// destination EPUB file
 	ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
+	// ErrRetrievingImage is thrown by Epub.Write() if it cannot get the source
+	// image that was added using AddImage()
+	ErrRetrievingImage = errors.New("Error retrieving image from source")
 )
 
 const (
@@ -266,14 +269,14 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 func (e *Epub) writeImages(tempDir string) error {
 	imageFolderPath := filepath.Join(tempDir, contentFolderName, imageFolderName)
 	if err := os.Mkdir(imageFolderPath, dirPermissions); err != nil {
-		return err
+		panic(fmt.Sprintf("Unable to create img directory: %s", err))
 	}
 
 	for imageFilename, imageSource := range e.images {
 		// Get the image from the source
 		u, err := url.Parse(imageSource)
 		if err != nil {
-			return err
+			return ErrRetrievingImage
 		}
 
 		var r io.ReadCloser
@@ -288,10 +291,12 @@ func (e *Epub) writeImages(tempDir string) error {
 			r, err = os.Open(imageSource)
 		}
 		if err != nil {
-			return err
+			return ErrRetrievingImage
 		}
 		defer func() {
-			err = r.Close()
+			if err := r.Close(); err != nil {
+				panic(err)
+			}
 		}()
 
 		imageFilePath := filepath.Join(
@@ -302,15 +307,19 @@ func (e *Epub) writeImages(tempDir string) error {
 		// Add the image to the EPUB temp directory
 		w, err := os.Create(imageFilePath)
 		if err != nil {
-			return err
+			panic(fmt.Sprintf("Unable to create image file: %s", err))
 		}
 		defer func() {
-			err = w.Close()
+			if err := w.Close(); err != nil {
+				panic(err)
+			}
 		}()
 
 		_, err = io.Copy(w, r)
 		if err != nil {
-			return err
+			// There shouldn't be any problem with the writer, but the reader
+			// might have an issue
+			return ErrRetrievingImage
 		}
 
 		// Determine the media type
