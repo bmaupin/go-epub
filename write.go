@@ -2,14 +2,20 @@ package epub
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+)
+
+var (
+	// ErrUnableToCreateEpub is thrown by Epub.Write() if it cannot create the
+	// destination EPUB file
+	ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
 )
 
 const (
@@ -105,6 +111,7 @@ func createEpubFolders(tempDir string) {
 			contentFolderName,
 		),
 		dirPermissions); err != nil {
+		// No reason this should happen if tempDir creation was successful
 		panic(fmt.Sprintf("Error creating EPUB subdirectory: %s", err))
 	}
 
@@ -115,7 +122,8 @@ func createEpubFolders(tempDir string) {
 			xhtmlFolderName,
 		),
 		dirPermissions); err != nil {
-		panic(fmt.Sprintf("Error creating xhtml subdirectory: %s", err))
+
+		(fmt.Sprintf("Error creating xhtml subdirectory: %s", err))
 	}
 
 	if err := os.Mkdir(
@@ -163,18 +171,18 @@ func writeContainerFile(tempDir string) {
 func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
-		log.Fatalf("os.Create error: %s", err)
+		return ErrUnableToCreateEpub
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
-			log.Fatalf("os.File.Close error: %s", err)
+			panic(err)
 		}
 	}()
 
 	z := zip.NewWriter(f)
 	defer func() {
 		if err := z.Close(); err != nil {
-			log.Fatalf("zip.Writer.Close error: %s", err)
+			panic(err)
 		}
 	}()
 
@@ -188,7 +196,8 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 		// Get the path of the file relative to the folder we're zipping
 		relativePath, err := filepath.Rel(tempDir, path)
 		if err != nil {
-			log.Fatalf("filepath.Rel error: %s", err)
+			// tempDir and path are both internal, so we shouldn't get here
+			panic(fmt.Sprintf("Error closing EPUB file: %s", err))
 		}
 
 		// Only include regular files, not directories
@@ -211,22 +220,22 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 			w, err = z.Create(relativePath)
 		}
 		if err != nil {
-			log.Fatalf("zip.Writer.Create error: %s", err)
+			panic(fmt.Sprintf("Error creating zip writer: %s", err))
 		}
 
 		r, err := os.Open(path)
 		if err != nil {
-			log.Fatalf("os.Open error: %s", err)
+			panic(fmt.Sprintf("Error opening file being added to EPUB: %s", err))
 		}
 		defer func() {
 			if err := r.Close(); err != nil {
-				log.Fatalf("os.File.Close error: %s", err)
+				panic(err)
 			}
 		}()
 
 		_, err = io.Copy(w, r)
 		if err != nil {
-			log.Fatalf("io.Copy error: %s", err)
+			panic(fmt.Sprintf("Error copying contents of file being added EPUB: %s", err))
 		}
 
 		return nil
@@ -236,15 +245,18 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	mimetypeFilePath := filepath.Join(tempDir, mimetypeFilename)
 	mimetypeInfo, err := os.Lstat(mimetypeFilePath)
 	if err != nil {
-		log.Fatalf("os.Lstat error: %s", err)
+		panic(fmt.Sprintf("Unable to get FileInfo for mimetype file: %s", err))
 	}
-	addFileToZip(mimetypeFilePath, mimetypeInfo, nil)
+	err = addFileToZip(mimetypeFilePath, mimetypeInfo, nil)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to add mimetype file to EPUB: %s", err))
+	}
 
 	skipMimetypeFile = true
 
 	err = filepath.Walk(tempDir, addFileToZip)
 	if err != nil {
-		log.Fatalf("os.Lstat error: %s", err)
+		panic(fmt.Sprintf("Unable to add file to EPUB: %s", err))
 	}
 
 	return nil

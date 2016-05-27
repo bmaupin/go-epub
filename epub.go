@@ -44,11 +44,9 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-var (
-	// ErrFilenameAlreadyUsed is thrown by AddImage and AddSection if the same
-	// filename is used more than once
-	ErrFilenameAlreadyUsed = errors.New("Filename already used")
-)
+// ErrFilenameAlreadyUsed is thrown by AddImage and AddSection if the same
+// filename is used more than once
+var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 
 const (
 	defaultEpubLang   = "en"
