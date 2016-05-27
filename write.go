@@ -12,14 +12,13 @@ import (
 	"path/filepath"
 )
 
-var (
-	// ErrUnableToCreateEpub is thrown by Epub.Write() if it cannot create the
-	// destination EPUB file
-	ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
-	// ErrRetrievingImage is thrown by Epub.Write() if it cannot get the source
-	// image that was added using AddImage()
-	ErrRetrievingImage = errors.New("Error retrieving image from source")
-)
+// ErrUnableToCreateEpub is thrown by Write if it cannot create the destination
+// EPUB file
+var ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
+
+// ErrRetrievingImage is thrown by Write if it cannot get the source image that
+// was added using AddImage
+var ErrRetrievingImage = errors.New("Error retrieving image from source")
 
 const (
 	containerFilename     = "container.xml"
