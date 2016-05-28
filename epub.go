@@ -21,12 +21,6 @@ Basic usage:
 	<p>This is a paragraph.</p>`
 	e.AddSection("Section 2", section2Content, "")
 
-	// Add an image from a local file
-	e.AddImage("testdata/gophercolor16x16.png", "go-gopher.png")
-
-	// Add an image from a URL. The image filename is also optional
-	e.AddImage("https://golang.org/doc/gopher/gophercolor16x16.png", "")
-
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")
 	if err != nil {
