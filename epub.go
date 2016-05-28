@@ -49,6 +49,7 @@ import (
 var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 
 const (
+	cssFileFormat     = "css%04d.css"
 	defaultEpubLang   = "en"
 	imageFileFormat   = "image%04d%s"
 	sectionFileFormat = "section%04d.xhtml"
@@ -58,6 +59,7 @@ const (
 // Epub implements an EPUB file.
 type Epub struct {
 	author   string
+	css      map[string]string
 	images   map[string]string // Images added to the EPUB
 	lang     string            // Language
 	pkg      *pkg              // The package file (package.opf)
@@ -70,6 +72,7 @@ type Epub struct {
 // NewEpub returns a new Epub.
 func NewEpub(title string) *Epub {
 	e := &Epub{}
+	e.css = make(map[string]string)
 	e.images = make(map[string]string)
 	e.sections = make(map[string]xhtml)
 	e.pkg = newPackage()
@@ -82,6 +85,35 @@ func NewEpub(title string) *Epub {
 	return e
 }
 
+// AddCSS adds a new CSS file to the EPUB and returns a relative path to the
+// CSS file that can be used in EPUB sections.
+//
+// The CSS content is the exact content that will be stored in the CSS file. It
+// will not be validated.
+//
+// The CSS filename will be used when storing the CSS file in the EPUB and must
+// be unique among all CSS files. If the same filename is used more than
+// once, ErrFilenameAlreadyUsed will be returned. The CSS filename is
+// optional; if no filename is provided, one will be generated.
+func (e *Epub) AddCSS(cssFileContent string, cssFilename string) (string, error) {
+	// Generate a filename if one isn't provided
+	if cssFilename == "" {
+		cssFilename = fmt.Sprintf(cssFileFormat, len(e.css)+1)
+	}
+
+	if _, ok := e.css[cssFilename]; ok {
+		return "", ErrFilenameAlreadyUsed
+	}
+
+	e.css[cssFilename] = cssFileContent
+
+	return filepath.Join(
+		"..",
+		cssFolderName,
+		cssFilename,
+	), nil
+}
+
 // AddImage adds an image to the EPUB and returns a relative path that can be
 // used in the content of a section.
 //
@@ -89,11 +121,11 @@ func NewEpub(title string) *Epub {
 // case, the image will be retrieved and stored in the EPUB.
 //
 // The image filename will be used when storing the image in the EPUB and must
-// be unique. If the same filename is used more than once,
+// be unique among all image files. If the same filename is used more than once,
 // ErrFilenameAlreadyUsed will be returned. The image filename is optional; if
 // no filename is provided, one will be generated.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
-	// Generate an image filename if one isn't provided
+	// Generate a filename if one isn't provided
 	if imageFilename == "" {
 		imageFilename = fmt.Sprintf(imageFileFormat, len(e.images)+1, filepath.Ext(imageSource))
 	}
@@ -121,14 +153,14 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // section XHTML file. The content will not be validated.
 //
 // The section filename will be used when storing the image in the EPUB and must
-// be unique. If the same filename is used more than once,
-// ErrFilenameAlreadyUsed will be returned. The section filename is optional;
-// if no filename is provided, one will be generated.
+// be unique among all section files. If the same filename is used more than
+// once, ErrFilenameAlreadyUsed will be returned. The section filename is
+// optional; if no filename is provided, one will be generated.
 //
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
 func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFilename string) (string, error) {
-	// Generate a section filename if one isn't provided
+	// Generate a filename if one isn't provided
 	if sectionFilename == "" {
 		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
 	}

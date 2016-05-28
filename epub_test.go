@@ -23,6 +23,20 @@ const (
     <rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml" />
   </rootfiles>
 </container>`
+	testCoverCSSContent = `body {
+  background-color: #FFFFFF;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  text-align: center;
+}
+
+img {
+  height: 100%;
+  max-width: 100%;
+}`
+	testCoverCSSFilename      = "cover.css"
 	testDirPerm               = 0775
 	testEpubAuthor            = "Hingle McCringleberry"
 	testEpubcheckJarfile      = "epubcheck.jar"
@@ -116,6 +130,52 @@ func TestEpubWrite(t *testing.T) {
 				"Expected: %s",
 			contents,
 			testPkgContents)
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
+func TestAddCSS(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+	testCSS1Path, err := e.AddCSS(testCoverCSSContent, testCoverCSSFilename)
+	if err != nil {
+		t.Errorf("Error adding CSS: %s", err)
+	}
+
+	testCSS2Path, err := e.AddCSS(testCoverCSSContent, "")
+	if err != nil {
+		t.Errorf("Error adding CSS: %s", err)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	// The CSS file path is relative to the XHTML folder
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS1Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading CSS file: %s", err)
+	}
+
+	if trimAllSpace(string(contents)) != trimAllSpace(testCoverCSSContent) {
+		t.Errorf(
+			"CSS file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testCoverCSSContent)
+	}
+
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS2Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading CSS file: %s", err)
+	}
+
+	if trimAllSpace(string(contents)) != trimAllSpace(testCoverCSSContent) {
+		t.Errorf(
+			"CSS file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testCoverCSSContent)
 	}
 
 	cleanup(testEpubFilename, tempDir)
@@ -379,6 +439,8 @@ func TestEpubUUID(t *testing.T) {
 
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
+	e.AddCSS(testCoverCSSContent, testCoverCSSFilename)
+	e.AddCSS(testCoverCSSContent, "")
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
 	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)

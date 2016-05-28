@@ -21,6 +21,7 @@ var ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
 var ErrRetrievingImage = errors.New("Error retrieving image from source")
 
 const (
+	cssFolderName         = "css"
 	containerFilename     = "container.xml"
 	containerFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -35,10 +36,11 @@ const (
 	// Permissions for any new files we create
 	filePermissions   = 0644
 	imageFolderName   = "img"
-	mediaTypeNcx      = "application/x-dtbncx+xml"
+	mediaTypeCss      = "text/css"
 	mediaTypeEpub     = "application/epub+zip"
 	mediaTypeGif      = "image/gif"
 	mediaTypeJpeg     = "image/jpeg"
+	mediaTypeNcx      = "application/x-dtbncx+xml"
 	mediaTypePng      = "image/png"
 	mediaTypeSvg      = "image/svg+xml"
 	mediaTypeXhtml    = "application/xhtml+xml"
@@ -62,8 +64,16 @@ func (e *Epub) Write(destFilePath string) error {
 		panic(fmt.Sprintf("Error creating temp directory: %s", err))
 	}
 
-	// Must be called first
+	writeMimetype(tempDir)
 	createEpubFolders(tempDir)
+
+	// Must be called after:
+	// createEpubFolders()
+	writeContainerFile(tempDir)
+
+	// Must be called after:
+	// createEpubFolders()
+	e.writeCSSFiles(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
@@ -71,10 +81,6 @@ func (e *Epub) Write(destFilePath string) error {
 	if err != nil {
 		return err
 	}
-
-	// Must be called after:
-	// createEpubFolders()
-	writeMimetype(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
@@ -87,10 +93,7 @@ func (e *Epub) Write(destFilePath string) error {
 
 	// Must be called after:
 	// createEpubFolders()
-	writeContainerFile(tempDir)
-
-	// Must be called after:
-	// createEpubFolders()
+	// writeCSSFiles()
 	// writeImages()
 	// writeSections()
 	// writeToc()
@@ -124,8 +127,7 @@ func createEpubFolders(tempDir string) {
 			xhtmlFolderName,
 		),
 		dirPermissions); err != nil {
-
-		(fmt.Sprintf("Error creating xhtml subdirectory: %s", err))
+		panic(fmt.Sprintf("Error creating xhtml subdirectory: %s", err))
 	}
 
 	if err := os.Mkdir(
@@ -136,15 +138,6 @@ func createEpubFolders(tempDir string) {
 		dirPermissions); err != nil {
 		panic(fmt.Sprintf("Error creating META-INF subdirectory: %s", err))
 	}
-}
-
-// Return the relative path to the image within the EPUB file
-func getImageRelPath(imageFilename string) string {
-	return filepath.Join(
-		"..",
-		imageFolderName,
-		imageFilename,
-	)
 }
 
 // Write the contatiner file (container.xml), which mostly just points to the
@@ -166,6 +159,30 @@ func writeContainerFile(tempDir string) {
 		filePermissions,
 	); err != nil {
 		panic(fmt.Sprintf("Error writing container file: %s", err))
+	}
+}
+
+// Write the CSS files to the temporary directory and add them to the package
+// file
+func (e *Epub) writeCSSFiles(tempDir string) {
+	if len(e.css) > 0 {
+		cssFolderPath := filepath.Join(tempDir, contentFolderName, cssFolderName)
+		if err := os.Mkdir(cssFolderPath, dirPermissions); err != nil {
+			panic(fmt.Sprintf("Unable to create css directory: %s", err))
+		}
+
+		for cssFilename, cssFileContent := range e.css {
+			cssFilePath := filepath.Join(cssFolderPath, cssFilename)
+
+			// Add the CSS file to the EPUB temp directory
+			if err := ioutil.WriteFile(cssFilePath, []byte(cssFileContent), filePermissions); err != nil {
+				panic(fmt.Sprintf("Error writing CSS file: %s", err))
+			}
+
+			// Add the CSS filename to the package file manifest
+			relativePath := filepath.Join(cssFolderName, cssFilename)
+			e.pkg.addToManifest(cssFilename, relativePath, mediaTypeCss, "")
+		}
 	}
 }
 
@@ -266,75 +283,77 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 
 // Get images from their source and save them in the temporary directory
 func (e *Epub) writeImages(tempDir string) error {
-	imageFolderPath := filepath.Join(tempDir, contentFolderName, imageFolderName)
-	if err := os.Mkdir(imageFolderPath, dirPermissions); err != nil {
-		panic(fmt.Sprintf("Unable to create img directory: %s", err))
-	}
-
-	for imageFilename, imageSource := range e.images {
-		// Get the image from the source
-		u, err := url.Parse(imageSource)
-		if err != nil {
-			return ErrRetrievingImage
+	if len(e.images) > 0 {
+		imageFolderPath := filepath.Join(tempDir, contentFolderName, imageFolderName)
+		if err := os.Mkdir(imageFolderPath, dirPermissions); err != nil {
+			panic(fmt.Sprintf("Unable to create img directory: %s", err))
 		}
 
-		var r io.ReadCloser
-		var resp *http.Response
-		// If it's a URL
-		if u.Scheme == "http" || u.Scheme == "https" {
-			resp, err = http.Get(imageSource)
-			r = resp.Body
-
-			// Otherwise, assume it's a local file
-		} else {
-			r, err = os.Open(imageSource)
-		}
-		if err != nil {
-			return ErrRetrievingImage
-		}
-		defer func() {
-			if err := r.Close(); err != nil {
-				panic(err)
+		for imageFilename, imageSource := range e.images {
+			// Get the image from the source
+			u, err := url.Parse(imageSource)
+			if err != nil {
+				return ErrRetrievingImage
 			}
-		}()
 
-		imageFilePath := filepath.Join(
-			imageFolderPath,
-			imageFilename,
-		)
+			var r io.ReadCloser
+			var resp *http.Response
+			// If it's a URL
+			if u.Scheme == "http" || u.Scheme == "https" {
+				resp, err = http.Get(imageSource)
+				r = resp.Body
 
-		// Add the image to the EPUB temp directory
-		w, err := os.Create(imageFilePath)
-		if err != nil {
-			panic(fmt.Sprintf("Unable to create image file: %s", err))
-		}
-		defer func() {
-			if err := w.Close(); err != nil {
-				panic(err)
+				// Otherwise, assume it's a local file
+			} else {
+				r, err = os.Open(imageSource)
 			}
-		}()
+			if err != nil {
+				return ErrRetrievingImage
+			}
+			defer func() {
+				if err := r.Close(); err != nil {
+					panic(err)
+				}
+			}()
 
-		_, err = io.Copy(w, r)
-		if err != nil {
-			// There shouldn't be any problem with the writer, but the reader
-			// might have an issue
-			return ErrRetrievingImage
+			imageFilePath := filepath.Join(
+				imageFolderPath,
+				imageFilename,
+			)
+
+			// Add the image to the EPUB temp directory
+			w, err := os.Create(imageFilePath)
+			if err != nil {
+				panic(fmt.Sprintf("Unable to create image file: %s", err))
+			}
+			defer func() {
+				if err := w.Close(); err != nil {
+					panic(err)
+				}
+			}()
+
+			_, err = io.Copy(w, r)
+			if err != nil {
+				// There shouldn't be any problem with the writer, but the reader
+				// might have an issue
+				return ErrRetrievingImage
+			}
+
+			// Determine the media type
+			imageMediaType := ""
+			if filepath.Ext(imageFilename) == ".gif" {
+				imageMediaType = mediaTypeGif
+			} else if filepath.Ext(imageFilename) == ".jpg" || filepath.Ext(imageFilename) == ".jpeg" {
+				imageMediaType = mediaTypeJpeg
+			} else if filepath.Ext(imageFilename) == ".png" {
+				imageMediaType = mediaTypePng
+			} else if filepath.Ext(imageFilename) == ".svg" {
+				imageMediaType = mediaTypeSvg
+			}
+
+			// Add the image to the package file manifest
+			e.pkg.addToManifest(imageFilename, filepath.Join(imageFolderName, imageFilename), imageMediaType, "")
 		}
-
-		// Determine the media type
-		imageMediaType := ""
-		if filepath.Ext(imageFilename) == ".gif" {
-			imageMediaType = mediaTypeGif
-		} else if filepath.Ext(imageFilename) == ".jpg" || filepath.Ext(imageFilename) == ".jpeg" {
-			imageMediaType = mediaTypeJpeg
-		} else if filepath.Ext(imageFilename) == ".png" {
-			imageMediaType = mediaTypePng
-		} else if filepath.Ext(imageFilename) == ".svg" {
-			imageMediaType = mediaTypeSvg
-		}
-
-		// Add the image to the package file manifest
-		e.pkg.addToManifest(imageFilename, filepath.Join(imageFolderName, imageFilename), imageMediaType, "")
 	}
 
 	return nil
@@ -359,16 +378,18 @@ func (e *Epub) writePackageFile(tempDir string) {
 // Write the section files to the temporary directory and add the sections to
 // the TOC and package files
 func (e *Epub) writeSections(tempDir string) {
-	sectionIndex := 0
-	for sectionFilename, section := range e.sections {
-		sectionIndex++
-		sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
-		section.write(sectionFilePath)
+	if len(e.sections) > 0 {
+		sectionIndex := 0
+		for sectionFilename, section := range e.sections {
+			sectionIndex++
+			sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
+			section.write(sectionFilePath)
 
-		relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
-		e.toc.addSection(sectionIndex, section.Title(), relativePath)
-		e.pkg.addToManifest(sectionFilename, relativePath, mediaTypeXhtml, "")
-		e.pkg.addToSpine(sectionFilename)
+			relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
+			e.toc.addSection(sectionIndex, section.Title(), relativePath)
+			e.pkg.addToManifest(sectionFilename, relativePath, mediaTypeXhtml, "")
+			e.pkg.addToSpine(sectionFilename)
+		}
 	}
 }
 
