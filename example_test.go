@@ -7,7 +7,7 @@ import (
 	"github.com/bmaupin/go-epub"
 )
 
-func ExampleAddImage() {
+func ExampleEpub_AddImage() {
 	// Create a new EPUB
 	e := epub.NewEpub("My title")
 
