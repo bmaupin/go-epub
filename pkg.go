@@ -9,26 +9,6 @@ import (
 )
 
 const (
-	// TODO
-	temp = `<?xml version="1.0" encoding="UTF-8"?>
-<package version="3.0" unique-identifier="pub-id" xmlns="http://www.idpf.org/2007/opf">
-  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="pub-id">urn:uuid:fe93046f-af57-475a-a0cb-a0d4bc99ba6d</dc:identifier>
-    <dc:title>Your title here</dc:title>
-    <dc:language>en</dc:language>
-    <meta refines="#creator" property="role" scheme="marc:relators" id="role">aut</meta>
-    <meta property="dcterms:modified">2011-01-01T12:00:00Z</meta>
-  </metadata>
-  <manifest>
-    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
-    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
-    <item id="section0001.xhtml" href="xhtml/section0001.xhtml" media-type="application/xhtml+xml" />
-  </manifest>
-  <spine toc="ncx">
-    <itemref idref="section0001.xhtml" />
-  </spine>
-</package>
-`
 	pkgAuthorID       = "role"
 	pkgAuthorData     = "aut"
 	pkgAuthorProperty = "role"
@@ -83,12 +63,16 @@ type pkgCreator struct {
 }
 
 // <dc:identifier>, where the UUID is stored
+// Ex: <dc:identifier id="pub-id">urn:uuid:fe93046f-af57-475a-a0cb-a0d4bc99ba6d</dc:identifier>
 type pkgIdentifier struct {
 	ID   string `xml:"id,attr"`
 	Data string `xml:",chardata"`
 }
 
 // <item> elements, one per each file stored in the EPUB
+// Ex: <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
+//     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+//     <item id="section0001.xhtml" href="xhtml/section0001.xhtml" media-type="application/xhtml+xml" />
 type pkgItem struct {
 	ID         string `xml:"id,attr"`
 	Href       string `xml:"href,attr"`
@@ -97,12 +81,15 @@ type pkgItem struct {
 }
 
 // <itemref> elements, which define the reading order
+// Ex: <itemref idref="section0001.xhtml" />
 type pkgItemref struct {
 	Idref string `xml:"idref,attr"`
 }
 
 // The <meta> element, which contains modified date, role of the creator (e.g.
 // author), etc
+// Ex: <meta refines="#creator" property="role" scheme="marc:relators" id="role">aut</meta>
+//     <meta property="dcterms:modified">2011-01-01T12:00:00Z</meta>
 type pkgMeta struct {
 	Refines  string `xml:"refines,attr,omitempty"`
 	Property string `xml:"property,attr"`
@@ -115,10 +102,12 @@ type pkgMeta struct {
 type pkgMetadata struct {
 	XmlnsDc    string        `xml:"xmlns:dc,attr"`
 	Identifier pkgIdentifier `xml:"dc:identifier"`
-	Title      string        `xml:"dc:title"`
-	Language   string        `xml:"dc:language"`
-	Creator    *pkgCreator
-	Meta       []pkgMeta `xml:"meta"`
+	// Ex: <dc:title>Your title here</dc:title>
+	Title string `xml:"dc:title"`
+	// Ex: <dc:language>en</dc:language>
+	Language string `xml:"dc:language"`
+	Creator  *pkgCreator
+	Meta     []pkgMeta `xml:"meta"`
 }
 
 // The <spine> element
