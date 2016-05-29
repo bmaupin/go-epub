@@ -41,10 +41,11 @@ func ExampleEpub_AddSection() {
 		log.Fatal(err)
 	}
 
-	// The section file name is optional
+	// Link to the first section
 	section2Content := fmt.Sprintf(`    <h1>Section 2</h1>
 	<a href="%s">Link to section 1</a>`,
 		section1Path)
+	// The section file name is optional
 	section2Path, err := e.AddSection("Section 2", section2Content, "")
 	if err != nil {
 		log.Fatal(err)

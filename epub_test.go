@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	doCleanup             = true
 	testAuthorTemplate    = `<dc:creator id="creator">%s</dc:creator>`
 	testContainerContents = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -460,7 +461,9 @@ func TestEpubValidity(t *testing.T) {
 	// Always print the output so we can see warnings as well
 	fmt.Println(string(output))
 
-	cleanup(testEpubFilename, tempDir)
+	if doCleanup {
+		cleanup(testEpubFilename, tempDir)
+	}
 }
 
 func cleanup(epubFilename string, tempDir string) {
