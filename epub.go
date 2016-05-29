@@ -14,12 +14,7 @@ Basic usage:
 	// Add a section
 	section1Content := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 1", section1Content, "section0001.xhtml")
-
-	// The section file name is optional
-	section2Content := `    <h1>Section 2</h1>
-	<p>This is a paragraph.</p>`
-	e.AddSection("Section 2", section2Content, "")
+	e.AddSection("Section 1", section1Content, "")
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")

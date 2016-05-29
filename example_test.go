@@ -8,7 +8,6 @@ import (
 )
 
 func ExampleEpub_AddImage() {
-	// Create a new EPUB
 	e := epub.NewEpub("My title")
 
 	// Add an image from a local file
@@ -29,4 +28,32 @@ func ExampleEpub_AddImage() {
 	// Output:
 	// ../img/go-gopher.png
 	// ../img/image0002.png
+}
+
+func ExampleEpub_AddSection() {
+	e := epub.NewEpub("My title")
+
+	// Add a section
+	section1Content := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>`
+	section1Path, err := e.AddSection("Section 1", section1Content, "firstsection.xhtml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// The section file name is optional
+	section2Content := fmt.Sprintf(`    <h1>Section 2</h1>
+	<a href="%s">Link to section 1</a>`,
+		section1Path)
+	section2Path, err := e.AddSection("Section 2", section2Content, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(section1Path)
+	fmt.Println(section2Path)
+
+	// Output:
+	// firstsection.xhtml
+	// section0002.xhtml
 }
