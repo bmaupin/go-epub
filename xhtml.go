@@ -9,6 +9,7 @@ import (
 const (
 	xhtmlDoctype = `<!DOCTYPE html>
 `
+	xhtmlLinkRel  = "stylesheet"
 	xhtmlTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -29,8 +30,22 @@ type xhtml struct {
 type xhtmlRoot struct {
 	XMLName   xml.Name      `xml:"http://www.w3.org/1999/xhtml html"`
 	XmlnsEpub string        `xml:"xmlns:epub,attr,omitempty"`
-	Title     string        `xml:"head>title"`
+	Head      xhtmlHead     `xml:"head"`
 	Body      xhtmlInnerxml `xml:"body"`
+}
+
+type xhtmlHead struct {
+	Title string `xml:"title"`
+	Link  *xhtmlLink
+}
+
+// The <link> element, used to link to stylesheets
+// Ex: <link rel="stylesheet" type="text/css" href="../css/epub.css" />
+type xhtmlLink struct {
+	XMLName xml.Name `xml:"link,omitempty"`
+	Rel     string   `xml:"rel,attr,omitempty"`
+	Type    string   `xml:"type,attr,omitempty"`
+	Href    string   `xml:"href,attr,omitempty"`
 }
 
 // This holds the content of the XHTML document between the <body> tags. It is
@@ -71,9 +86,16 @@ func (x *xhtml) setBody(body string) {
 	x.xml.Body.XML = "\n" + body + "\n"
 }
 
-func (x *xhtml) setTitle(title string) {
-	x.xml.Title = title
+func (x *xhtml) setCSS(path string) {
+	x.xml.Head.Link = &xhtmlLink{
+		Rel:  xhtmlLinkRel,
+		Type: mediaTypeCss,
+		Href: path,
+	}
+}
 
+func (x *xhtml) setTitle(title string) {
+	x.xml.Head.Title = title
 }
 
 func (x *xhtml) setXmlnsEpub(xmlns string) {
@@ -81,7 +103,7 @@ func (x *xhtml) setXmlnsEpub(xmlns string) {
 }
 
 func (x *xhtml) Title() string {
-	return x.xml.Title
+	return x.xml.Head.Title
 }
 
 // Write the XHTML file to the specified path

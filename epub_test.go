@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	doCleanup             = true
+	doCleanup             = false
 	testAuthorTemplate    = `<dc:creator id="creator">%s</dc:creator>`
 	testContainerContents = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -38,6 +38,7 @@ img {
   max-width: 100%;
 }`
 	testCoverCSSFilename      = "cover.css"
+	testCSSLinkTemplate       = `<link rel="stylesheet" type="text/css" href="%s"></link>`
 	testDirPerm               = 0775
 	testEpubAuthor            = "Hingle McCringleberry"
 	testEpubcheckJarfile      = "epubcheck.jar"
@@ -148,6 +149,12 @@ func TestAddCSS(t *testing.T) {
 		t.Errorf("Error adding CSS: %s", err)
 	}
 
+	// Add a section with CSS to make sure the stylesheet link for a section is properly created
+	testSectionPath, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, testCSS1Path)
+	if err != nil {
+		t.Errorf("Error adding section with CSS: %s", err)
+	}
+
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	// The CSS file path is relative to the XHTML folder
@@ -177,6 +184,21 @@ func TestAddCSS(t *testing.T) {
 				"Expected: %s",
 			contents,
 			testCoverCSSContent)
+	}
+
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionPath))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testCSSLinkElement := fmt.Sprintf(testCSSLinkTemplate, testCSS1Path)
+	if !strings.Contains(string(contents), testCSSLinkElement) {
+		t.Errorf(
+			"CSS link doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testCSSLinkElement)
 	}
 
 	cleanup(testEpubFilename, tempDir)
@@ -232,12 +254,12 @@ func TestAddImage(t *testing.T) {
 
 func TestAddSection(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	testSection1Path, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
+	testSection1Path, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
 
-	testSection2Path, err := e.AddSection(testSectionTitle, testSectionBody, "")
+	testSection2Path, err := e.AddSection(testSectionTitle, testSectionBody, "", "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
@@ -440,12 +462,13 @@ func TestEpubUUID(t *testing.T) {
 
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.AddCSS(testCoverCSSContent, testCoverCSSFilename)
+	testCSSPath, _ := e.AddCSS(testCoverCSSContent, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSContent, "")
+	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, testCSSPath)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
-	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename)
-	e.AddSection(testSectionTitle, testSectionBody, "")
+	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, "")
+	e.AddSection(testSectionTitle, testSectionBody, "", "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetLang(testEpubLang)
 	e.SetTitle(testEpubAuthor)

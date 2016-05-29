@@ -146,9 +146,11 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // once, ErrFilenameAlreadyUsed will be returned. The section filename is
 // optional; if no filename is provided, one will be generated.
 //
+// The path to the CSS file to be used for the section is optional.
+//
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
-func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFilename string) (string, error) {
+func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFilename string, cssPath string) (string, error) {
 	// Generate a filename if one isn't provided
 	if sectionFilename == "" {
 		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
@@ -160,6 +162,10 @@ func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFil
 
 	x := newXhtml(sectionContent)
 	x.setTitle(sectionTitle)
+
+	if cssPath != "" {
+		x.setCSS(cssPath)
+	}
 
 	e.sections[sectionFilename] = *x
 
