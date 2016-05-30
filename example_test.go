@@ -90,3 +90,18 @@ func ExampleEpub_AddSection() {
 	// firstsection.xhtml
 	// section0002.xhtml
 }
+
+func ExampleEpub_SetCover() {
+	e := epub.NewEpub("My title")
+
+	// Set the cover. The CSS path is optional
+	coverImagePath, _ := e.AddImage("testdata/gophercolor16x16.png", "cover.png")
+	e.SetCover(coverImagePath, "")
+
+	// Update the cover using custom CSS
+	coverCSSContent := `h1 {
+  text-align: center;
+}`
+	coverCSSPath, _ := e.AddCSS(coverCSSContent, "cover.css")
+	e.SetCover(coverImagePath, coverCSSPath)
+}
