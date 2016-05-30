@@ -501,7 +501,7 @@ func trimAllSpace(s string) string {
 	for _, line := range strings.Split(s, "\n") {
 		line = strings.TrimSpace(line)
 		if line != "" {
-			trimmedLines = append(trimmedLines)
+			trimmedLines = append(trimmedLines, line)
 		}
 	}
 
