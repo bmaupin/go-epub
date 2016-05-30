@@ -4,8 +4,6 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/bmaupin/go-epub/master/LICENSE)
 
-Work in progress.
-
 **Features:**
 
 - [Clean, documented API](https://godoc.org/github.com/bmaupin/go-epub)
@@ -14,5 +12,4 @@ Work in progress.
 
 **Wishlist:**
 
-- Add support for cover pages
 - Add functionality to read EPUB files

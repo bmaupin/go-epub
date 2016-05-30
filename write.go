@@ -30,7 +30,8 @@ const (
   </rootfiles>
 </container>
 `
-	contentFolderName = "EPUB"
+	contentFolderName    = "EPUB"
+	coverImageProperties = "cover-image"
 	// Permissions for any new directories we create
 	dirPermissions = 0755
 	// Permissions for any new files we create
@@ -351,8 +352,14 @@ func (e *Epub) writeImages(tempDir string) error {
 				imageMediaType = mediaTypeSvg
 			}
 
+			// The cover image has a special value for the properties attribute
+			imageProperties := ""
+			if imageFilename == e.cover[1] {
+				imageProperties = coverImageProperties
+			}
+
 			// Add the image to the package file manifest
-			e.pkg.addToManifest(imageFilename, filepath.Join(imageFolderName, imageFilename), imageMediaType, "")
+			e.pkg.addToManifest(imageFilename, filepath.Join(imageFolderName, imageFilename), imageMediaType, imageProperties)
 		}
 	}
 
@@ -380,15 +387,32 @@ func (e *Epub) writePackageFile(tempDir string) {
 func (e *Epub) writeSections(tempDir string) {
 	if len(e.sections) > 0 {
 		sectionIndex := 0
+
+		// If a cover was set, add it to the package spine first so it shows up
+		// first in the reading order
+		if e.cover[0] != "" {
+			e.pkg.addToSpine(e.cover[0])
+		}
+
 		for sectionFilename, section := range e.sections {
 			sectionIndex++
+
+			// Set the title of the cover page to the title of the EPUB
+			if sectionFilename == e.cover[0] {
+				section.setTitle(e.Title())
+			}
+
 			sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
 			section.write(sectionFilePath)
 
 			relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
-			e.toc.addSection(sectionIndex, section.Title(), relativePath)
+			if sectionFilename != e.cover[0] {
+				// Don't add the cover page to the TOC
+				e.toc.addSection(sectionIndex, section.Title(), relativePath)
+				// The cover page should have already been added to the spine first
+				e.pkg.addToSpine(sectionFilename)
+			}
 			e.pkg.addToManifest(sectionFilename, relativePath, mediaTypeXhtml, "")
-			e.pkg.addToSpine(sectionFilename)
 		}
 	}
 }

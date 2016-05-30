@@ -65,7 +65,7 @@ func ExampleEpub_AddImage() {
 func ExampleEpub_AddSection() {
 	e := epub.NewEpub("My title")
 
-	// Add a section
+	// Add a section. The CSS path is optional
 	section1Content := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
 	section1Path, err := e.AddSection("Section 1", section1Content, "firstsection.xhtml", "")
@@ -77,7 +77,7 @@ func ExampleEpub_AddSection() {
 	section2Content := fmt.Sprintf(`    <h1>Section 2</h1>
 	<a href="%s">Link to section 1</a>`,
 		section1Path)
-	// The filename is optional
+	// The filename is also optional
 	section2Path, err := e.AddSection("Section 2", section2Content, "", "")
 	if err != nil {
 		log.Fatal(err)

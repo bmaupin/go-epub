@@ -38,29 +38,54 @@ import (
 var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 
 const (
-	cssFileFormat     = "css%04d.css"
-	defaultEpubLang   = "en"
-	imageFileFormat   = "image%04d%s"
-	sectionFileFormat = "section%04d.xhtml"
-	urnUUIDPrefix     = "urn:uuid:"
+	cssFileFormat          = "css%04d.css"
+	defaultCoverBody       = `<img src="%s" alt="Cover Image" />`
+	defaultCoverCSSContent = `body {
+  background-color: #FFFFFF;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  text-align: center;
+}
+
+img {
+  height: 100%;
+  max-width: 100%;
+}`
+	defaultCoverFilename = "cover.xhtml"
+	defaultEpubLang      = "en"
+	imageFileFormat      = "image%04d%s"
+	sectionFileFormat    = "section%04d.xhtml"
+	urnUUIDPrefix        = "urn:uuid:"
 )
 
 // Epub implements an EPUB file.
 type Epub struct {
-	author   string
-	css      map[string]string
-	images   map[string]string // Images added to the EPUB
-	lang     string            // Language
-	pkg      *pkg              // The package file (package.opf)
-	sections map[string]xhtml  // Sections (chapters)
+	author string
+	// The first value is the cover xhtml filename, the second is the cover
+	// image filename
+	cover [2]string
+	// The key is the css filename, the value is the file content
+	css map[string]string
+	// The key is the image filename, the value is the image source
+	images map[string]string
+	// Language
+	lang string
+	// The package file (package.opf)
+	pkg *pkg
+	// The key is the section filename, the value is the section xhtml
+	sections map[string]xhtml
 	title    string
-	toc      *toc // Table of contents
-	uuid     string
+	// Table of contents
+	toc  *toc
+	uuid string
 }
 
 // NewEpub returns a new Epub.
 func NewEpub(title string) *Epub {
 	e := &Epub{}
+	e.cover[0] = ""
 	e.css = make(map[string]string)
 	e.images = make(map[string]string)
 	e.sections = make(map[string]xhtml)
@@ -186,6 +211,47 @@ func (e *Epub) Lang() string {
 func (e *Epub) SetAuthor(author string) {
 	e.author = author
 	e.pkg.setAuthor(author)
+}
+
+// SetCover sets the cover page for the EPUB using the provided path to image
+// file and optional path to CSS file.
+//
+// If the path to the CSS file isn't provided, a default cover CSS file will be
+// created and used.
+func (e *Epub) SetCover(imagePath string, cssPath string) {
+	var err error
+
+	// If a cover already exists, remove it from the EPUB
+	if e.cover[0] != "" {
+		delete(e.sections, e.cover[0])
+	}
+
+	// Create a default cover stylesheet if one isn't provided
+	if cssPath == "" {
+		cssPath, err = e.AddCSS(defaultCoverCSSContent, "")
+		if err != nil {
+			// This shouldn't cause an error since we're not specifying a filename
+			panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
+		}
+	}
+
+	coverBody := fmt.Sprintf(defaultCoverBody, imagePath)
+
+	// Title won't be used since the cover won't be added to the TOC
+	// First try to use the default cover filename
+	coverPath, err := e.AddSection("", coverBody, defaultCoverFilename, cssPath)
+	// If that doesn't work, generate a filename
+	if err != nil {
+		coverPath, err = e.AddSection("", coverBody, "", cssPath)
+		if err != nil {
+			// This shouldn't cause an error since we're not specifying a filename
+			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
+		}
+	}
+
+	// Set the cover field to the base filename
+	e.cover[0] = filepath.Base(coverPath)
+	e.cover[1] = filepath.Base(imagePath)
 }
 
 // SetLang sets the language of the EPUB.
