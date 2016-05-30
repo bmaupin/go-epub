@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -55,10 +56,10 @@ img {
 	testPkgContentTemplate    = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="pub-id">urn:uuid:21ed94b4-f2ab-44c8-b99d-4f7792587ad6</dc:identifier>
+    <dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>
     <dc:title>%s</dc:title>
     <dc:language>en</dc:language>
-    <meta property="dcterms:modified">2016-04-28T19:09:26Z</meta>
+    <meta property="dcterms:modified">%s</meta>
   </metadata>
   <manifest>
     <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"></item>
@@ -124,7 +125,7 @@ func TestEpubWrite(t *testing.T) {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
 
-	testPkgContents := fmt.Sprintf(testPkgContentTemplate, testEpubTitle)
+	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.UUID(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
 	if trimAllSpace(string(contents)) != trimAllSpace(testPkgContents) {
 		t.Errorf(
 			"Package file contents don't match\n"+
