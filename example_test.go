@@ -27,9 +27,9 @@ func ExampleEpub_AddCSS() {
 	}
 
 	// Use the CSS in a section
-	sectionContent := `    <h1>Section 1</h1>
+	sectionBody := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 1", sectionContent, "", css1Path)
+	e.AddSection("Section 1", sectionBody, "", css1Path)
 
 	fmt.Println(css1Path)
 	fmt.Println(css2Path)
@@ -66,19 +66,19 @@ func ExampleEpub_AddSection() {
 	e := epub.NewEpub("My title")
 
 	// Add a section. The CSS path is optional
-	section1Content := `    <h1>Section 1</h1>
+	section1Body := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	section1Path, err := e.AddSection("Section 1", section1Content, "firstsection.xhtml", "")
+	section1Path, err := e.AddSection("Section 1", section1Body, "firstsection.xhtml", "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Link to the first section
-	section2Content := fmt.Sprintf(`    <h1>Section 2</h1>
+	section2Body := fmt.Sprintf(`    <h1>Section 2</h1>
 	<a href="%s">Link to section 1</a>`,
 		section1Path)
 	// The filename is also optional
-	section2Path, err := e.AddSection("Section 2", section2Content, "", "")
+	section2Path, err := e.AddSection("Section 2", section2Body, "", "")
 	if err != nil {
 		log.Fatal(err)
 	}

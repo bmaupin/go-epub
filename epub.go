@@ -12,9 +12,9 @@ Basic usage:
 	e.SetAuthor("Hingle McCringleberry")
 
 	// Add a section
-	section1Content := `    <h1>Section 1</h1>
+	section1Body := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 1", section1Content, "")
+	e.AddSection("Section 1", section1Body, "")
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")
@@ -163,7 +163,7 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 //
 // The title will be used for the table of contents.
 //
-// The content must be valid XHTML that will go between the <body> tags of the
+// The body must be valid XHTML that will go between the <body> tags of the
 // section XHTML file. The content will not be validated.
 //
 // The section filename will be used when storing the image in the EPUB and must
@@ -175,7 +175,7 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 //
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
-func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFilename string, cssPath string) (string, error) {
+func (e *Epub) AddSection(sectionTitle string, sectionBody string, sectionFilename string, cssPath string) (string, error) {
 	// Generate a filename if one isn't provided
 	if sectionFilename == "" {
 		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
@@ -185,7 +185,7 @@ func (e *Epub) AddSection(sectionTitle string, sectionContent string, sectionFil
 		return "", ErrFilenameAlreadyUsed
 	}
 
-	x := newXhtml(sectionContent)
+	x := newXhtml(sectionBody)
 	x.setTitle(sectionTitle)
 
 	if cssPath != "" {

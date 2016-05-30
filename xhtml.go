@@ -56,11 +56,11 @@ type xhtmlInnerxml struct {
 }
 
 // Constructor for xhtml
-func newXhtml(content string) *xhtml {
+func newXhtml(body string) *xhtml {
 	x := &xhtml{
 		xml: newXhtmlRoot(),
 	}
-	x.setBody(content)
+	x.setBody(body)
 
 	return x
 }
