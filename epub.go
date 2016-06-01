@@ -73,13 +73,17 @@ type Epub struct {
 	// Language
 	lang string
 	// The package file (package.opf)
-	pkg *pkg
-	// The key is the section filename, the value is the section xhtml
-	sections map[string]xhtml
+	pkg      *pkg
+	sections []epubSection
 	title    string
 	// Table of contents
 	toc  *toc
 	uuid string
+}
+
+type epubSection struct {
+	filename string
+	xhtml    *xhtml
 }
 
 // NewEpub returns a new Epub.
@@ -88,7 +92,6 @@ func NewEpub(title string) *Epub {
 	e.cover[0] = ""
 	e.css = make(map[string]string)
 	e.images = make(map[string]string)
-	e.sections = make(map[string]xhtml)
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
@@ -181,8 +184,10 @@ func (e *Epub) AddSection(sectionTitle string, sectionBody string, sectionFilena
 		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
 	}
 
-	if _, ok := e.sections[sectionFilename]; ok {
-		return "", ErrFilenameAlreadyUsed
+	for _, section := range e.sections {
+		if section.filename == sectionFilename {
+			return "", ErrFilenameAlreadyUsed
+		}
 	}
 
 	x := newXhtml(sectionBody)
@@ -192,7 +197,11 @@ func (e *Epub) AddSection(sectionTitle string, sectionBody string, sectionFilena
 		x.setCSS(cssPath)
 	}
 
-	e.sections[sectionFilename] = *x
+	s := epubSection{
+		filename: sectionFilename,
+		xhtml:    x,
+	}
+	e.sections = append(e.sections, s)
 
 	return sectionFilename, nil
 }
@@ -221,9 +230,14 @@ func (e *Epub) SetAuthor(author string) {
 func (e *Epub) SetCover(imagePath string, cssPath string) {
 	var err error
 
-	// If a cover already exists, remove it from the EPUB
+	// If a cover already exists, remove it from the EPUB sections
 	if e.cover[0] != "" {
-		delete(e.sections, e.cover[0])
+		for i, section := range e.sections {
+			if section.filename == e.cover[0] {
+				e.sections = append(e.sections[:i], e.sections[i+1:]...)
+				break
+			}
+		}
 	}
 
 	// Create a default cover stylesheet if one isn't provided

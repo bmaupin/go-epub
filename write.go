@@ -386,33 +386,29 @@ func (e *Epub) writePackageFile(tempDir string) {
 // the TOC and package files
 func (e *Epub) writeSections(tempDir string) {
 	if len(e.sections) > 0 {
-		sectionIndex := 0
-
 		// If a cover was set, add it to the package spine first so it shows up
 		// first in the reading order
 		if e.cover[0] != "" {
 			e.pkg.addToSpine(e.cover[0])
 		}
 
-		for sectionFilename, section := range e.sections {
-			sectionIndex++
-
+		for i, section := range e.sections {
 			// Set the title of the cover page to the title of the EPUB
-			if sectionFilename == e.cover[0] {
-				section.setTitle(e.Title())
+			if section.filename == e.cover[0] {
+				section.xhtml.setTitle(e.Title())
 			}
 
-			sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, sectionFilename)
-			section.write(sectionFilePath)
+			sectionFilePath := filepath.Join(tempDir, contentFolderName, xhtmlFolderName, section.filename)
+			section.xhtml.write(sectionFilePath)
 
-			relativePath := filepath.Join(xhtmlFolderName, sectionFilename)
-			if sectionFilename != e.cover[0] {
+			relativePath := filepath.Join(xhtmlFolderName, section.filename)
+			if section.filename != e.cover[0] {
 				// Don't add the cover page to the TOC
-				e.toc.addSection(sectionIndex, section.Title(), relativePath)
+				e.toc.addSection(i, section.xhtml.Title(), relativePath)
 				// The cover page should have already been added to the spine first
-				e.pkg.addToSpine(sectionFilename)
+				e.pkg.addToSpine(section.filename)
 			}
-			e.pkg.addToManifest(sectionFilename, relativePath, mediaTypeXhtml, "")
+			e.pkg.addToManifest(section.filename, relativePath, mediaTypeXhtml, "")
 		}
 	}
 }
