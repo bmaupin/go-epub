@@ -354,7 +354,7 @@ func (e *Epub) writeImages(tempDir string) error {
 
 			// The cover image has a special value for the properties attribute
 			imageProperties := ""
-			if imageFilename == e.cover[1] {
+			if imageFilename == e.cover.imageFilename {
 				imageProperties = coverImageProperties
 			}
 
@@ -388,13 +388,13 @@ func (e *Epub) writeSections(tempDir string) {
 	if len(e.sections) > 0 {
 		// If a cover was set, add it to the package spine first so it shows up
 		// first in the reading order
-		if e.cover[0] != "" {
-			e.pkg.addToSpine(e.cover[0])
+		if e.cover.xhtmlFilename != "" {
+			e.pkg.addToSpine(e.cover.xhtmlFilename)
 		}
 
 		for i, section := range e.sections {
 			// Set the title of the cover page to the title of the EPUB
-			if section.filename == e.cover[0] {
+			if section.filename == e.cover.xhtmlFilename {
 				section.xhtml.setTitle(e.Title())
 			}
 
@@ -402,7 +402,7 @@ func (e *Epub) writeSections(tempDir string) {
 			section.xhtml.write(sectionFilePath)
 
 			relativePath := filepath.Join(xhtmlFolderName, section.filename)
-			if section.filename != e.cover[0] {
+			if section.filename != e.cover.xhtmlFilename {
 				// Don't add the cover page to the TOC
 				e.toc.addSection(i, section.xhtml.Title(), relativePath)
 				// The cover page should have already been added to the spine first

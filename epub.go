@@ -63,9 +63,7 @@ img {
 // Epub implements an EPUB file.
 type Epub struct {
 	author string
-	// The first value is the cover xhtml filename, the second is the cover
-	// image filename
-	cover [2]string
+	cover  *epubCover
 	// The key is the css filename, the value is the file content
 	css map[string]string
 	// The key is the image filename, the value is the image source
@@ -81,6 +79,11 @@ type Epub struct {
 	uuid string
 }
 
+type epubCover struct {
+	xhtmlFilename string
+	imageFilename string
+}
+
 type epubSection struct {
 	filename string
 	xhtml    *xhtml
@@ -89,7 +92,10 @@ type epubSection struct {
 // NewEpub returns a new Epub.
 func NewEpub(title string) *Epub {
 	e := &Epub{}
-	e.cover[0] = ""
+	e.cover = &epubCover{
+		xhtmlFilename: "",
+		imageFilename: "",
+	}
 	e.css = make(map[string]string)
 	e.images = make(map[string]string)
 	e.pkg = newPackage()
@@ -231,9 +237,9 @@ func (e *Epub) SetCover(imagePath string, cssPath string) {
 	var err error
 
 	// If a cover already exists, remove it from the EPUB sections
-	if e.cover[0] != "" {
+	if e.cover.xhtmlFilename != "" {
 		for i, section := range e.sections {
-			if section.filename == e.cover[0] {
+			if section.filename == e.cover.xhtmlFilename {
 				e.sections = append(e.sections[:i], e.sections[i+1:]...)
 				break
 			}
@@ -264,8 +270,8 @@ func (e *Epub) SetCover(imagePath string, cssPath string) {
 	}
 
 	// Set the cover field to the base filename
-	e.cover[0] = filepath.Base(coverPath)
-	e.cover[1] = filepath.Base(imagePath)
+	e.cover.xhtmlFilename = filepath.Base(coverPath)
+	e.cover.imageFilename = filepath.Base(imagePath)
 }
 
 // SetLang sets the language of the EPUB.
