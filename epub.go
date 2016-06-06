@@ -53,11 +53,13 @@ img {
   height: 100%;
   max-width: 100%;
 }`
-	defaultCoverFilename = "cover.xhtml"
-	defaultEpubLang      = "en"
-	imageFileFormat      = "image%04d%s"
-	sectionFileFormat    = "section%04d.xhtml"
-	urnUUIDPrefix        = "urn:uuid:"
+	defaultCoverCSSFilename   = "cover.css"
+	defaultCoverImgFormat     = "cover%s"
+	defaultCoverXhtmlFilename = "cover.xhtml"
+	defaultEpubLang           = "en"
+	imageFileFormat           = "image%04d%s"
+	sectionFileFormat         = "section%04d.xhtml"
+	urnUUIDPrefix             = "urn:uuid:"
 )
 
 // Epub implements an EPUB file.
@@ -80,8 +82,9 @@ type Epub struct {
 }
 
 type epubCover struct {
-	xhtmlFilename string
+	cssFilename   string
 	imageFilename string
+	xhtmlFilename string
 }
 
 type epubSection struct {
@@ -228,38 +231,66 @@ func (e *Epub) SetAuthor(author string) {
 	e.pkg.setAuthor(author)
 }
 
-// SetCover sets the cover page for the EPUB using the provided path to image
-// file and optional path to CSS file.
+// SetCover sets the cover page for the EPUB using the provided image source and
+// optional CSS.
 //
-// If the path to the CSS file isn't provided, a default cover CSS file will be
-// created and used.
-func (e *Epub) SetCover(imagePath string, cssPath string) {
+// The image source should either be a URL or a path to a local file; in either
+// case, the image will be retrieved and stored in the EPUB.
+//
+// The CSS content is the exact content that will be stored in the CSS file. It
+// will not be validated. If the CSS content isn't provided, default content
+// will be used.
+func (e *Epub) SetCover(imageSource string, cssFileContent string) {
 	var err error
 
-	// If a cover already exists, remove it from the EPUB sections
+	// If a cover already exists
 	if e.cover.xhtmlFilename != "" {
+		// Remove the xhtml file
 		for i, section := range e.sections {
 			if section.filename == e.cover.xhtmlFilename {
 				e.sections = append(e.sections[:i], e.sections[i+1:]...)
 				break
 			}
 		}
+
+		// Remove the image
+		delete(e.images, e.cover.imageFilename)
+
+		// Remove the CSS
+		delete(e.css, e.cover.cssFilename)
 	}
 
-	// Create a default cover stylesheet if one isn't provided
-	if cssPath == "" {
-		cssPath, err = e.AddCSS(defaultCoverCSSContent, "")
+	defaultImageFilename := fmt.Sprintf(defaultCoverImgFormat, filepath.Ext(imageSource))
+	imagePath, err := e.AddImage(imageSource, defaultImageFilename)
+	// If that doesn't work, generate a filename
+	if err != nil {
+		imagePath, err = e.AddImage(imageSource, "")
+		if err != nil {
+			// This shouldn't cause an error since we're not specifying a filename
+			panic(fmt.Sprintf("Error adding default cover image file: %s", err))
+		}
+	}
+	e.cover.imageFilename = filepath.Base(imagePath)
+
+	// Use default cover stylesheet if one isn't provided
+	if cssFileContent == "" {
+		cssFileContent = defaultCoverCSSContent
+	}
+	cssPath, err := e.AddCSS(cssFileContent, defaultCoverCSSFilename)
+	// If that doesn't work, generate a filename
+	if err != nil {
+		cssPath, err = e.AddCSS(cssFileContent, "")
 		if err != nil {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
 		}
 	}
+	e.cover.cssFilename = filepath.Base(cssPath)
 
 	coverBody := fmt.Sprintf(defaultCoverBody, imagePath)
-
 	// Title won't be used since the cover won't be added to the TOC
 	// First try to use the default cover filename
-	coverPath, err := e.AddSection("", coverBody, defaultCoverFilename, cssPath)
+	coverPath, err := e.AddSection("", coverBody, defaultCoverXhtmlFilename, cssPath)
 	// If that doesn't work, generate a filename
 	if err != nil {
 		coverPath, err = e.AddSection("", coverBody, "", cssPath)
@@ -268,10 +299,7 @@ func (e *Epub) SetCover(imagePath string, cssPath string) {
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
 		}
 	}
-
-	// Set the cover field to the base filename
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
-	e.cover.imageFilename = filepath.Base(imagePath)
 }
 
 // SetLang sets the language of the EPUB.

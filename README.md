@@ -6,10 +6,6 @@
 
 **Features:**
 
-- [Clean, documented API](https://godoc.org/github.com/bmaupin/go-epub)
+- [Documented API](https://godoc.org/github.com/bmaupin/go-epub)
 - Creates valid EPUB 3.0 files
 - Adds an additional EPUB 2.0 table of contents ([as seen here](https://github.com/bmaupin/epub-samples)) for maximum compatibility
-
-**Wishlist:**
-
-- Add functionality to read EPUB files
