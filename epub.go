@@ -12,9 +12,9 @@ Basic usage:
 	e.SetAuthor("Hingle McCringleberry")
 
 	// Add a section
-	section1Body := `    <h1>Section 1</h1>
+	section1Body := `<h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 1", section1Body, "")
+	e.AddSection("Section 1", section1Body, "", "")
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")
