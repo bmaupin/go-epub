@@ -10,18 +10,16 @@ import (
 func ExampleEpub_AddCSS() {
 	e := epub.NewEpub("My title")
 
-	cssContent := `h1 {
-  text-align: center;
-}`
+	cssSource := "cover.css"
 
 	// Add CSS
-	css1Path, err := e.AddCSS(cssContent, "epub.css")
+	css1Path, err := e.AddCSS(cssSource, "epub.css")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// The filename is optional
-	css2Path, err := e.AddCSS(cssContent, "")
+	css2Path, err := e.AddCSS(cssSource, "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,8 +56,8 @@ func ExampleEpub_AddImage() {
 	fmt.Println(img2Path)
 
 	// Output:
-	// ../img/go-gopher.png
-	// ../img/image0002.png
+	// ../images/go-gopher.png
+	// ../images/image0002.png
 }
 
 func ExampleEpub_AddSection() {
