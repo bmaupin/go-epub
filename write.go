@@ -10,15 +10,26 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ErrUnableToCreateEpub is thrown by Write if it cannot create the destination
 // EPUB file
 var ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
 
-// ErrRetrievingImage is thrown by Write if it cannot get the source image that
-// was added using AddImage
-var ErrRetrievingImage = errors.New("Error retrieving image from source")
+// ErrRetrievingFile is thrown by Write if it cannot get the source file that
+// was added using AddCSS, AddFont, or AddImage
+var ErrRetrievingFile = errors.New("Error retrieving file from source")
+
+var extensionMediaTypes = map[string]string{
+	".gif":  "image/gif",
+	".jpeg": mediaTypeJpeg,
+	".jpg":  mediaTypeJpeg,
+	".otf":  "application/x-font-otf",
+	".png":  "image/png",
+	".svg":  "image/svg+xml",
+	".ttf":  "application/x-font-ttf",
+}
 
 const (
 	cssFolderName         = "css"
@@ -36,14 +47,12 @@ const (
 	dirPermissions = 0755
 	// Permissions for any new files we create
 	filePermissions   = 0644
-	imageFolderName   = "img"
+	fontFolderName    = "fonts"
+	imageFolderName   = "images"
 	mediaTypeCss      = "text/css"
 	mediaTypeEpub     = "application/epub+zip"
-	mediaTypeGif      = "image/gif"
 	mediaTypeJpeg     = "image/jpeg"
 	mediaTypeNcx      = "application/x-dtbncx+xml"
-	mediaTypePng      = "image/png"
-	mediaTypeSvg      = "image/svg+xml"
 	mediaTypeXhtml    = "application/xhtml+xml"
 	metaInfFolderName = "META-INF"
 	mimetypeFilename  = "mimetype"
@@ -282,34 +291,44 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	return nil
 }
 
+// Get fonts from their source and save them in the temporary directory
+func (e *Epub) writeFonts(tempDir string) error {
+	return e.writeMedia(tempDir, e.fonts, fontFolderName)
+}
+
 // Get images from their source and save them in the temporary directory
 func (e *Epub) writeImages(tempDir string) error {
-	if len(e.images) > 0 {
-		imageFolderPath := filepath.Join(tempDir, contentFolderName, imageFolderName)
-		if err := os.Mkdir(imageFolderPath, dirPermissions); err != nil {
-			panic(fmt.Sprintf("Unable to create img directory: %s", err))
+	return e.writeMedia(tempDir, e.images, imageFolderName)
+}
+
+// Get images from their source and save them in the temporary directory
+func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolderName string) error {
+	if len(mediaMap) > 0 {
+		mediaFolderPath := filepath.Join(tempDir, contentFolderName, mediaFolderName)
+		if err := os.Mkdir(mediaFolderPath, dirPermissions); err != nil {
+			panic(fmt.Sprintf("Unable to create directory: %s", err))
 		}
 
-		for imageFilename, imageSource := range e.images {
-			// Get the image from the source
-			u, err := url.Parse(imageSource)
+		for mediaFilename, mediaSource := range mediaMap {
+			// Get the media file from the source
+			u, err := url.Parse(mediaSource)
 			if err != nil {
-				return ErrRetrievingImage
+				return ErrRetrievingFile
 			}
 
 			var r io.ReadCloser
 			var resp *http.Response
 			// If it's a URL
 			if u.Scheme == "http" || u.Scheme == "https" {
-				resp, err = http.Get(imageSource)
+				resp, err = http.Get(mediaSource)
 				r = resp.Body
 
 				// Otherwise, assume it's a local file
 			} else {
-				r, err = os.Open(imageSource)
+				r, err = os.Open(mediaSource)
 			}
 			if err != nil {
-				return ErrRetrievingImage
+				return ErrRetrievingFile
 			}
 			defer func() {
 				if err := r.Close(); err != nil {
@@ -317,15 +336,15 @@ func (e *Epub) writeImages(tempDir string) error {
 				}
 			}()
 
-			imageFilePath := filepath.Join(
-				imageFolderPath,
-				imageFilename,
+			mediaFilePath := filepath.Join(
+				mediaFolderPath,
+				mediaFilename,
 			)
 
-			// Add the image to the EPUB temp directory
-			w, err := os.Create(imageFilePath)
+			// Add the file to the EPUB temp directory
+			w, err := os.Create(mediaFilePath)
 			if err != nil {
-				panic(fmt.Sprintf("Unable to create image file: %s", err))
+				panic(fmt.Sprintf("Unable to create file: %s", err))
 			}
 			defer func() {
 				if err := w.Close(); err != nil {
@@ -337,29 +356,24 @@ func (e *Epub) writeImages(tempDir string) error {
 			if err != nil {
 				// There shouldn't be any problem with the writer, but the reader
 				// might have an issue
-				return ErrRetrievingImage
+				return ErrRetrievingFile
 			}
 
-			// Determine the media type
-			imageMediaType := ""
-			if filepath.Ext(imageFilename) == ".gif" {
-				imageMediaType = mediaTypeGif
-			} else if filepath.Ext(imageFilename) == ".jpg" || filepath.Ext(imageFilename) == ".jpeg" {
-				imageMediaType = mediaTypeJpeg
-			} else if filepath.Ext(imageFilename) == ".png" {
-				imageMediaType = mediaTypePng
-			} else if filepath.Ext(imageFilename) == ".svg" {
-				imageMediaType = mediaTypeSvg
+			mediaType := extensionMediaTypes[strings.ToLower(filepath.Ext(mediaFilename))]
+			if mediaType == "" {
+				panic(fmt.Sprintf(
+					"Unmatched file extension, media type not set for file: %s",
+					mediaFilename))
 			}
 
 			// The cover image has a special value for the properties attribute
-			imageProperties := ""
-			if imageFilename == e.cover.imageFilename {
-				imageProperties = coverImageProperties
+			mediaProperties := ""
+			if mediaFilename == e.cover.imageFilename {
+				mediaProperties = coverImageProperties
 			}
 
-			// Add the image to the package file manifest
-			e.pkg.addToManifest(imageFilename, filepath.Join(imageFolderName, imageFilename), imageMediaType, imageProperties)
+			// Add the file to the OPF manifest
+			e.pkg.addToManifest(mediaFilename, filepath.Join(mediaFolderName, mediaFilename), mediaType, mediaProperties)
 		}
 	}
 

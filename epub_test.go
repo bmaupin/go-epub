@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	doCleanup             = true
+	doCleanup             = false
 	testAuthorTemplate    = `<dc:creator id="creator">%s</dc:creator>`
 	testContainerContents = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -47,7 +47,7 @@ img {
     <link rel="stylesheet" type="text/css" href="../css/cover.css"></link>
   </head>
   <body>
-    <img src="../img/cover.png" alt="Cover Image" />
+    <img src="../%s/cover.png" alt="Cover Image" />
   </body>
 </html>`
 	testCSSLinkTemplate       = `<link rel="stylesheet" type="text/css" href="%s"></link>`
@@ -483,7 +483,7 @@ func TestSetCover(t *testing.T) {
 		t.Errorf("Unexpected error reading cover XHTML file: %s", err)
 	}
 
-	testCoverContents := fmt.Sprintf(testCoverContentTemplate, testEpubTitle)
+	testCoverContents := fmt.Sprintf(testCoverContentTemplate, testEpubTitle, imageFolderName)
 	if trimAllSpace(string(contents)) != trimAllSpace(testCoverContents) {
 		t.Errorf(
 			"Cover file contents don't match\n"+

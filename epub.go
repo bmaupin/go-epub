@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/satori/go.uuid"
 )
@@ -57,6 +58,7 @@ img {
 	defaultCoverImgFormat     = "cover%s"
 	defaultCoverXhtmlFilename = "cover.xhtml"
 	defaultEpubLang           = "en"
+	fontFileFormat            = "font%04d%s"
 	imageFileFormat           = "image%04d%s"
 	sectionFileFormat         = "section%04d.xhtml"
 	urnUUIDPrefix             = "urn:uuid:"
@@ -66,8 +68,10 @@ img {
 type Epub struct {
 	author string
 	cover  *epubCover
-	// The key is the css filename, the value is the file content
+	// The key is the css filename, the value is the css source
 	css map[string]string
+	// The key is the font filename, the value is the font source
+	fonts map[string]string
 	// The key is the image filename, the value is the image source
 	images map[string]string
 	// Language
@@ -140,6 +144,29 @@ func (e *Epub) AddCSS(cssFileContent string, cssFilename string) (string, error)
 	), nil
 }
 
+func (e *Epub) AddFont(fontSource string, fontFilename string) (string, error) {
+	// Generate a filename if one isn't provided
+	if fontFilename == "" {
+		fontFilename = fmt.Sprintf(
+			fontFileFormat,
+			len(e.fonts)+1,
+			strings.ToLower(filepath.Ext(fontSource)),
+		)
+	}
+
+	if _, ok := e.fonts[fontFilename]; ok {
+		return "", ErrFilenameAlreadyUsed
+	}
+
+	e.fonts[fontFilename] = fontSource
+
+	return filepath.Join(
+		"..",
+		fontFolderName,
+		fontFilename,
+	), nil
+}
+
 // AddImage adds an image to the EPUB and returns a relative path that can be
 // used in the content of a section.
 //
@@ -153,7 +180,11 @@ func (e *Epub) AddCSS(cssFileContent string, cssFilename string) (string, error)
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
 	// Generate a filename if one isn't provided
 	if imageFilename == "" {
-		imageFilename = fmt.Sprintf(imageFileFormat, len(e.images)+1, filepath.Ext(imageSource))
+		imageFilename = fmt.Sprintf(
+			imageFileFormat,
+			len(e.images)+1,
+			strings.ToLower(filepath.Ext(imageSource)),
+		)
 	}
 
 	if _, ok := e.images[imageFilename]; ok {
@@ -260,7 +291,10 @@ func (e *Epub) SetCover(imageSource string, cssFileContent string) {
 		delete(e.css, e.cover.cssFilename)
 	}
 
-	defaultImageFilename := fmt.Sprintf(defaultCoverImgFormat, filepath.Ext(imageSource))
+	defaultImageFilename := fmt.Sprintf(
+		defaultCoverImgFormat,
+		strings.ToLower(filepath.Ext(imageSource)),
+	)
 	imagePath, err := e.AddImage(imageSource, defaultImageFilename)
 	// If that doesn't work, generate a filename
 	if err != nil {
