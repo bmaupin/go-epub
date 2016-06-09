@@ -520,6 +520,7 @@ func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
+	e.AddFont(testFontFromFileSource, "")
 	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, testCSSPath)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")

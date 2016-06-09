@@ -10,16 +10,14 @@ import (
 func ExampleEpub_AddCSS() {
 	e := epub.NewEpub("My title")
 
-	cssSource := "cover.css"
-
 	// Add CSS
-	css1Path, err := e.AddCSS(cssSource, "epub.css")
+	css1Path, err := e.AddCSS("cover.css", "epub.css")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// The filename is optional
-	css2Path, err := e.AddCSS(cssSource, "")
+	css2Path, err := e.AddCSS("cover.css", "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,6 +33,29 @@ func ExampleEpub_AddCSS() {
 	// Output:
 	// ../css/epub.css
 	// ../css/cover.css
+}
+
+func ExampleEpub_AddFont() {
+	e := epub.NewEpub("My title")
+
+	// Add a font from a local file
+	font1Path, err := e.AddFont("testdata/redacted-script-regular.ttf", "font.ttf")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// The filename is optional
+	font2Path, err := e.AddFont("testdata/redacted-script-regular.ttf", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(font1Path)
+	fmt.Println(font2Path)
+
+	// Output:
+	// ../fonts/font.ttf
+	// ../fonts/redacted-script-regular.ttf
 }
 
 func ExampleEpub_AddImage() {
