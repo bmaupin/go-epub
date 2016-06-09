@@ -312,14 +312,20 @@ func (e *Epub) UUID() string {
 	return e.uuid
 }
 
+// Add a media file to the EPUB and return the path relative to the EPUB section
+// files
 func addMedia(mediaSource string, mediaFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
-	// Generate a filename if one isn't provided
 	if mediaFilename == "" {
-		mediaFilename = fmt.Sprintf(
-			mediaFileFormat,
-			len(mediaMap)+1,
-			strings.ToLower(filepath.Ext(mediaSource)),
-		)
+		// If a filename isn't provided, use the filename from the source
+		mediaFilename = filepath.Base(mediaSource)
+		// If that's already used, try to generate a unique filename
+		if _, ok := mediaMap[mediaFilename]; ok {
+			mediaFilename = fmt.Sprintf(
+				mediaFileFormat,
+				len(mediaMap)+1,
+				strings.ToLower(filepath.Ext(mediaSource)),
+			)
+		}
 	}
 
 	if _, ok := mediaMap[mediaFilename]; ok {
