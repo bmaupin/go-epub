@@ -89,7 +89,7 @@ func (x *xhtml) setBody(body string) {
 func (x *xhtml) setCSS(path string) {
 	x.xml.Head.Link = &xhtmlLink{
 		Rel:  xhtmlLinkRel,
-		Type: mediaTypeCss,
+		Type: mediaTypeCSS,
 		Href: path,
 	}
 }

@@ -39,22 +39,10 @@ import (
 var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 
 const (
-	cssFileFormat          = "css%04d.css"
-	defaultCoverBody       = `<img src="%s" alt="Cover Image" />`
-	defaultCoverCSSContent = `body {
-  background-color: #FFFFFF;
-  margin-bottom: 0px;
-  margin-left: 0px;
-  margin-right: 0px;
-  margin-top: 0px;
-  text-align: center;
-}
-
-img {
-  max-height: 100%;
-  max-width: 100%;
-}`
+	cssFileFormat             = "css%04d%s"
+	defaultCoverBody          = `<img src="%s" alt="Cover Image" />`
 	defaultCoverCSSFilename   = "cover.css"
+	defaultCoverCSSSource     = "cover.css"
 	defaultCoverImgFormat     = "cover%s"
 	defaultCoverXhtmlFilename = "cover.xhtml"
 	defaultEpubLang           = "en"
@@ -115,37 +103,22 @@ func NewEpub(title string) *Epub {
 	return e
 }
 
-// AddCSS adds a new CSS file to the EPUB and returns a relative path to the
-// CSS file that can be used in EPUB sections.
+// AddCSS adds a CSS file to the EPUB and returns a relative path to the CSS
+// file that can be used in EPUB sections.
 //
-// The CSS content is the exact content that will be stored in the CSS file. It
-// will not be validated.
+// The CSS source should either be a URL or a path to a local file; in either
+// case, the CSS file will be retrieved and stored in the EPUB.
 //
 // The CSS filename will be used when storing the CSS file in the EPUB and must
 // be unique among all CSS files. If the same filename is used more than
 // once, ErrFilenameAlreadyUsed will be returned. The CSS filename is
 // optional; if no filename is provided, one will be generated.
-func (e *Epub) AddCSS(cssFileContent string, cssFilename string) (string, error) {
-	// Generate a filename if one isn't provided
-	if cssFilename == "" {
-		cssFilename = fmt.Sprintf(cssFileFormat, len(e.css)+1)
-	}
-
-	if _, ok := e.css[cssFilename]; ok {
-		return "", ErrFilenameAlreadyUsed
-	}
-
-	e.css[cssFilename] = cssFileContent
-
-	return filepath.Join(
-		"..",
-		cssFolderName,
-		cssFilename,
-	), nil
+func (e *Epub) AddCSS(cssSource string, cssFilename string) (string, error) {
+	return addMedia(cssSource, cssFilename, cssFileFormat, cssFolderName, e.css)
 }
 
-// AddFont adds a font file to the EPUB and returns a relative path that can be
-// used in the content of a section.
+// AddFont adds a font file to the EPUB and returns a relative path to the font
+// file that can be used in EPUB sections.
 //
 // The font source should either be a URL or a path to a local file; in either
 // case, the font file will be retrieved and stored in the EPUB.
@@ -158,8 +131,8 @@ func (e *Epub) AddFont(fontSource string, fontFilename string) (string, error) {
 	return addMedia(fontSource, fontFilename, fontFileFormat, fontFolderName, e.fonts)
 }
 
-// AddImage adds an image to the EPUB and returns a relative path that can be
-// used in the content of a section.
+// AddImage adds an image to the EPUB and returns a relative path to the image
+// file that can be used in EPUB sections.
 //
 // The image source should either be a URL or a path to a local file; in either
 // case, the image file will be retrieved and stored in the EPUB.
@@ -243,7 +216,7 @@ func (e *Epub) SetAuthor(author string) {
 // The CSS content is the exact content that will be stored in the CSS file. It
 // will not be validated. If the CSS content isn't provided, default content
 // will be used.
-func (e *Epub) SetCover(imageSource string, cssFileContent string) {
+func (e *Epub) SetCover(imageSource string, cssSource string) {
 	var err error
 
 	// If a cover already exists
@@ -279,13 +252,13 @@ func (e *Epub) SetCover(imageSource string, cssFileContent string) {
 	e.cover.imageFilename = filepath.Base(imagePath)
 
 	// Use default cover stylesheet if one isn't provided
-	if cssFileContent == "" {
-		cssFileContent = defaultCoverCSSContent
+	if cssSource == "" {
+		cssSource = defaultCoverCSSSource
 	}
-	cssPath, err := e.AddCSS(cssFileContent, defaultCoverCSSFilename)
+	cssPath, err := e.AddCSS(cssSource, defaultCoverCSSFilename)
 	// If that doesn't work, generate a filename
 	if err != nil {
-		cssPath, err = e.AddCSS(cssFileContent, "")
+		cssPath, err = e.AddCSS(cssSource, "")
 		if err != nil {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))

@@ -25,20 +25,8 @@ const (
     <rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml" />
   </rootfiles>
 </container>`
-	testCoverCSSContent = `body {
-  background-color: #FFFFFF;
-  margin-bottom: 0px;
-  margin-left: 0px;
-  margin-right: 0px;
-  margin-top: 0px;
-  text-align: center;
-}
-
-img {
-  height: 100%;
-  max-width: 100%;
-}`
 	testCoverCSSFilename     = "cover.css"
+	testCoverCSSSource       = "cover.css"
 	testCoverContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -151,12 +139,12 @@ func TestEpubWrite(t *testing.T) {
 
 func TestAddCSS(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	testCSS1Path, err := e.AddCSS(testCoverCSSContent, testCoverCSSFilename)
+	testCSS1Path, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	if err != nil {
 		t.Errorf("Error adding CSS: %s", err)
 	}
 
-	testCSS2Path, err := e.AddCSS(testCoverCSSContent, "")
+	testCSS2Path, err := e.AddCSS(testCoverCSSSource, "")
 	if err != nil {
 		t.Errorf("Error adding CSS: %s", err)
 	}
@@ -175,13 +163,18 @@ func TestAddCSS(t *testing.T) {
 		t.Errorf("Unexpected error reading CSS file: %s", err)
 	}
 
-	if trimAllSpace(string(contents)) != trimAllSpace(testCoverCSSContent) {
+	testCSSContents, err := ioutil.ReadFile(testCoverCSSSource)
+	if err != nil {
+		t.Errorf("Unexpected error reading CSS file: %s", err)
+	}
+
+	if trimAllSpace(string(contents)) != trimAllSpace(string(testCSSContents)) {
 		t.Errorf(
 			"CSS file contents don't match\n"+
 				"Got: %s\n"+
 				"Expected: %s",
 			contents,
-			testCoverCSSContent)
+			testCSSContents)
 	}
 
 	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS2Path))
@@ -189,13 +182,13 @@ func TestAddCSS(t *testing.T) {
 		t.Errorf("Unexpected error reading CSS file: %s", err)
 	}
 
-	if trimAllSpace(string(contents)) != trimAllSpace(testCoverCSSContent) {
+	if trimAllSpace(string(contents)) != trimAllSpace(string(testCSSContents)) {
 		t.Errorf(
 			"CSS file contents don't match\n"+
 				"Got: %s\n"+
 				"Expected: %s",
 			contents,
-			testCoverCSSContent)
+			testCSSContents)
 	}
 
 	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionPath))
@@ -474,7 +467,7 @@ func TestEpubUUID(t *testing.T) {
 
 func TestSetCover(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.SetCover(testImageFromFileSource, testCoverCSSContent)
+	e.SetCover(testImageFromFileSource, testCoverCSSSource)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -498,15 +491,15 @@ func TestSetCover(t *testing.T) {
 
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	testCSSPath, _ := e.AddCSS(testCoverCSSContent, testCoverCSSFilename)
-	e.AddCSS(testCoverCSSContent, "")
+	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	e.AddCSS(testCoverCSSSource, "")
 	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, testCSSPath)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
 	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, "")
 	e.AddSection(testSectionTitle, testSectionBody, "", "")
 	e.SetAuthor(testEpubAuthor)
-	e.SetCover(testImageFromFileSource, testCoverCSSContent)
+	e.SetCover(testImageFromFileSource, testCoverCSSSource)
 	e.SetLang(testEpubLang)
 	e.SetTitle(testEpubAuthor)
 	e.SetUUID(testEpubUUID)

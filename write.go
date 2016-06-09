@@ -22,6 +22,7 @@ var ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
 var ErrRetrievingFile = errors.New("Error retrieving file from source")
 
 var extensionMediaTypes = map[string]string{
+	".css":  mediaTypeCSS,
 	".gif":  "image/gif",
 	".jpeg": mediaTypeJpeg,
 	".jpg":  mediaTypeJpeg,
@@ -49,7 +50,7 @@ const (
 	filePermissions   = 0644
 	fontFolderName    = "fonts"
 	imageFolderName   = "images"
-	mediaTypeCss      = "text/css"
+	mediaTypeCSS      = "text/css"
 	mediaTypeEpub     = "application/epub+zip"
 	mediaTypeJpeg     = "image/jpeg"
 	mediaTypeNcx      = "application/x-dtbncx+xml"
@@ -174,26 +175,8 @@ func writeContainerFile(tempDir string) {
 
 // Write the CSS files to the temporary directory and add them to the package
 // file
-func (e *Epub) writeCSSFiles(tempDir string) {
-	if len(e.css) > 0 {
-		cssFolderPath := filepath.Join(tempDir, contentFolderName, cssFolderName)
-		if err := os.Mkdir(cssFolderPath, dirPermissions); err != nil {
-			panic(fmt.Sprintf("Unable to create css directory: %s", err))
-		}
-
-		for cssFilename, cssFileContent := range e.css {
-			cssFilePath := filepath.Join(cssFolderPath, cssFilename)
-
-			// Add the CSS file to the EPUB temp directory
-			if err := ioutil.WriteFile(cssFilePath, []byte(cssFileContent), filePermissions); err != nil {
-				panic(fmt.Sprintf("Error writing CSS file: %s", err))
-			}
-
-			// Add the CSS filename to the package file manifest
-			relativePath := filepath.Join(cssFolderName, cssFilename)
-			e.pkg.addToManifest(cssFilename, relativePath, mediaTypeCss, "")
-		}
-	}
+func (e *Epub) writeCSSFiles(tempDir string) error {
+	return e.writeMedia(tempDir, e.css, cssFolderName)
 }
 
 // Write the EPUB file itself by zipping up everything from a temp directory
