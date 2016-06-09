@@ -144,60 +144,32 @@ func (e *Epub) AddCSS(cssFileContent string, cssFilename string) (string, error)
 	), nil
 }
 
+// AddFont adds a font file to the EPUB and returns a relative path that can be
+// used in the content of a section.
+//
+// The font source should either be a URL or a path to a local file; in either
+// case, the font file will be retrieved and stored in the EPUB.
+//
+// The font filename will be used when storing the font in the EPUB and must
+// be unique among all font files. If the same filename is used more than once,
+// ErrFilenameAlreadyUsed will be returned. The font filename is optional; if
+// no filename is provided, one will be generated.
 func (e *Epub) AddFont(fontSource string, fontFilename string) (string, error) {
-	// Generate a filename if one isn't provided
-	if fontFilename == "" {
-		fontFilename = fmt.Sprintf(
-			fontFileFormat,
-			len(e.fonts)+1,
-			strings.ToLower(filepath.Ext(fontSource)),
-		)
-	}
-
-	if _, ok := e.fonts[fontFilename]; ok {
-		return "", ErrFilenameAlreadyUsed
-	}
-
-	e.fonts[fontFilename] = fontSource
-
-	return filepath.Join(
-		"..",
-		fontFolderName,
-		fontFilename,
-	), nil
+	return addMedia(fontSource, fontFilename, fontFileFormat, fontFolderName, e.fonts)
 }
 
 // AddImage adds an image to the EPUB and returns a relative path that can be
 // used in the content of a section.
 //
 // The image source should either be a URL or a path to a local file; in either
-// case, the image will be retrieved and stored in the EPUB.
+// case, the image file will be retrieved and stored in the EPUB.
 //
 // The image filename will be used when storing the image in the EPUB and must
 // be unique among all image files. If the same filename is used more than once,
 // ErrFilenameAlreadyUsed will be returned. The image filename is optional; if
 // no filename is provided, one will be generated.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
-	// Generate a filename if one isn't provided
-	if imageFilename == "" {
-		imageFilename = fmt.Sprintf(
-			imageFileFormat,
-			len(e.images)+1,
-			strings.ToLower(filepath.Ext(imageSource)),
-		)
-	}
-
-	if _, ok := e.images[imageFilename]; ok {
-		return "", ErrFilenameAlreadyUsed
-	}
-
-	e.images[imageFilename] = imageSource
-
-	return filepath.Join(
-		"..",
-		imageFolderName,
-		imageFilename,
-	), nil
+	return addMedia(imageSource, imageFilename, imageFileFormat, imageFolderName, e.images)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a
@@ -365,4 +337,27 @@ func (e *Epub) Title() string {
 // UUID returns the UUID of the EPUB.
 func (e *Epub) UUID() string {
 	return e.uuid
+}
+
+func addMedia(mediaSource string, mediaFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
+	// Generate a filename if one isn't provided
+	if mediaFilename == "" {
+		mediaFilename = fmt.Sprintf(
+			mediaFileFormat,
+			len(mediaMap)+1,
+			strings.ToLower(filepath.Ext(mediaSource)),
+		)
+	}
+
+	if _, ok := mediaMap[mediaFilename]; ok {
+		return "", ErrFilenameAlreadyUsed
+	}
+
+	mediaMap[mediaFilename] = mediaSource
+
+	return filepath.Join(
+		"..",
+		mediaFolderName,
+		mediaFilename,
+	), nil
 }
