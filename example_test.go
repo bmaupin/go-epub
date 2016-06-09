@@ -34,7 +34,7 @@ func ExampleEpub_AddCSS() {
 
 	// Output:
 	// ../css/epub.css
-	// ../css/css0002.css
+	// ../css/cover.css
 }
 
 func ExampleEpub_AddImage() {
@@ -57,7 +57,7 @@ func ExampleEpub_AddImage() {
 
 	// Output:
 	// ../images/go-gopher.png
-	// ../images/image0002.png
+	// ../images/gophercolor16x16.png
 }
 
 func ExampleEpub_AddSection() {
