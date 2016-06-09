@@ -92,6 +92,7 @@ func NewEpub(title string) *Epub {
 		imageFilename: "",
 	}
 	e.css = make(map[string]string)
+	e.fonts = make(map[string]string)
 	e.images = make(map[string]string)
 	e.pkg = newPackage()
 	e.toc = newToc()

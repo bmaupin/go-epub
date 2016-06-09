@@ -88,6 +88,10 @@ func (e *Epub) Write(destFilePath string) error {
 
 	// Must be called after:
 	// createEpubFolders()
+	e.writeFonts(tempDir)
+
+	// Must be called after:
+	// createEpubFolders()
 	err = e.writeImages(tempDir)
 	if err != nil {
 		return err

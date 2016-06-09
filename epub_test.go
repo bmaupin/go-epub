@@ -47,6 +47,7 @@ const (
 	testEpubLang              = "fr"
 	testEpubTitle             = "My title"
 	testEpubUUID              = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
+	testFontFromFileSource    = "testdata/redacted-script-regular.ttf"
 	testImageFromFileFilename = "testfromfile.png"
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
@@ -204,6 +205,32 @@ func TestAddCSS(t *testing.T) {
 				"Expected: %s",
 			contents,
 			testCSSLinkElement)
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
+func TestAddFont(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+	testFontFromFilePath, err := e.AddFont(testFontFromFileSource, "")
+	if err != nil {
+		t.Errorf("Error adding font: %s", err)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	// The font path is relative to the XHTML folder
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testFontFromFilePath))
+	if err != nil {
+		t.Errorf("Unexpected error reading font file from EPUB: %s", err)
+	}
+
+	testFontContents, err := ioutil.ReadFile(testFontFromFileSource)
+	if err != nil {
+		t.Errorf("Unexpected error reading testdata font file: %s", err)
+	}
+	if bytes.Compare(contents, testFontContents) != 0 {
+		t.Errorf("Font file contents don't match")
 	}
 
 	cleanup(testEpubFilename, tempDir)
