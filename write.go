@@ -36,7 +36,7 @@ const (
 	dirPermissions = 0755
 	// Permissions for any new files we create
 	filePermissions   = 0644
-	imageFolderName   = "img"
+	imageFolderName   = "images"
 	mediaTypeCss      = "text/css"
 	mediaTypeEpub     = "application/epub+zip"
 	mediaTypeGif      = "image/gif"
