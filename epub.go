@@ -14,7 +14,7 @@ Basic usage:
 	// Add a section
 	section1Body := `<h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection("Section 1", section1Body, "", "")
+	e.AddSection(section1Body, "Section 1", "", "")
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")
@@ -150,10 +150,11 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // relative path to the section that can be used from another section (for
 // links).
 //
-// The title will be used for the table of contents.
-//
 // The body must be valid XHTML that will go between the <body> tags of the
 // section XHTML file. The content will not be validated.
+//
+// The title will be used for the table of contents. The title is optional; if
+// no title is provided, the section will not be added to the table of contents.
 //
 // The section filename will be used when storing the image in the EPUB and must
 // be unique among all section files. If the same filename is used more than
@@ -164,7 +165,7 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 //
 // The section will be shown in the table of contents in the same order it was
 // added to the EPUB.
-func (e *Epub) AddSection(sectionTitle string, sectionBody string, sectionFilename string, cssPath string) (string, error) {
+func (e *Epub) AddSection(sectionBody string, sectionTitle string, sectionFilename string, cssPath string) (string, error) {
 	// Generate a filename if one isn't provided
 	if sectionFilename == "" {
 		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
@@ -270,10 +271,10 @@ func (e *Epub) SetCover(imageSource string, cssSource string) {
 	coverBody := fmt.Sprintf(defaultCoverBody, imagePath)
 	// Title won't be used since the cover won't be added to the TOC
 	// First try to use the default cover filename
-	coverPath, err := e.AddSection("", coverBody, defaultCoverXhtmlFilename, cssPath)
+	coverPath, err := e.AddSection(coverBody, "", defaultCoverXhtmlFilename, cssPath)
 	// If that doesn't work, generate a filename
 	if err != nil {
-		coverPath, err = e.AddSection("", coverBody, "", cssPath)
+		coverPath, err = e.AddSection(coverBody, "", "", cssPath)
 		if err != nil {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))

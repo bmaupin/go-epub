@@ -402,7 +402,7 @@ func (e *Epub) writeSections(tempDir string) {
 		}
 
 		for i, section := range e.sections {
-			// Set the title of the cover page to the title of the EPUB
+			// Set the title of the cover page XHTML to the title of the EPUB
 			if section.filename == e.cover.xhtmlFilename {
 				section.xhtml.setTitle(e.Title())
 			}
@@ -411,10 +411,12 @@ func (e *Epub) writeSections(tempDir string) {
 			section.xhtml.write(sectionFilePath)
 
 			relativePath := filepath.Join(xhtmlFolderName, section.filename)
-			if section.filename != e.cover.xhtmlFilename {
-				// Don't add the cover page to the TOC
+			// Don't add pages without titles or the cover to the TOC
+			if section.xhtml.Title() != "" && section.filename != e.cover.xhtmlFilename {
 				e.toc.addSection(i, section.xhtml.Title(), relativePath)
-				// The cover page should have already been added to the spine first
+			}
+			// The cover page should have already been added to the spine first
+			if section.filename != e.cover.xhtmlFilename {
 				e.pkg.addToSpine(section.filename)
 			}
 			e.pkg.addToManifest(section.filename, relativePath, mediaTypeXhtml, "")

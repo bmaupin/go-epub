@@ -151,7 +151,7 @@ func TestAddCSS(t *testing.T) {
 	}
 
 	// Add a section with CSS to make sure the stylesheet link for a section is properly created
-	testSectionPath, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, testCSS1Path)
+	testSectionPath, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCSS1Path)
 	if err != nil {
 		t.Errorf("Error adding section with CSS: %s", err)
 	}
@@ -286,12 +286,12 @@ func TestAddImage(t *testing.T) {
 
 func TestAddSection(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	testSection1Path, err := e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, "")
+	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
 
-	testSection2Path, err := e.AddSection(testSectionTitle, testSectionBody, "", "")
+	testSection2Path, err := e.AddSection(testSectionBody, testSectionTitle, "", "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
@@ -521,11 +521,10 @@ func TestEpubValidity(t *testing.T) {
 	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
 	e.AddFont(testFontFromFileSource, "")
-	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, testCSSPath)
+	e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCSSPath)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
-	e.AddSection(testSectionTitle, testSectionBody, testSectionFilename, "")
-	e.AddSection(testSectionTitle, testSectionBody, "", "")
+	e.AddSection(testSectionBody, "", "", "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImageFromFileSource, testCoverCSSSource)
 	e.SetLang(testEpubLang)
