@@ -42,6 +42,8 @@ const (
   </rootfiles>
 </container>
 `
+	// This seems to be the standard based on the latest EPUB spec:
+	// http://www.idpf.org/epub/31/spec/epub-ocf.html
 	contentFolderName    = "EPUB"
 	coverImageProperties = "cover-image"
 	// Permissions for any new directories we create
@@ -84,11 +86,17 @@ func (e *Epub) Write(destFilePath string) error {
 
 	// Must be called after:
 	// createEpubFolders()
-	e.writeCSSFiles(tempDir)
+	err = e.writeCSSFiles(tempDir)
+	if err != nil {
+		return err
+	}
 
 	// Must be called after:
 	// createEpubFolders()
-	e.writeFonts(tempDir)
+	err = e.writeFonts(tempDir)
+	if err != nil {
+		return err
+	}
 
 	// Must be called after:
 	// createEpubFolders()
