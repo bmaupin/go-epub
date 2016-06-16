@@ -17,10 +17,6 @@ import (
 // EPUB file
 var ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
 
-// ErrRetrievingFile is thrown by Write if it cannot get the source file that
-// was added using AddCSS, AddFont, or AddImage
-var ErrRetrievingFile = errors.New("Error retrieving file from source")
-
 var extensionMediaTypes = map[string]string{
 	".css":  mediaTypeCSS,
 	".gif":  "image/gif",

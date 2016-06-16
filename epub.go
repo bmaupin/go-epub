@@ -28,6 +28,10 @@ package epub
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -37,6 +41,10 @@ import (
 // ErrFilenameAlreadyUsed is thrown by AddImage and AddSection if the same
 // filename is used more than once
 var ErrFilenameAlreadyUsed = errors.New("Filename already used")
+
+// ErrRetrievingFile is thrown by AddCSS, AddFont, AddImage, or SetCover if
+// there was a problem retrieving the source file that was provided
+var ErrRetrievingFile = errors.New("Error retrieving file from source")
 
 const (
 	cssFileFormat             = "css%04d%s"
@@ -218,8 +226,15 @@ func (e *Epub) SetAuthor(author string) {
 // The CSS content is the exact content that will be stored in the CSS file. It
 // will not be validated. If the CSS content isn't provided, default content
 // will be used.
-func (e *Epub) SetCover(imageSource string, cssSource string) {
+func (e *Epub) SetCover(imageSource string, cssSource string) error {
 	var err error
+
+	// Make sure the source files are valid before proceeding
+	if isFileSourceValid(imageSource) == false {
+		return ErrRetrievingFile
+	} else if isFileSourceValid(cssSource) == false {
+		return ErrRetrievingFile
+	}
 
 	// If a cover already exists
 	if e.cover.xhtmlFilename != "" {
@@ -244,12 +259,15 @@ func (e *Epub) SetCover(imageSource string, cssSource string) {
 	)
 	imagePath, err := e.AddImage(imageSource, defaultImageFilename)
 	// If that doesn't work, generate a filename
-	if err != nil {
+	if err == ErrFilenameAlreadyUsed {
 		imagePath, err = e.AddImage(imageSource, "")
-		if err != nil {
+		if err == ErrFilenameAlreadyUsed {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover image file: %s", err))
 		}
+	}
+	if err != nil && err != ErrFilenameAlreadyUsed {
+		return err
 	}
 	e.cover.imageFilename = filepath.Base(imagePath)
 
@@ -259,12 +277,15 @@ func (e *Epub) SetCover(imageSource string, cssSource string) {
 	}
 	cssPath, err := e.AddCSS(cssSource, defaultCoverCSSFilename)
 	// If that doesn't work, generate a filename
-	if err != nil {
+	if err == ErrFilenameAlreadyUsed {
 		cssPath, err = e.AddCSS(cssSource, "")
-		if err != nil {
+		if err == ErrFilenameAlreadyUsed {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
 		}
+	}
+	if err != nil && err != ErrFilenameAlreadyUsed {
+		return err
 	}
 	e.cover.cssFilename = filepath.Base(cssPath)
 
@@ -273,14 +294,19 @@ func (e *Epub) SetCover(imageSource string, cssSource string) {
 	// First try to use the default cover filename
 	coverPath, err := e.AddSection(coverBody, "", defaultCoverXhtmlFilename, cssPath)
 	// If that doesn't work, generate a filename
-	if err != nil {
+	if err == ErrFilenameAlreadyUsed {
 		coverPath, err = e.AddSection(coverBody, "", "", cssPath)
-		if err != nil {
+		if err == ErrFilenameAlreadyUsed {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
 		}
 	}
+	if err != nil && err != ErrFilenameAlreadyUsed {
+		return err
+	}
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
+
+	return nil
 }
 
 // SetLang sets the language of the EPUB.
@@ -317,6 +343,11 @@ func (e *Epub) UUID() string {
 // Add a media file to the EPUB and return the path relative to the EPUB section
 // files
 func addMedia(mediaSource string, mediaFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
+	// Make sure the source file is valid before proceeding
+	if isFileSourceValid(mediaSource) == false {
+		return "", ErrRetrievingFile
+	}
+
 	if mediaFilename == "" {
 		// If a filename isn't provided, use the filename from the source
 		mediaFilename = filepath.Base(mediaSource)
@@ -341,4 +372,36 @@ func addMedia(mediaSource string, mediaFilename string, mediaFileFormat string, 
 		mediaFolderName,
 		mediaFilename,
 	), nil
+}
+
+func isFileSourceValid(source string) bool {
+	u, err := url.Parse(source)
+	if err != nil {
+		return false
+	}
+
+	var r io.ReadCloser
+	var resp *http.Response
+	// If it's a URL
+	if u.Scheme == "http" || u.Scheme == "https" {
+		resp, err = http.Get(source)
+		if err != nil {
+			return false
+		}
+		r = resp.Body
+
+		// Otherwise, assume it's a local file
+	} else {
+		r, err = os.Open(source)
+	}
+	if err != nil {
+		return false
+	}
+	defer func() {
+		if err := r.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	return true
 }

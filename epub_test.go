@@ -494,7 +494,10 @@ func TestEpubUUID(t *testing.T) {
 
 func TestSetCover(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.SetCover(testImageFromFileSource, testCoverCSSSource)
+	err := e.SetCover(testImageFromFileSource, testCoverCSSSource)
+	if err != nil {
+		t.Errorf("Error setting cover: %s", err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
