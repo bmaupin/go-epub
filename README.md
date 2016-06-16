@@ -4,7 +4,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/bmaupin/go-epub/master/LICENSE)
 
-Work in progress.
+:warning: Work in progress. API not yet finalized.
 
 **Features:**
 
