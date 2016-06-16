@@ -113,12 +113,15 @@ func ExampleEpub_AddSection() {
 func ExampleEpub_SetCover() {
 	e := epub.NewEpub("My title")
 
-	// Set the cover. The CSS content is optional
-	e.SetCover("testdata/gophercolor16x16.png", "")
+	// Set the cover. The CSS file is optional
+	err := e.SetCover("testdata/gophercolor16x16.png", "")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Update the cover using custom CSS
-	coverCSSContent := `h1 {
-  text-align: center;
-}`
-	e.SetCover("testdata/gophercolor16x16.png", coverCSSContent)
+	err = e.SetCover("testdata/gophercolor16x16.png", "cover.css")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
