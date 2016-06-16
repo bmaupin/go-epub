@@ -316,6 +316,9 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			// If it's a URL
 			if u.Scheme == "http" || u.Scheme == "https" {
 				resp, err = http.Get(mediaSource)
+				if err != nil {
+					return ErrRetrievingFile
+				}
 				r = resp.Body
 
 				// Otherwise, assume it's a local file
