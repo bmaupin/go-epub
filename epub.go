@@ -130,8 +130,8 @@ func NewEpub(title string) *Epub {
 // and must be unique among all CSS files. If the same filename is used more
 // than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
-func (e *Epub) AddCSS(cssSource string, internalFilename string) (string, error) {
-	return addMedia(cssSource, internalFilename, cssFileFormat, CSSFolderName, e.css)
+func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
+	return addMedia(source, internalFilename, cssFileFormat, CSSFolderName, e.css)
 }
 
 // AddFont adds a font file to the EPUB and returns a relative path to the font
@@ -145,8 +145,8 @@ func (e *Epub) AddCSS(cssSource string, internalFilename string) (string, error)
 // and must be unique among all font files. If the same filename is used more
 // than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
-func (e *Epub) AddFont(fontSource string, internalFilename string) (string, error) {
-	return addMedia(fontSource, internalFilename, fontFileFormat, FontFolderName, e.fonts)
+func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
+	return addMedia(source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
 }
 
 // AddImage adds an image to the EPUB and returns a relative path to the image
@@ -160,8 +160,8 @@ func (e *Epub) AddFont(fontSource string, internalFilename string) (string, erro
 // and must be unique among all image files. If the same filename is used more
 // than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
-func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
-	return addMedia(imageSource, imageFilename, imageFileFormat, ImageFolderName, e.images)
+func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
+	return addMedia(source, imageFilename, imageFileFormat, ImageFolderName, e.images)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a
@@ -171,44 +171,44 @@ func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error
 // The body must be valid XHTML that will go between the <body> tags of the
 // section XHTML file. The content will not be validated.
 //
-// The title will be used for the table of contents. The title is optional; if
-// no title is provided, the section will not be added to the table of contents.
+// The title will be used for the table of contents. The section will be shown
+// in the table of contents in the same order it was added to the EPUB. The
+// title is optional; if no title is provided, the section will not be added to
+// the table of contents.
 //
-// The section filename will be used when storing the image in the EPUB and must
-// be unique among all section files. If the same filename is used more than
-// once, ErrFilenameAlreadyUsed will be returned. The section filename is
+// The internal filename will be used when storing the section file in the EPUB
+// and must be unique among all section files. If the same filename is used more
+// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 //
-// The path to the CSS file to be used for the section is optional.
-//
-// The section will be shown in the table of contents in the same order it was
-// added to the EPUB.
-func (e *Epub) AddSection(sectionBody string, sectionTitle string, sectionFilename string, cssPath string) (string, error) {
+// The internal path to an already-added CSS file (as returned by AddCSS) to be
+// used for the section is optional.
+func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
 	// Generate a filename if one isn't provided
-	if sectionFilename == "" {
-		sectionFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
+	if internalFilename == "" {
+		internalFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
 	}
 
 	for _, section := range e.sections {
-		if section.filename == sectionFilename {
+		if section.filename == internalFilename {
 			return "", ErrFilenameAlreadyUsed
 		}
 	}
 
-	x := newXhtml(sectionBody)
+	x := newXhtml(body)
 	x.setTitle(sectionTitle)
 
-	if cssPath != "" {
-		x.setCSS(cssPath)
+	if internalCSSPath != "" {
+		x.setCSS(internalCSSPath)
 	}
 
 	s := epubSection{
-		filename: sectionFilename,
+		filename: internalFilename,
 		xhtml:    x,
 	}
 	e.sections = append(e.sections, s)
 
-	return sectionFilename, nil
+	return internalFilename, nil
 }
 
 // Author returns the author of the EPUB.
@@ -352,35 +352,35 @@ func (e *Epub) UUID() string {
 
 // Add a media file to the EPUB and return the path relative to the EPUB section
 // files
-func addMedia(mediaSource string, mediaFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
+func addMedia(source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
 	// Make sure the source file is valid before proceeding
-	if isFileSourceValid(mediaSource) == false {
+	if isFileSourceValid(source) == false {
 		return "", ErrRetrievingFile
 	}
 
-	if mediaFilename == "" {
+	if internalFilename == "" {
 		// If a filename isn't provided, use the filename from the source
-		mediaFilename = filepath.Base(mediaSource)
+		internalFilename = filepath.Base(source)
 		// If that's already used, try to generate a unique filename
-		if _, ok := mediaMap[mediaFilename]; ok {
-			mediaFilename = fmt.Sprintf(
+		if _, ok := mediaMap[internalFilename]; ok {
+			internalFilename = fmt.Sprintf(
 				mediaFileFormat,
 				len(mediaMap)+1,
-				strings.ToLower(filepath.Ext(mediaSource)),
+				strings.ToLower(filepath.Ext(source)),
 			)
 		}
 	}
 
-	if _, ok := mediaMap[mediaFilename]; ok {
+	if _, ok := mediaMap[internalFilename]; ok {
 		return "", ErrFilenameAlreadyUsed
 	}
 
-	mediaMap[mediaFilename] = mediaSource
+	mediaMap[internalFilename] = source
 
 	return filepath.Join(
 		"..",
 		mediaFolderName,
-		mediaFilename,
+		internalFilename,
 	), nil
 }
 
