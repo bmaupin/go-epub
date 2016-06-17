@@ -46,6 +46,13 @@ var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 // there was a problem retrieving the source file that was provided
 var ErrRetrievingFile = errors.New("Error retrieving file from source")
 
+// Folder names used for resources inside the EPUB
+const (
+	CSSFolderName   = "css"
+	FontFolderName  = "fonts"
+	ImageFolderName = "images"
+)
+
 const (
 	cssFileFormat             = "css%04d%s"
 	defaultCoverBody          = `<img src="%s" alt="Cover Image" />`
@@ -113,45 +120,48 @@ func NewEpub(title string) *Epub {
 }
 
 // AddCSS adds a CSS file to the EPUB and returns a relative path to the CSS
-// file that can be used in EPUB sections.
+// file that can be used in EPUB sections in the format:
+// ../CSSFolderName/internalFilename
 //
 // The CSS source should either be a URL or a path to a local file; in either
 // case, the CSS file will be retrieved and stored in the EPUB.
 //
-// The CSS filename will be used when storing the CSS file in the EPUB and must
-// be unique among all CSS files. If the same filename is used more than
-// once, ErrFilenameAlreadyUsed will be returned. The CSS filename is
+// The internal filename will be used when storing the CSS file in the EPUB
+// and must be unique among all CSS files. If the same filename is used more
+// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
-func (e *Epub) AddCSS(cssSource string, cssFilename string) (string, error) {
-	return addMedia(cssSource, cssFilename, cssFileFormat, cssFolderName, e.css)
+func (e *Epub) AddCSS(cssSource string, internalFilename string) (string, error) {
+	return addMedia(cssSource, internalFilename, cssFileFormat, CSSFolderName, e.css)
 }
 
 // AddFont adds a font file to the EPUB and returns a relative path to the font
-// file that can be used in EPUB sections.
+// file that can be used in EPUB sections in the format:
+// ../FontFolderName/internalFilename
 //
 // The font source should either be a URL or a path to a local file; in either
 // case, the font file will be retrieved and stored in the EPUB.
 //
-// The font filename will be used when storing the font in the EPUB and must
-// be unique among all font files. If the same filename is used more than once,
-// ErrFilenameAlreadyUsed will be returned. The font filename is optional; if
-// no filename is provided, one will be generated.
-func (e *Epub) AddFont(fontSource string, fontFilename string) (string, error) {
-	return addMedia(fontSource, fontFilename, fontFileFormat, fontFolderName, e.fonts)
+// The internal filename will be used when storing the font file in the EPUB
+// and must be unique among all font files. If the same filename is used more
+// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
+// optional; if no filename is provided, one will be generated.
+func (e *Epub) AddFont(fontSource string, internalFilename string) (string, error) {
+	return addMedia(fontSource, internalFilename, fontFileFormat, FontFolderName, e.fonts)
 }
 
 // AddImage adds an image to the EPUB and returns a relative path to the image
-// file that can be used in EPUB sections.
+// file that can be used in EPUB sections in the format:
+// ../ImageFolderName/internalFilename
 //
 // The image source should either be a URL or a path to a local file; in either
 // case, the image file will be retrieved and stored in the EPUB.
 //
-// The image filename will be used when storing the image in the EPUB and must
-// be unique among all image files. If the same filename is used more than once,
-// ErrFilenameAlreadyUsed will be returned. The image filename is optional; if
-// no filename is provided, one will be generated.
+// The internal filename will be used when storing the image file in the EPUB
+// and must be unique among all image files. If the same filename is used more
+// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
+// optional; if no filename is provided, one will be generated.
 func (e *Epub) AddImage(imageSource string, imageFilename string) (string, error) {
-	return addMedia(imageSource, imageFilename, imageFileFormat, imageFolderName, e.images)
+	return addMedia(imageSource, imageFilename, imageFileFormat, ImageFolderName, e.images)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a

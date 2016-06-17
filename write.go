@@ -29,7 +29,6 @@ var extensionMediaTypes = map[string]string{
 }
 
 const (
-	cssFolderName         = "css"
 	containerFilename     = "container.xml"
 	containerFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -46,8 +45,6 @@ const (
 	dirPermissions = 0755
 	// Permissions for any new files we create
 	filePermissions   = 0644
-	fontFolderName    = "fonts"
-	imageFolderName   = "images"
 	mediaTypeCSS      = "text/css"
 	mediaTypeEpub     = "application/epub+zip"
 	mediaTypeJpeg     = "image/jpeg"
@@ -184,7 +181,7 @@ func writeContainerFile(tempDir string) {
 // Write the CSS files to the temporary directory and add them to the package
 // file
 func (e *Epub) writeCSSFiles(tempDir string) error {
-	return e.writeMedia(tempDir, e.css, cssFolderName)
+	return e.writeMedia(tempDir, e.css, CSSFolderName)
 }
 
 // Write the EPUB file itself by zipping up everything from a temp directory
@@ -284,12 +281,12 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 
 // Get fonts from their source and save them in the temporary directory
 func (e *Epub) writeFonts(tempDir string) error {
-	return e.writeMedia(tempDir, e.fonts, fontFolderName)
+	return e.writeMedia(tempDir, e.fonts, FontFolderName)
 }
 
 // Get images from their source and save them in the temporary directory
 func (e *Epub) writeImages(tempDir string) error {
-	return e.writeMedia(tempDir, e.images, imageFolderName)
+	return e.writeMedia(tempDir, e.images, ImageFolderName)
 }
 
 // Get images from their source and save them in the temporary directory

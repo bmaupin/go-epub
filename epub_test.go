@@ -506,7 +506,7 @@ func TestSetCover(t *testing.T) {
 		t.Errorf("Unexpected error reading cover XHTML file: %s", err)
 	}
 
-	testCoverContents := fmt.Sprintf(testCoverContentTemplate, testEpubTitle, imageFolderName)
+	testCoverContents := fmt.Sprintf(testCoverContentTemplate, testEpubTitle, ImageFolderName)
 	if trimAllSpace(string(contents)) != trimAllSpace(testCoverContents) {
 		t.Errorf(
 			"Cover file contents don't match\n"+
