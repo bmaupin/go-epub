@@ -26,16 +26,16 @@ const (
   </rootfiles>
 </container>`
 	testCoverCSSFilename     = "cover.css"
-	testCoverCSSSource       = "cover.css"
+	testCoverCSSSource       = "testdata/cover.css"
 	testCoverContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>%s</title>
-    <link rel="stylesheet" type="text/css" href="../css/cover.css"></link>
+    <link rel="stylesheet" type="text/css" href="%s"></link>
   </head>
   <body>
-    <img src="../%s/cover.png" alt="Cover Image" />
+    <img src="%s" alt="Cover Image" />
   </body>
 </html>`
 	testCSSLinkTemplate       = `<link rel="stylesheet" type="text/css" href="%s"></link>`
@@ -494,10 +494,9 @@ func TestEpubUUID(t *testing.T) {
 
 func TestSetCover(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	err := e.SetCover(testImageFromFileSource, testCoverCSSSource)
-	if err != nil {
-		t.Errorf("Error setting cover: %s", err)
-	}
+	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	e.SetCover(testImagePath, testCSSPath)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -506,7 +505,7 @@ func TestSetCover(t *testing.T) {
 		t.Errorf("Unexpected error reading cover XHTML file: %s", err)
 	}
 
-	testCoverContents := fmt.Sprintf(testCoverContentTemplate, testEpubTitle, ImageFolderName)
+	testCoverContents := fmt.Sprintf(testCoverContentTemplate, testEpubTitle, testCSSPath, testImagePath)
 	if trimAllSpace(string(contents)) != trimAllSpace(testCoverContents) {
 		t.Errorf(
 			"Cover file contents don't match\n"+
@@ -525,11 +524,12 @@ func TestEpubValidity(t *testing.T) {
 	e.AddCSS(testCoverCSSSource, "")
 	e.AddFont(testFontFromFileSource, "")
 	e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCSSPath)
+	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
 	e.AddSection(testSectionBody, "", "", "")
 	e.SetAuthor(testEpubAuthor)
-	e.SetCover(testImageFromFileSource, testCoverCSSSource)
+	e.SetCover(testImagePath, "")
 	e.SetLang(testEpubLang)
 	e.SetTitle(testEpubAuthor)
 	e.SetUUID(testEpubUUID)

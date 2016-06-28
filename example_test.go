@@ -11,13 +11,13 @@ func ExampleEpub_AddCSS() {
 	e := epub.NewEpub("My title")
 
 	// Add CSS
-	css1Path, err := e.AddCSS("cover.css", "epub.css")
+	css1Path, err := e.AddCSS("testdata/cover.css", "epub.css")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// The filename is optional
-	css2Path, err := e.AddCSS("cover.css", "")
+	css2Path, err := e.AddCSS("testdata/cover.css", "")
 	if err != nil {
 		log.Fatal(err)
 	}

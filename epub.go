@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -38,12 +39,12 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-// ErrFilenameAlreadyUsed is thrown by AddImage and AddSection if the same
-// filename is used more than once
+// ErrFilenameAlreadyUsed is thrown by AddCSS, AddFont, AddImage, or AddSection
+// if the same filename is used more than once
 var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 
-// ErrRetrievingFile is thrown by AddCSS, AddFont, AddImage, or SetCover if
-// there was a problem retrieving the source file that was provided
+// ErrRetrievingFile is thrown by AddCSS, AddFont, or AddImage if there was a
+// problem retrieving the source file that was provided
 var ErrRetrievingFile = errors.New("Error retrieving file from source")
 
 // Folder names used for resources inside the EPUB
@@ -54,8 +55,21 @@ const (
 )
 
 const (
-	cssFileFormat             = "css%04d%s"
-	defaultCoverBody          = `<img src="%s" alt="Cover Image" />`
+	cssFileFormat          = "css%04d%s"
+	defaultCoverBody       = `<img src="%s" alt="Cover Image" />`
+	defaultCoverCSSContent = `body {
+  background-color: #FFFFFF;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  text-align: center;
+}
+img {
+  max-height: 100%;
+  max-width: 100%;
+}
+`
 	defaultCoverCSSFilename   = "cover.css"
 	defaultCoverCSSSource     = "cover.css"
 	defaultCoverImgFormat     = "cover%s"
@@ -90,6 +104,7 @@ type Epub struct {
 
 type epubCover struct {
 	cssFilename   string
+	cssTempFile   string
 	imageFilename string
 	xhtmlFilename string
 }
@@ -103,8 +118,10 @@ type epubSection struct {
 func NewEpub(title string) *Epub {
 	e := &Epub{}
 	e.cover = &epubCover{
-		xhtmlFilename: "",
+		cssFilename:   "",
+		cssTempFile:   "",
 		imageFilename: "",
+		xhtmlFilename: "",
 	}
 	e.css = make(map[string]string)
 	e.fonts = make(map[string]string)
@@ -230,22 +247,13 @@ func (e *Epub) SetAuthor(author string) {
 // SetCover sets the cover page for the EPUB using the provided image source and
 // optional CSS.
 //
-// The image source should either be a URL or a path to a local file; in either
-// case, the image will be retrieved and stored in the EPUB.
+// The internal path to an already-added image file (as returned by AddImage) is
+// required.
 //
-// The CSS content is the exact content that will be stored in the CSS file. It
-// will not be validated. If the CSS content isn't provided, default content
+// The internal path to an already-added CSS file (as returned by AddCSS) to be
+// used for the cover is optional. If the CSS path isn't provided, default CSS
 // will be used.
-func (e *Epub) SetCover(imageSource string, cssSource string) error {
-	var err error
-
-	// Make sure the source files are valid before proceeding
-	if isFileSourceValid(imageSource) == false {
-		return ErrRetrievingFile
-	} else if isFileSourceValid(cssSource) == false {
-		return ErrRetrievingFile
-	}
-
+func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	// If a cover already exists
 	if e.cover.xhtmlFilename != "" {
 		// Remove the xhtml file
@@ -261,62 +269,67 @@ func (e *Epub) SetCover(imageSource string, cssSource string) error {
 
 		// Remove the CSS
 		delete(e.css, e.cover.cssFilename)
-	}
 
-	defaultImageFilename := fmt.Sprintf(
-		defaultCoverImgFormat,
-		strings.ToLower(filepath.Ext(imageSource)),
-	)
-	imagePath, err := e.AddImage(imageSource, defaultImageFilename)
-	// If that doesn't work, generate a filename
-	if err == ErrFilenameAlreadyUsed {
-		imagePath, err = e.AddImage(imageSource, "")
-		if err == ErrFilenameAlreadyUsed {
-			// This shouldn't cause an error since we're not specifying a filename
-			panic(fmt.Sprintf("Error adding default cover image file: %s", err))
+		if e.cover.cssTempFile != "" {
+			os.Remove(e.cover.cssTempFile)
 		}
 	}
-	if err != nil && err != ErrFilenameAlreadyUsed {
-		return err
-	}
-	e.cover.imageFilename = filepath.Base(imagePath)
+
+	e.cover.imageFilename = filepath.Base(internalImagePath)
 
 	// Use default cover stylesheet if one isn't provided
-	if cssSource == "" {
-		cssSource = defaultCoverCSSSource
-	}
-	cssPath, err := e.AddCSS(cssSource, defaultCoverCSSFilename)
-	// If that doesn't work, generate a filename
-	if err == ErrFilenameAlreadyUsed {
-		cssPath, err = e.AddCSS(cssSource, "")
+	if internalCSSPath == "" {
+		// Create a temporary file to hold the default cover CSS
+		tempFile, err := ioutil.TempFile("", tempDirPrefix)
+		if err != nil {
+			panic(fmt.Sprintf("Error creating temp file: %s", err))
+		}
+		defer func() {
+			if err := tempFile.Close(); err != nil {
+				panic(fmt.Sprintf("Error closing temp file: %s", err))
+			}
+		}()
+		e.cover.cssTempFile = tempFile.Name()
+
+		// Write the default cover CSS to the temp file
+		if _, err = tempFile.WriteString(defaultCoverCSSContent); err != nil {
+			panic(fmt.Sprintf("Error writing CSS file: %s", err))
+		}
+
+		internalCSSPath, err = e.AddCSS(e.cover.cssTempFile, defaultCoverCSSFilename)
+		// If that doesn't work, generate a filename
 		if err == ErrFilenameAlreadyUsed {
-			// This shouldn't cause an error since we're not specifying a filename
-			panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
+			coverCSSFilename := fmt.Sprintf(
+				cssFileFormat,
+				len(e.css)+1,
+				".css",
+			)
+
+			internalCSSPath, err = e.AddCSS(e.cover.cssTempFile, coverCSSFilename)
+			if err == ErrFilenameAlreadyUsed {
+				// This shouldn't cause an error
+				panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
+			}
+		}
+		if err != nil && err != ErrFilenameAlreadyUsed {
+			panic(err)
 		}
 	}
-	if err != nil && err != ErrFilenameAlreadyUsed {
-		return err
-	}
-	e.cover.cssFilename = filepath.Base(cssPath)
+	e.cover.cssFilename = filepath.Base(internalCSSPath)
 
-	coverBody := fmt.Sprintf(defaultCoverBody, imagePath)
+	coverBody := fmt.Sprintf(defaultCoverBody, internalImagePath)
 	// Title won't be used since the cover won't be added to the TOC
 	// First try to use the default cover filename
-	coverPath, err := e.AddSection(coverBody, "", defaultCoverXhtmlFilename, cssPath)
+	coverPath, err := e.AddSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
 	// If that doesn't work, generate a filename
 	if err == ErrFilenameAlreadyUsed {
-		coverPath, err = e.AddSection(coverBody, "", "", cssPath)
+		coverPath, err = e.AddSection(coverBody, "", "", internalCSSPath)
 		if err == ErrFilenameAlreadyUsed {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
 		}
 	}
-	if err != nil && err != ErrFilenameAlreadyUsed {
-		return err
-	}
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
-
-	return nil
 }
 
 // SetLang sets the language of the EPUB.

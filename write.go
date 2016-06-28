@@ -181,7 +181,15 @@ func writeContainerFile(tempDir string) {
 // Write the CSS files to the temporary directory and add them to the package
 // file
 func (e *Epub) writeCSSFiles(tempDir string) error {
-	return e.writeMedia(tempDir, e.css, CSSFolderName)
+	err := e.writeMedia(tempDir, e.css, CSSFolderName)
+	if err != nil {
+		return err
+	}
+
+	// Clean up the cover temp file if one was created
+	os.Remove(e.cover.cssTempFile)
+
+	return nil
 }
 
 // Write the EPUB file itself by zipping up everything from a temp directory
