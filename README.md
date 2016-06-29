@@ -4,11 +4,11 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/bmaupin/go-epub/master/LICENSE)
 
-:warning: Work in progress. API not yet finalized.
-
 **Features:**
 
 - [Documented API](https://godoc.org/github.com/bmaupin/go-epub)
 - Creates valid EPUB 3.0 files
 - Adds an additional EPUB 2.0 table of contents ([as seen here](https://github.com/bmaupin/epub-samples)) for maximum compatibility
 - Includes support for adding CSS, images, and fonts
+
+For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
