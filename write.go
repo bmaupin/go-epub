@@ -329,11 +329,6 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			if err != nil {
 				return ErrRetrievingFile
 			}
-			defer func() {
-				if err := r.Close(); err != nil {
-					panic(err)
-				}
-			}()
 
 			mediaFilePath := filepath.Join(
 				mediaFolderPath,
@@ -345,13 +340,20 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			if err != nil {
 				panic(fmt.Sprintf("Unable to create file: %s", err))
 			}
-			defer func() {
+
+			_, err = io.Copy(w, r)
+			// Close the reader and writer manually. If we use a defer instead,
+			// they won't close until the function exits.
+			func() {
+				if err := r.Close(); err != nil {
+					panic(err)
+				}
+			}()
+			func() {
 				if err := w.Close(); err != nil {
 					panic(err)
 				}
 			}()
-
-			_, err = io.Copy(w, r)
 			if err != nil {
 				// There shouldn't be any problem with the writer, but the reader
 				// might have an issue
