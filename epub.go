@@ -88,7 +88,8 @@ type Epub struct {
 	// The key is the css filename, the value is the css source
 	css map[string]string
 	// The key is the font filename, the value is the font source
-	fonts map[string]string
+	fonts      map[string]string
+	identifier string
 	// The key is the image filename, the value is the image source
 	images map[string]string
 	// Language
@@ -98,8 +99,7 @@ type Epub struct {
 	sections []epubSection
 	title    string
 	// Table of contents
-	toc  *toc
-	uuid string
+	toc *toc
 }
 
 type epubCover struct {
@@ -129,9 +129,9 @@ func NewEpub(title string) *Epub {
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
+	e.SetIdentifier(urnUUIDPrefix + uuid.NewV4().String())
 	e.SetLang(defaultEpubLang)
 	e.SetTitle(title)
-	e.SetUUID(uuid.NewV4().String())
 
 	return e
 }
@@ -233,6 +233,11 @@ func (e *Epub) Author() string {
 	return e.author
 }
 
+// Identifier returns the unique identifier of the EPUB.
+func (e *Epub) Identifier() string {
+	return e.identifier
+}
+
 // Lang returns the language of the EPUB.
 func (e *Epub) Lang() string {
 	return e.lang
@@ -332,6 +337,15 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
 }
 
+// SetIdentifier sets the unique identifier of the EPUB, such as a UUID, DOI,
+// ISBN or ISSN. If no identifier is set, a UUID will be automatically
+// generated.
+func (e *Epub) SetIdentifier(identifier string) {
+	e.identifier = identifier
+	e.pkg.setIdentifier(identifier)
+	e.toc.setIdentifier(identifier)
+}
+
 // SetLang sets the language of the EPUB.
 func (e *Epub) SetLang(lang string) {
 	e.lang = lang
@@ -345,22 +359,9 @@ func (e *Epub) SetTitle(title string) {
 	e.toc.setTitle(title)
 }
 
-// SetUUID sets the UUID of the EPUB. A UUID will be automatically be generated
-// for you when the NewEpub method is run.
-func (e *Epub) SetUUID(uuid string) {
-	e.uuid = uuid
-	e.pkg.setUUID(urnUUIDPrefix + uuid)
-	e.toc.setUUID(urnUUIDPrefix + uuid)
-}
-
 // Title returns the title of the EPUB.
 func (e *Epub) Title() string {
 	return e.title
-}
-
-// UUID returns the UUID of the EPUB.
-func (e *Epub) UUID() string {
-	return e.uuid
 }
 
 // Add a media file to the EPUB and return the path relative to the EPUB section

@@ -44,10 +44,11 @@ const (
 	testEpubcheckJarfile      = "epubcheck.jar"
 	testEpubcheckPrefix       = "epubcheck"
 	testEpubFilename          = "My EPUB.epub"
+	testEpubIdentifier        = "urn:uuid:51b7c9ea-b2a2-49c6-9d8c-522790786d15"
 	testEpubLang              = "fr"
 	testEpubTitle             = "My title"
-	testEpubUUID              = "51b7c9ea-b2a2-49c6-9d8c-522790786d15"
 	testFontFromFileSource    = "testdata/redacted-script-regular.ttf"
+	testIdentifierTemplate    = `<dc:identifier id="pub-id">%s</dc:identifier>`
 	testImageFromFileFilename = "testfromfile.png"
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
@@ -56,7 +57,7 @@ const (
 	testPkgContentTemplate    = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>
+    <dc:identifier id="pub-id">%s</dc:identifier>
     <dc:title>%s</dc:title>
     <dc:language>en</dc:language>
     <meta property="dcterms:modified">%s</meta>
@@ -83,7 +84,6 @@ const (
 	testSectionTitle    = "Section 1"
 	testTempDirPrefix   = "go-epub"
 	testTitleTemplate   = `<dc:title>%s</dc:title>`
-	testUUIDTemplate    = `<dc:identifier id="pub-id">urn:uuid:%s</dc:identifier>`
 )
 
 func TestEpubWrite(t *testing.T) {
@@ -125,7 +125,7 @@ func TestEpubWrite(t *testing.T) {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
 
-	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.UUID(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
+	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.Identifier(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
 	if trimAllSpace(string(contents)) != trimAllSpace(testPkgContents) {
 		t.Errorf(
 			"Package file contents don't match\n"+
@@ -459,17 +459,17 @@ func TestEpubTitle(t *testing.T) {
 	cleanup(testEpubFilename, tempDir)
 }
 
-func TestEpubUUID(t *testing.T) {
+func TestEpubIdentifier(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	e.SetUUID(testEpubUUID)
+	e.SetIdentifier(testEpubIdentifier)
 
-	if e.UUID() != testEpubUUID {
+	if e.Identifier() != testEpubIdentifier {
 		t.Errorf(
-			"UUID doesn't match\n"+
+			"Identifier doesn't match\n"+
 				"Got: %s\n"+
 				"Expected: %s",
-			e.UUID(),
-			testEpubUUID)
+			e.Identifier(),
+			testEpubIdentifier)
 	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
@@ -479,14 +479,14 @@ func TestEpubUUID(t *testing.T) {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
 
-	testUUIDElement := fmt.Sprintf(testUUIDTemplate, testEpubUUID)
-	if !strings.Contains(string(contents), testUUIDElement) {
+	testIdentifierElement := fmt.Sprintf(testIdentifierTemplate, testEpubIdentifier)
+	if !strings.Contains(string(contents), testIdentifierElement) {
 		t.Errorf(
-			"UUID doesn't match\n"+
+			"Identifier doesn't match\n"+
 				"Got: %s"+
 				"Expected: %s",
 			contents,
-			testUUIDElement)
+			testIdentifierElement)
 	}
 
 	cleanup(testEpubFilename, tempDir)
@@ -530,9 +530,9 @@ func TestEpubValidity(t *testing.T) {
 	e.AddSection(testSectionBody, "", "", "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
+	e.SetIdentifier(testEpubIdentifier)
 	e.SetLang(testEpubLang)
 	e.SetTitle(testEpubAuthor)
-	e.SetUUID(testEpubUUID)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 

@@ -63,7 +63,7 @@ type pkgCreator struct {
 	Data    string   `xml:",chardata"`
 }
 
-// <dc:identifier>, where the UUID is stored
+// <dc:identifier>, where the unique identifier is stored
 // Ex: <dc:identifier id="pub-id">urn:uuid:fe93046f-af57-475a-a0cb-a0d4bc99ba6d</dc:identifier>
 type pkgIdentifier struct {
 	ID   string `xml:"id,attr"`
@@ -178,6 +178,10 @@ func (p *pkg) setAuthor(author string) {
 	p.xml.Metadata.Meta = updateMeta(p.xml.Metadata.Meta, p.authorMeta)
 }
 
+func (p *pkg) setIdentifier(identifier string) {
+	p.xml.Metadata.Identifier.Data = identifier
+}
+
 func (p *pkg) setLang(lang string) {
 	p.xml.Metadata.Language = lang
 }
@@ -193,10 +197,6 @@ func (p *pkg) setModified(timestamp string) {
 
 func (p *pkg) setTitle(title string) {
 	p.xml.Metadata.Title = title
-}
-
-func (p *pkg) setUUID(uuid string) {
-	p.xml.Metadata.Identifier.Data = uuid
 }
 
 // Update the <meta> element

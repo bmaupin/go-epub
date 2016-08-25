@@ -166,12 +166,12 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 	t.ncxXML.NavMap = append(t.ncxXML.NavMap, *np)
 }
 
-func (t *toc) setTitle(title string) {
-	t.title = title
+func (t *toc) setIdentifier(identifier string) {
+	t.ncxXML.Meta.Content = identifier
 }
 
-func (t *toc) setUUID(uuid string) {
-	t.ncxXML.Meta.Content = uuid
+func (t *toc) setTitle(title string) {
+	t.title = title
 }
 
 // Write the TOC files
