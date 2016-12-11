@@ -24,7 +24,7 @@ const (
   </metadata>
   <manifest>
   </manifest>
-  <spine toc="ncx">
+  <spine toc="ncx" page-progression-direction="ltr">
   </spine>
 </package>
 `
@@ -115,6 +115,7 @@ type pkgMetadata struct {
 type pkgSpine struct {
 	Items []pkgItemref `xml:"itemref"`
 	Toc   string       `xml:"toc,attr"`
+	Ppd   string       `xml:"page-progression-direction,attr"`
 }
 
 // Constructor for pkg
@@ -184,6 +185,10 @@ func (p *pkg) setIdentifier(identifier string) {
 
 func (p *pkg) setLang(lang string) {
 	p.xml.Metadata.Language = lang
+}
+
+func (p *pkg) setPpd(direction string) {
+	p.xml.Spine.Ppd = direction
 }
 
 func (p *pkg) setModified(timestamp string) {

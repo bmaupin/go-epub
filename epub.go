@@ -75,6 +75,7 @@ img {
 	defaultCoverImgFormat     = "cover%s"
 	defaultCoverXhtmlFilename = "cover.xhtml"
 	defaultEpubLang           = "en"
+	defaultPpd                = "ltr"
 	fontFileFormat            = "font%04d%s"
 	imageFileFormat           = "image%04d%s"
 	sectionFileFormat         = "section%04d.xhtml"
@@ -94,6 +95,8 @@ type Epub struct {
 	images map[string]string
 	// Language
 	lang string
+	// Page progression direction
+	ppd string
 	// The package file (package.opf)
 	pkg      *pkg
 	sections []epubSection
@@ -131,6 +134,7 @@ func NewEpub(title string) *Epub {
 	// Set minimal required attributes
 	e.SetIdentifier(urnUUIDPrefix + uuid.NewV4().String())
 	e.SetLang(defaultEpubLang)
+	e.SetPpd(defaultPpd)
 	e.SetTitle(title)
 
 	return e
@@ -350,6 +354,11 @@ func (e *Epub) SetIdentifier(identifier string) {
 func (e *Epub) SetLang(lang string) {
 	e.lang = lang
 	e.pkg.setLang(lang)
+}
+
+func (e *Epub) SetPpd(direction string) {
+	e.ppd = direction
+	e.pkg.setPpd(direction)
 }
 
 // SetTitle sets the title of the EPUB.
