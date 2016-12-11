@@ -356,6 +356,7 @@ func (e *Epub) SetLang(lang string) {
 	e.pkg.setLang(lang)
 }
 
+// SetPpd sets the page progression direction of the EPUB.
 func (e *Epub) SetPpd(direction string) {
 	e.ppd = direction
 	e.pkg.setPpd(direction)
