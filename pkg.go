@@ -24,7 +24,7 @@ const (
   </metadata>
   <manifest>
   </manifest>
-  <spine toc="ncx" page-progression-direction="ltr">
+  <spine toc="ncx">
   </spine>
 </package>
 `
@@ -115,7 +115,7 @@ type pkgMetadata struct {
 type pkgSpine struct {
 	Items []pkgItemref `xml:"itemref"`
 	Toc   string       `xml:"toc,attr"`
-	Ppd   string       `xml:"page-progression-direction,attr"`
+	Ppd   string       `xml:"page-progression-direction,attr,omitempty"`
 }
 
 // Constructor for pkg
