@@ -46,6 +46,7 @@ const (
 	testEpubFilename          = "My EPUB.epub"
 	testEpubIdentifier        = "urn:uuid:51b7c9ea-b2a2-49c6-9d8c-522790786d15"
 	testEpubLang              = "fr"
+	testEpubPpd               = "rtl"
 	testEpubTitle             = "My title"
 	testFontFromFileSource    = "testdata/redacted-script-regular.ttf"
 	testIdentifierTemplate    = `<dc:identifier id="pub-id">%s</dc:identifier>`
@@ -53,6 +54,7 @@ const (
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
+	testPpdTemplate           = `page-progression-direction="%s"`
 	testMimetypeContents      = "application/epub+zip"
 	testPkgContentTemplate    = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
@@ -391,6 +393,39 @@ func TestEpubLang(t *testing.T) {
 				"Expected: %s",
 			contents,
 			testLangElement)
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
+func TestEpubPpd(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+	e.SetPpd(testEpubPpd)
+
+	if e.Ppd() != testEpubPpd {
+		t.Errorf(
+			"Ppd doesn't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			e.Ppd(),
+			testEpubPpd)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testPpdElement := fmt.Sprintf(testPpdTemplate, testEpubPpd)
+	if !strings.Contains(string(contents), testPpdElement) {
+		t.Errorf(
+			"Ppd doesn't match\n"+
+				"Got: %s"+
+				"Expected: %s",
+			contents,
+			testPpdElement)
 	}
 
 	cleanup(testEpubFilename, tempDir)

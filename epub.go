@@ -75,6 +75,7 @@ img {
 	defaultCoverImgFormat     = "cover%s"
 	defaultCoverXhtmlFilename = "cover.xhtml"
 	defaultEpubLang           = "en"
+	defaultPpd                = "default"
 	fontFileFormat            = "font%04d%s"
 	imageFileFormat           = "image%04d%s"
 	sectionFileFormat         = "section%04d.xhtml"
@@ -94,6 +95,8 @@ type Epub struct {
 	images map[string]string
 	// Language
 	lang string
+	// Page progression direction
+	ppd string
 	// The package file (package.opf)
 	pkg      *pkg
 	sections []epubSection
@@ -243,6 +246,11 @@ func (e *Epub) Lang() string {
 	return e.lang
 }
 
+// Ppd returns the page progression direction of the EPUB.
+func (e *Epub) Ppd() string {
+	return e.ppd
+}
+
 // SetAuthor sets the author of the EPUB.
 func (e *Epub) SetAuthor(author string) {
 	e.author = author
@@ -350,6 +358,12 @@ func (e *Epub) SetIdentifier(identifier string) {
 func (e *Epub) SetLang(lang string) {
 	e.lang = lang
 	e.pkg.setLang(lang)
+}
+
+// SetPpd sets the page progression direction of the EPUB.
+func (e *Epub) SetPpd(direction string) {
+	e.ppd = direction
+	e.pkg.setPpd(direction)
 }
 
 // SetTitle sets the title of the EPUB.
