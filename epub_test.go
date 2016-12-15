@@ -567,6 +567,7 @@ func TestEpubValidity(t *testing.T) {
 	e.SetCover(testImagePath, "")
 	e.SetIdentifier(testEpubIdentifier)
 	e.SetLang(testEpubLang)
+	e.SetPpd(testEpubPpd)
 	e.SetTitle(testEpubAuthor)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
