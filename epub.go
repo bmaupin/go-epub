@@ -75,7 +75,6 @@ img {
 	defaultCoverImgFormat     = "cover%s"
 	defaultCoverXhtmlFilename = "cover.xhtml"
 	defaultEpubLang           = "en"
-	defaultPpd                = "default"
 	fontFileFormat            = "font%04d%s"
 	imageFileFormat           = "image%04d%s"
 	sectionFileFormat         = "section%04d.xhtml"
