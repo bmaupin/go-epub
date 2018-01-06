@@ -131,7 +131,7 @@ func NewEpub(title string) *Epub {
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
-	e.SetIdentifier(urnUUIDPrefix + uuid.NewV4().String())
+	e.SetIdentifier(urnUUIDPrefix + uuid.Must(uuid.NewV4()).String())
 	e.SetLang(defaultEpubLang)
 	e.SetTitle(title)
 
