@@ -220,6 +220,7 @@ func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 
 		// Get the path of the file relative to the folder we're zipping
 		relativePath, err := filepath.Rel(tempDir, path)
+		relativePath = strings.Replace(relativePath, "\\", "/", -1)
 		if err != nil {
 			// tempDir and path are both internal, so we shouldn't get here
 			panic(fmt.Sprintf("Error closing EPUB file: %s", err))
