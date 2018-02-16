@@ -146,6 +146,7 @@ func newPackage() *pkg {
 }
 
 func (p *pkg) addToManifest(id string, href string, mediaType string, properties string) {
+	href = filepath.ToSlash(href)
 	i := &pkgItem{
 		ID:         id,
 		Href:       href,
