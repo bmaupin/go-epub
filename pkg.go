@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"time"
+	"strings"
 )
 
 const (
@@ -146,6 +147,7 @@ func newPackage() *pkg {
 }
 
 func (p *pkg) addToManifest(id string, href string, mediaType string, properties string) {
+	href = strings.Replace(href, "\\", "/", -1)
 	i := &pkgItem{
 		ID:         id,
 		Href:       href,

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -148,6 +149,7 @@ func newTocNcxXML() *tocNcxRoot {
 
 // Add a section to the TOC (navXML as well as ncxXML)
 func (t *toc) addSection(index int, title string, relativePath string) {
+	relativePath = strings.Replace(relativePath, "\\", "/", -1)
 	l := &tocNavItem{
 		A: tocNavLink{
 			Href: relativePath,
