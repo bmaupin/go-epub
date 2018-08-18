@@ -148,6 +148,7 @@ func newTocNcxXML() *tocNcxRoot {
 
 // Add a section to the TOC (navXML as well as ncxXML)
 func (t *toc) addSection(index int, title string, relativePath string) {
+	relativePath = filepath.ToSlash(relativePath)
 	l := &tocNavItem{
 		A: tocNavLink{
 			Href: relativePath,
