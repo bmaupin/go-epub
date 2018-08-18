@@ -36,7 +36,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // ErrFilenameAlreadyUsed is thrown by AddCSS, AddFont, AddImage, or AddSection
@@ -131,7 +131,7 @@ func NewEpub(title string) *Epub {
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
-	e.SetIdentifier(urnUUIDPrefix + uuid.Must(uuid.NewV4()).String())
+	e.SetIdentifier(urnUUIDPrefix + uuid.New().String())
 	e.SetLang(defaultEpubLang)
 	e.SetTitle(title)
 
