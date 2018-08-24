@@ -2,5 +2,5 @@
 # for detailed Gopkg.toml documentation.
 
 [[constraint]]
-  name = "github.com/satori/go.uuid"
-  revision = "0ca0c2cf9e6f8d79757fdc089a34c854ad557138"
+  name = "github.com/gofrs/uuid"
+  version = "^3.1.0"

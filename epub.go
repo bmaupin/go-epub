@@ -36,7 +36,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 // ErrFilenameAlreadyUsed is thrown by AddCSS, AddFont, AddImage, or AddSection
