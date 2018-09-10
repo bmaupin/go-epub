@@ -298,6 +298,15 @@ func (e *Epub) writeImages(tempDir string) error {
 	return e.writeMedia(tempDir, e.images, ImageFolderName)
 }
 
+type errRetreivingFile struct {
+	file string
+	err  error
+}
+
+func (e *errRetreivingFile) Error() string {
+	return fmt.Sprintf("Error retrieving %q from source: %+v", e.file, e.err)
+}
+
 // Get images from their source and save them in the temporary directory
 func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolderName string) error {
 	if len(mediaMap) > 0 {
@@ -310,7 +319,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			// Get the media file from the source
 			u, err := url.Parse(mediaSource)
 			if err != nil {
-				return ErrRetrievingFile
+				return &errRetreivingFile{file: mediaSource, err: err}
 			}
 
 			var r io.ReadCloser
@@ -319,7 +328,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			if u.Scheme == "http" || u.Scheme == "https" {
 				resp, err = http.Get(mediaSource)
 				if err != nil {
-					return ErrRetrievingFile
+					return &errRetreivingFile{file: mediaSource, err: err}
 				}
 				r = resp.Body
 
@@ -328,7 +337,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 				r, err = os.Open(mediaSource)
 			}
 			if err != nil {
-				return ErrRetrievingFile
+				return &errRetreivingFile{file: mediaSource, err: err}
 			}
 
 			mediaFilePath := filepath.Join(
@@ -358,7 +367,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			if err != nil {
 				// There shouldn't be any problem with the writer, but the reader
 				// might have an issue
-				return ErrRetrievingFile
+				return &errRetreivingFile{file: mediaSource, err: err}
 			}
 
 			mediaType := extensionMediaTypes[strings.ToLower(filepath.Ext(mediaFilename))]
