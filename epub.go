@@ -50,8 +50,11 @@ var ErrRetrievingFile = errors.New("Error retrieving file from source")
 // FileRetrevalError is thrown by Write in the case of a media file added with
 // AddImage, AddFont, AddCSS being unable to be read.
 type FileRetrevalError struct {
+	// File is the file that we failed to retreive.
 	File string
-	Err  error
+
+	// Err is the underlying error that we encountered attempting to retreive File.
+	Err error
 }
 
 // Error implements the error interface.
