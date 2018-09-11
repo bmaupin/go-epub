@@ -47,6 +47,18 @@ var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 // problem retrieving the source file that was provided
 var ErrRetrievingFile = errors.New("Error retrieving file from source")
 
+// FileRetrevalError is thrown by Write in the case of a media file added with
+// AddImage, AddFont, AddCSS being unable to be read.
+type FileRetrevalError struct {
+	File string
+	Err  error
+}
+
+// Error implements the error interface.
+func (e *FileRetrevalError) Error() string {
+	return fmt.Sprintf("Error retrieving %q from source: %+v", e.File, e.Err)
+}
+
 // Folder names used for resources inside the EPUB
 const (
 	CSSFolderName   = "css"
