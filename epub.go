@@ -43,9 +43,9 @@ import (
 // if the same filename is used more than once
 var ErrFilenameAlreadyUsed = errors.New("Filename already used")
 
-// ErrRetrievingFile is thrown by AddCSS, AddFont, or AddImage if there was a
-// problem retrieving the source file that was provided
-var ErrRetrievingFile = errors.New("Error retrieving file from source")
+// ErrInvalidSource is used inside FileRetrevalError for calls to
+// AddCSS, AddFont, AddImage, AddSection with an invalid file source.
+var ErrInvalidSource = errors.New("Invalid Source")
 
 // FileRetrevalError is thrown by Write in the case of a media file added with
 // AddImage, AddFont, AddCSS being unable to be read.
@@ -397,7 +397,10 @@ func (e *Epub) Title() string {
 func addMedia(source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
 	// Make sure the source file is valid before proceeding
 	if isFileSourceValid(source) == false {
-		return "", ErrRetrievingFile
+		return "", &FileRetrevalError{
+			File: source,
+			Err:  ErrInvalidSource,
+		}
 	}
 
 	if internalFilename == "" {
