@@ -553,6 +553,29 @@ func TestSetCover(t *testing.T) {
 	cleanup(testEpubFilename, tempDir)
 }
 
+func TestErrFilenameAlreadyUsed(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+
+	_, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	if err != nil {
+		t.Errorf("Error adding CSS: %s", err)
+	}
+
+	_, err = e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	if err != ErrFilenameAlreadyUsed {
+		t.Error("Expected error ErrFilenameAlreadyUsed not returned")
+	}
+}
+
+func TestErrUnableToCreateEpub(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+
+	err := e.Write("/sbin/thisShouldFail")
+	if err != ErrUnableToCreateEpub {
+		t.Error("Expected error ErrUnableToCreateEpub not returned")
+	}
+}
+
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
