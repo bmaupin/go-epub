@@ -567,12 +567,12 @@ func TestErrFilenameAlreadyUsed(t *testing.T) {
 	}
 }
 
-func TestErrUnableToCreateEpub(t *testing.T) {
+func TestUnableToCreateEpubError(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 
 	err := e.Write("/sbin/thisShouldFail")
-	if err != ErrUnableToCreateEpub {
-		t.Error("Expected error ErrUnableToCreateEpub not returned")
+	if _, ok := err.(*UnableToCreateEpubError); !ok {
+		t.Error("Expected error UnableToCreateEpubError not retuned")
 	}
 }
 

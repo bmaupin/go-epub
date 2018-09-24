@@ -2,7 +2,6 @@ package epub
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,9 +12,15 @@ import (
 	"strings"
 )
 
-// ErrUnableToCreateEpub is thrown by Write if it cannot create the destination
-// EPUB file
-var ErrUnableToCreateEpub = errors.New("Unable to create EPUB file")
+// UnableToCreateEpubError is thrown by Write if it cannot create the destination EPUB file
+type UnableToCreateEpubError struct {
+	Path string // The path that was given to Write to create the EPUB
+	Err  error  // The underlying error that was thrown
+}
+
+func (e *UnableToCreateEpubError) Error() string {
+	return fmt.Sprintf("Error creating EPUB at path: %q, error: %+v", e.Path, e.Err)
+}
 
 var extensionMediaTypes = map[string]string{
 	".css":  mediaTypeCSS,
@@ -196,7 +201,10 @@ func (e *Epub) writeCSSFiles(tempDir string) error {
 func (e *Epub) writeEpub(tempDir string, destFilePath string) error {
 	f, err := os.Create(destFilePath)
 	if err != nil {
-		return ErrUnableToCreateEpub
+		return &UnableToCreateEpubError{
+			Path: destFilePath,
+			Err:  err,
+		}
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
