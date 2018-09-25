@@ -39,9 +39,15 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// ErrFilenameAlreadyUsed is thrown by AddCSS, AddFont, AddImage, or AddSection
+// FilenameAlreadyUsedError is thrown by AddCSS, AddFont, AddImage, or AddSection
 // if the same filename is used more than once
-var ErrFilenameAlreadyUsed = errors.New("Filename already used")
+type FilenameAlreadyUsedError struct {
+	Filename string // Filename that caused the error
+}
+
+func (e *FilenameAlreadyUsedError) Error() string {
+	return "Filename already used: " + e.Filename
+}
 
 // ErrInvalidSource is used inside FileRetrevalError for calls to
 // AddCSS, AddFont, AddImage, AddSection with an invalid file source.
@@ -162,7 +168,7 @@ func NewEpub(title string) *Epub {
 //
 // The internal filename will be used when storing the CSS file in the EPUB
 // and must be unique among all CSS files. If the same filename is used more
-// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
 	return addMedia(source, internalFilename, cssFileFormat, CSSFolderName, e.css)
@@ -177,7 +183,7 @@ func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
 //
 // The internal filename will be used when storing the font file in the EPUB
 // and must be unique among all font files. If the same filename is used more
-// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 	return addMedia(source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
@@ -192,7 +198,7 @@ func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 //
 // The internal filename will be used when storing the image file in the EPUB
 // and must be unique among all image files. If the same filename is used more
-// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 	return addMedia(source, imageFilename, imageFileFormat, ImageFolderName, e.images)
@@ -212,7 +218,7 @@ func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 //
 // The internal filename will be used when storing the section file in the EPUB
 // and must be unique among all section files. If the same filename is used more
-// than once, ErrFilenameAlreadyUsed will be returned. The internal filename is
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 //
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
@@ -225,7 +231,7 @@ func (e *Epub) AddSection(body string, sectionTitle string, internalFilename str
 
 	for _, section := range e.sections {
 		if section.filename == internalFilename {
-			return "", ErrFilenameAlreadyUsed
+			return "", &FilenameAlreadyUsedError{Filename: internalFilename}
 		}
 	}
 
@@ -325,7 +331,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 
 		internalCSSPath, err = e.AddCSS(e.cover.cssTempFile, defaultCoverCSSFilename)
 		// If that doesn't work, generate a filename
-		if err == ErrFilenameAlreadyUsed {
+		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			coverCSSFilename := fmt.Sprintf(
 				cssFileFormat,
 				len(e.css)+1,
@@ -333,13 +339,15 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 			)
 
 			internalCSSPath, err = e.AddCSS(e.cover.cssTempFile, coverCSSFilename)
-			if err == ErrFilenameAlreadyUsed {
+			if _, ok := err.(*FilenameAlreadyUsedError); ok {
 				// This shouldn't cause an error
 				panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
 			}
 		}
-		if err != nil && err != ErrFilenameAlreadyUsed {
-			panic(err)
+		if err != nil {
+			if _, ok := err.(*FilenameAlreadyUsedError); !ok {
+				panic(fmt.Sprintf("DEBUG %+v", err))
+			}
 		}
 	}
 	e.cover.cssFilename = filepath.Base(internalCSSPath)
@@ -349,9 +357,9 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	// First try to use the default cover filename
 	coverPath, err := e.AddSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
 	// If that doesn't work, generate a filename
-	if err == ErrFilenameAlreadyUsed {
+	if _, ok := err.(*FilenameAlreadyUsedError); ok {
 		coverPath, err = e.AddSection(coverBody, "", "", internalCSSPath)
-		if err == ErrFilenameAlreadyUsed {
+		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
 		}
@@ -417,7 +425,7 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 	}
 
 	if _, ok := mediaMap[internalFilename]; ok {
-		return "", ErrFilenameAlreadyUsed
+		return "", &FilenameAlreadyUsedError{Filename: internalFilename}
 	}
 
 	mediaMap[internalFilename] = source

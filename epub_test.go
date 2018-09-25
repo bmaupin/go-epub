@@ -553,7 +553,7 @@ func TestSetCover(t *testing.T) {
 	cleanup(testEpubFilename, tempDir)
 }
 
-func TestErrFilenameAlreadyUsed(t *testing.T) {
+func TestFilenameAlreadyUsedError(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 
 	_, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
@@ -562,8 +562,8 @@ func TestErrFilenameAlreadyUsed(t *testing.T) {
 	}
 
 	_, err = e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
-	if err != ErrFilenameAlreadyUsed {
-		t.Error("Expected error ErrFilenameAlreadyUsed not returned")
+	if _, ok := err.(*FilenameAlreadyUsedError); !ok {
+		t.Error("Expected error FilenameAlreadyUsedError not returned")
 	}
 }
 
