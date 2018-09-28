@@ -26,7 +26,6 @@ Basic usage:
 package epub
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -40,32 +39,24 @@ import (
 )
 
 // FilenameAlreadyUsedError is thrown by AddCSS, AddFont, AddImage, or AddSection
-// if the same filename is used more than once
+// if the same filename is used more than once.
 type FilenameAlreadyUsedError struct {
 	Filename string // Filename that caused the error
 }
 
 func (e *FilenameAlreadyUsedError) Error() string {
-	return "Filename already used: " + e.Filename
+	return fmt.Sprintf("Filename already used: %s", e.Filename)
 }
 
-// ErrInvalidSource is used inside FileRetrevalError for calls to
-// AddCSS, AddFont, AddImage, AddSection with an invalid file source.
-var ErrInvalidSource = errors.New("Invalid Source")
-
-// FileRetrevalError is thrown by Write in the case of a media file added with
-// AddImage, AddFont, AddCSS being unable to be read.
-type FileRetrevalError struct {
-	// File is the file that we failed to retreive.
-	File string
-
-	// Err is the underlying error that we encountered attempting to retreive File.
-	Err error
+// FileRetrievalError is thrown by AddCSS, AddFont, AddImage, or Write if there was a
+// problem retrieving the source file that was provided.
+type FileRetrievalError struct {
+	Source string // The source of the file whose retrieval failed
+	Err    error  // The underlying error that was thrown
 }
 
-// Error implements the error interface.
-func (e *FileRetrevalError) Error() string {
-	return fmt.Sprintf("Error retrieving %q from source: %+v", e.File, e.Err)
+func (e *FileRetrievalError) Error() string {
+	return fmt.Sprintf("Error retrieving %q from source: %+v", e.Source, e.Err)
 }
 
 // Folder names used for resources inside the EPUB
@@ -403,11 +394,11 @@ func (e *Epub) Title() string {
 // Add a media file to the EPUB and return the path relative to the EPUB section
 // files
 func addMedia(source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
-	// Make sure the source file is valid before proceeding
-	if isFileSourceValid(source) == false {
-		return "", &FileRetrevalError{
-			File: source,
-			Err:  ErrInvalidSource,
+	err := validateFileSource(source)
+	if err != nil {
+		return "", &FileRetrievalError{
+			Source: source,
+			Err:    err,
 		}
 	}
 
@@ -437,10 +428,10 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 	), nil
 }
 
-func isFileSourceValid(source string) bool {
+func validateFileSource(source string) error {
 	u, err := url.Parse(source)
 	if err != nil {
-		return false
+		return err
 	}
 
 	var r io.ReadCloser
@@ -449,7 +440,7 @@ func isFileSourceValid(source string) bool {
 	if u.Scheme == "http" || u.Scheme == "https" {
 		resp, err = http.Get(source)
 		if err != nil {
-			return false
+			return err
 		}
 		r = resp.Body
 
@@ -458,7 +449,7 @@ func isFileSourceValid(source string) bool {
 		r, err = os.Open(source)
 	}
 	if err != nil {
-		return false
+		return err
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
@@ -466,5 +457,5 @@ func isFileSourceValid(source string) bool {
 		}
 	}()
 
-	return true
+	return nil
 }

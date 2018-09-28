@@ -567,12 +567,12 @@ func TestFilenameAlreadyUsedError(t *testing.T) {
 	}
 }
 
-func TestFileRetrevalError(t *testing.T) {
+func TestFileRetrievalError(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 
 	_, err := e.AddCSS("/sbin/thisShouldFail", testCoverCSSFilename)
-	if _, ok := err.(*FileRetrevalError); !ok {
-		t.Errorf("Expected error FileRetrevalError not returned. Returned instead: %+v", err)
+	if _, ok := err.(*FileRetrievalError); !ok {
+		t.Errorf("Expected error FileRetrievalError not returned. Returned instead: %+v", err)
 	}
 }
 
@@ -581,7 +581,7 @@ func TestUnableToCreateEpubError(t *testing.T) {
 
 	err := e.Write("/sbin/thisShouldFail")
 	if _, ok := err.(*UnableToCreateEpubError); !ok {
-		t.Errorf("Expected error UnableToCreateEpubError not retuned. Returned instead: %+v", err)
+		t.Errorf("Expected error UnableToCreateEpubError not returned. Returned instead: %+v", err)
 	}
 }
 

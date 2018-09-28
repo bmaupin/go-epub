@@ -19,7 +19,7 @@ type UnableToCreateEpubError struct {
 }
 
 func (e *UnableToCreateEpubError) Error() string {
-	return fmt.Sprintf("Error creating EPUB at path: %q, error: %+v", e.Path, e.Err)
+	return fmt.Sprintf("Error creating EPUB at %q: %+v", e.Path, e.Err)
 }
 
 var extensionMediaTypes = map[string]string{
@@ -318,7 +318,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			// Get the media file from the source
 			u, err := url.Parse(mediaSource)
 			if err != nil {
-				return &FileRetrevalError{File: mediaSource, Err: err}
+				return &FileRetrievalError{Source: mediaSource, Err: err}
 			}
 
 			var r io.ReadCloser
@@ -327,7 +327,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			if u.Scheme == "http" || u.Scheme == "https" {
 				resp, err = http.Get(mediaSource)
 				if err != nil {
-					return &FileRetrevalError{File: mediaSource, Err: err}
+					return &FileRetrievalError{Source: mediaSource, Err: err}
 				}
 				r = resp.Body
 
@@ -336,7 +336,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 				r, err = os.Open(mediaSource)
 			}
 			if err != nil {
-				return &FileRetrevalError{File: mediaSource, Err: err}
+				return &FileRetrievalError{Source: mediaSource, Err: err}
 			}
 
 			mediaFilePath := filepath.Join(
@@ -366,7 +366,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			if err != nil {
 				// There shouldn't be any problem with the writer, but the reader
 				// might have an issue
-				return &FileRetrevalError{File: mediaSource, Err: err}
+				return &FileRetrievalError{Source: mediaSource, Err: err}
 			}
 
 			mediaType := extensionMediaTypes[strings.ToLower(filepath.Ext(mediaFilename))]
