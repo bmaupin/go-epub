@@ -4,12 +4,12 @@
 [[projects]]
   name = "github.com/gofrs/uuid"
   packages = ["."]
-  revision = "d41eeda0759468834c84365a32d1b1ec4264c75f"
-  version = "v3.1.0"
+  revision = "370558f003bfe29580cd0f698d8640daccdcc45c"
+  version = "v3.1.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "28fbbe8056c18abfa3ac2af6872cdf72774770f8893674b971bd9ef1e830c302"
+  inputs-digest = "e945b5cae30e2fa2d8929b15462350c53bae0efb899fea6734c77dc44565c9da"
   solver-name = "gps-cdcl"
   solver-version = 1
