@@ -2,11 +2,11 @@ language: go
 go:
   # This is the latest 1.x version of Go
   - "1.x"
-  - "1.7"
-  - "1.8"
-  - "1.9"
-  - "1.10"
-  - "1.11"
+  - "1.7.x"
+  - "1.8.x"
+  - "1.9.x"
+  - "1.10.x"
+  - "1.11.x"
 # Use Go modules for dependency management (https://github.com/golang/go/wiki/Modules)
 env:
   - GO111MODULE=on
