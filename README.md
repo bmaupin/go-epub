@@ -22,7 +22,7 @@ For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
     go get github.com/bmaupin/go-epub
     cd $GOPATH/src/github.com/bmaupin/go-epub
 
-Dependencies are stored in the vendor directory and managed using [golang/dep](https://github.com/golang/dep)
+Dependencies are managed using [Go modules](https://github.com/golang/go/wiki/Modules)
 
 ### Testing
 
@@ -30,7 +30,7 @@ Dependencies are stored in the vendor directory and managed using [golang/dep](h
 
        wget https://github.com/IDPF/epubcheck/releases/download/v4.0.2/epubcheck-4.0.2.zip
        unzip epubcheck-4.0.2.zip
-    
+
 2. Run tests
 
        go test
