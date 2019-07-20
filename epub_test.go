@@ -632,6 +632,7 @@ func TestEpubValidity(t *testing.T) {
 	e.AddSection(testSectionBody, "", "", "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
+	e.SetDescription(testEpubDescription)
 	e.SetIdentifier(testEpubIdentifier)
 	e.SetLang(testEpubLang)
 	e.SetPpd(testEpubPpd)
