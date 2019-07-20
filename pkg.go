@@ -21,6 +21,7 @@ const (
     <dc:identifier id="pub-id"></dc:identifier>
     <dc:title></dc:title>
     <dc:language></dc:language>
+    <dc:description></dc:description>
   </metadata>
   <manifest>
   </manifest>
@@ -107,6 +108,7 @@ type pkgMetadata struct {
 	Title string `xml:"dc:title"`
 	// Ex: <dc:language>en</dc:language>
 	Language string `xml:"dc:language"`
+	Description string `xml:"dc:description,omitempty"`
 	Creator  *pkgCreator
 	Meta     []pkgMeta `xml:"meta"`
 }
@@ -186,6 +188,10 @@ func (p *pkg) setIdentifier(identifier string) {
 
 func (p *pkg) setLang(lang string) {
 	p.xml.Metadata.Language = lang
+}
+
+func (p *pkg) setDescription(desc string) {
+	p.xml.Metadata.Description = desc
 }
 
 func (p *pkg) setPpd(direction string) {

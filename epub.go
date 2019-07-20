@@ -108,6 +108,8 @@ type Epub struct {
 	images map[string]string
 	// Language
 	lang string
+	// Description
+	desc string
 	// Page progression direction
 	ppd string
 	// The package file (package.opf)
@@ -259,6 +261,11 @@ func (e *Epub) Lang() string {
 	return e.lang
 }
 
+// Description returns the description of the EPUB.
+func (e *Epub) Description() string {
+	return e.desc
+}
+
 // Ppd returns the page progression direction of the EPUB.
 func (e *Epub) Ppd() string {
 	return e.ppd
@@ -373,6 +380,12 @@ func (e *Epub) SetIdentifier(identifier string) {
 func (e *Epub) SetLang(lang string) {
 	e.lang = lang
 	e.pkg.setLang(lang)
+}
+
+// SetDescription sets the description of the EPUB.
+func (e *Epub) SetDescription(desc string) {
+	e.desc = desc
+	e.pkg.setDescription(desc)
 }
 
 // SetPpd sets the page progression direction of the EPUB.
