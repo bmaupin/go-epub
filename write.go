@@ -23,14 +23,16 @@ func (e *UnableToCreateEpubError) Error() string {
 }
 
 var extensionMediaTypes = map[string]string{
-	".css":  mediaTypeCSS,
-	".gif":  "image/gif",
-	".jpeg": mediaTypeJpeg,
-	".jpg":  mediaTypeJpeg,
-	".otf":  "application/x-font-otf",
-	".png":  "image/png",
-	".svg":  "image/svg+xml",
-	".ttf":  "application/x-font-ttf",
+	".css":   mediaTypeCSS,
+	".gif":   "image/gif",
+	".jpeg":  mediaTypeJpeg,
+	".jpg":   mediaTypeJpeg,
+	".otf":   "application/x-font-otf",
+	".png":   "image/png",
+	".svg":   "image/svg+xml",
+	".ttf":   "application/x-font-ttf",
+	".woff":  "application/font-woff",
+	".woff2": "font/woff2",
 }
 
 const (
