@@ -27,10 +27,10 @@ var extensionMediaTypes = map[string]string{
 	".gif":   "image/gif",
 	".jpeg":  mediaTypeJpeg,
 	".jpg":   mediaTypeJpeg,
-	".otf":   "application/x-font-otf",
+	".otf":   "application/vnd.ms-opentype",
 	".png":   "image/png",
 	".svg":   "image/svg+xml",
-	".ttf":   "application/x-font-ttf",
+	".ttf":   "application/font-sfnt",
 	".woff":  "application/font-woff",
 	".woff2": "font/woff2",
 }

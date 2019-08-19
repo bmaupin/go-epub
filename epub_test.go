@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	// Set this to false to not delete the generated test EPUB file
 	doCleanup             = true
 	testAuthorTemplate    = `<dc:creator id="creator">%s</dc:creator>`
 	testContainerContents = `<?xml version="1.0" encoding="UTF-8"?>
@@ -734,8 +735,8 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 
 // This function requires epubcheck to work (https://github.com/IDPF/epubcheck)
 //
-//     wget https://github.com/IDPF/epubcheck/releases/download/v4.0.1/epubcheck-4.0.1.zip
-//     unzip epubcheck-4.0.1.zip
+//     wget https://github.com/w3c/epubcheck/releases/download/v4.2.2/epubcheck-4.2.2.zip
+//     unzip epubcheck-4.2.2.zip
 func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
