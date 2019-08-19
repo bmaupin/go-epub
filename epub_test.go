@@ -50,6 +50,8 @@ const (
 	testEpubPpd               = "rtl"
 	testEpubTitle             = "My title"
 	testEpubDescription       = "My description"
+	testFontCSSFilename       = "font.css"
+	testFontCSSSource         = "testdata/font.css"
 	testFontFromFileSource    = "testdata/redacted-script-regular.ttf"
 	testIdentifierTemplate    = `<dc:identifier id="pub-id">%s</dc:identifier>`
 	testImageFromFileFilename = "testfromfile.png"
@@ -623,14 +625,18 @@ func TestUnableToCreateEpubError(t *testing.T) {
 
 func TestEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
-	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
+	e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCoverCSSPath)
+
 	e.AddFont(testFontFromFileSource, "")
-	e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCSSPath)
+	// Add CSS referencing the font in order to validate the font MIME type
+	testFontCSSPath, _ := e.AddCSS(testFontCSSSource, testFontCSSFilename)
+	e.AddSection(testSectionBody, "", "", testFontCSSPath)
+
 	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
-	e.AddSection(testSectionBody, "", "", "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
 	e.SetDescription(testEpubDescription)

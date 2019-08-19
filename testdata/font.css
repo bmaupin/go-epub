@@ -1,0 +1,8 @@
+p {
+  font-family: "Redacted Script", serif;
+}
+
+@font-face {
+  font-family: "Redacted Script";
+  src: url(../fonts/redacted-script-regular.ttf) format('truetype');
+}
