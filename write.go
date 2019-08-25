@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // UnableToCreateEpubError is thrown by Write if it cannot create the destination EPUB file
@@ -63,6 +65,33 @@ const (
 	tempDirPrefix     = "go-epub"
 	xhtmlFolderName   = "xhtml"
 )
+
+// fixXMLId takes a string and returns an XML id compatible string.
+// https://www.w3.org/TR/REC-xml-names/#NT-NCName
+// This means it must not contain a colon (:) or whitespace and it must not
+// start with a digit, punctuation or diacritics
+func fixXMLId(id string) string {
+	if len(id) == 0 {
+		panic("No id given")
+	}
+	fixedId := []rune{}
+	for i := 0; len(id) > 0; i++ {
+		r, size := utf8.DecodeRuneInString(id)
+		if i == 0 {
+			// The new id should be prefixed with 'id' if an invalid
+			// starting character is found
+			// this is not 100% accurate, but a better check than no check
+			if unicode.IsNumber(r) || unicode.IsPunct(r) || unicode.IsSymbol(r) {
+				fixedId = append(fixedId, []rune("id")...)
+			}
+		}
+		if !unicode.IsSpace(r) && r != ':' {
+			fixedId = append(fixedId, r)
+		}
+		id = id[size:]
+	}
+	return string(fixedId)
+}
 
 // Write writes the EPUB file. The destination path must be the full path to
 // the resulting file, including filename and extension.
@@ -385,7 +414,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			}
 
 			// Add the file to the OPF manifest
-			e.pkg.addToManifest(mediaFilename, filepath.Join(mediaFolderName, mediaFilename), mediaType, mediaProperties)
+			e.pkg.addToManifest(fixXMLId(mediaFilename), filepath.Join(mediaFolderName, mediaFilename), mediaType, mediaProperties)
 		}
 	}
 

@@ -56,6 +56,8 @@ const (
 	testIdentifierTemplate    = `<dc:identifier id="pub-id">%s</dc:identifier>`
 	testImageFromFileFilename = "testfromfile.png"
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
+	testNumberFilenameStart   = "testdata/01filenametest.png"
+	testSpaceInFilename       = "testdata/filename with space.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
@@ -637,6 +639,8 @@ func TestEpubValidity(t *testing.T) {
 	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
+	e.AddImage(testNumberFilenameStart, "")
+	e.AddImage(testSpaceInFilename, "")
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
 	e.SetDescription(testEpubDescription)
