@@ -299,8 +299,7 @@ func TestAddSection(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
-
-	testSection2Path, err := e.AddSection(testSectionBody, testSectionTitle, "", "")
+	testSection2Path, err := e.AddSection(testSectionBody, testSectionTitle, "", "", []string{"mysubsection", "subsectionhref"}...)
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}

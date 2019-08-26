@@ -130,6 +130,7 @@ type epubCover struct {
 type epubSection struct {
 	filename string
 	xhtml    *xhtml
+	children []string
 }
 
 // NewEpub returns a new Epub.
@@ -218,7 +219,11 @@ func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 //
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the section is optional.
-func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+//
+// The subsections are optional and must come in multiple of two if present. The first
+// entry of each tupel is the name of the subsection and the second entry is the
+// link destination (fragment identifier).
+func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string, subsections ...string) (string, error) {
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
 		internalFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
@@ -240,6 +245,7 @@ func (e *Epub) AddSection(body string, sectionTitle string, internalFilename str
 	s := epubSection{
 		filename: internalFilename,
 		xhtml:    x,
+		children: subsections,
 	}
 	e.sections = append(e.sections, s)
 

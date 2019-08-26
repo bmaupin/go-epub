@@ -65,6 +65,30 @@ type tocNavBody struct {
 }
 
 type tocNavItem struct {
+	A        tocNavLink      `xml:"a"`
+	Children []tocNavSubItem `xml:"ol>li,omitempty"`
+}
+
+func (t *tocNavItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	li := xml.StartElement{Name: xml.Name{Local: "li"}}
+	a := xml.StartElement{Name: xml.Name{Local: "a"}}
+	e.EncodeToken(li)
+	a.Attr = append(a.Attr, xml.Attr{Name: xml.Name{Local: "href"}, Value: t.A.Href})
+	e.EncodeToken(a)
+	e.EncodeToken(xml.CharData(t.A.Data))
+	e.EncodeToken(a.End())
+
+	if len(t.Children) > 0 {
+		ol := xml.StartElement{Name: xml.Name{Local: "ol"}}
+		e.EncodeToken(ol)
+		e.EncodeElement(t.Children, start)
+		e.EncodeToken(ol.End())
+	}
+	e.EncodeToken(li.End())
+	return nil
+}
+
+type tocNavSubItem struct {
 	A tocNavLink `xml:"a"`
 }
 
@@ -146,14 +170,29 @@ func newTocNcxXML() *tocNcxRoot {
 	return n
 }
 
-// Add a section to the TOC (navXML as well as ncxXML)
-func (t *toc) addSection(index int, title string, relativePath string) {
+// Add a section to the TOC (navXML as well as ncxXML). The optional subsections must come in pairs
+// where the first entry is the name of the link and the second entry is the fragment identifier.
+func (t *toc) addSection(index int, title string, relativePath string, subsections ...string) {
 	relativePath = filepath.ToSlash(relativePath)
 	l := &tocNavItem{
 		A: tocNavLink{
 			Href: relativePath,
 			Data: title,
 		},
+	}
+	for {
+		if len(subsections) > 1 {
+			k := &tocNavSubItem{
+				A: tocNavLink{
+					Data: subsections[0],
+					Href: subsections[1],
+				},
+			}
+			l.Children = append(l.Children, *k)
+			subsections = subsections[2:]
+		} else {
+			break
+		}
 	}
 	t.navXML.Links = append(t.navXML.Links, *l)
 

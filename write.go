@@ -459,7 +459,7 @@ func (e *Epub) writeSections(tempDir string) {
 			relativePath := filepath.Join(xhtmlFolderName, section.filename)
 			// Don't add pages without titles or the cover to the TOC
 			if section.xhtml.Title() != "" && section.filename != e.cover.xhtmlFilename {
-				e.toc.addSection(i, section.xhtml.Title(), relativePath)
+				e.toc.addSection(i, section.xhtml.Title(), relativePath, section.children...)
 			}
 			// The cover page should have already been added to the spine first
 			if section.filename != e.cover.xhtmlFilename {
