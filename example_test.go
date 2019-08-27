@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/bmaupin/go-epub"
+	"github.com/speedata/go-epub"
 )
 
 func ExampleEpub_AddCSS() {
