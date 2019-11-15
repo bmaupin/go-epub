@@ -218,7 +218,7 @@ func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 //
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the section is optional.
-func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+func (e *Epub) addSection(body string, sectionTitle string, internalFilename string, internalCSSPath string, refInternalFilename string) (string, error) {
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
 		internalFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
@@ -242,8 +242,23 @@ func (e *Epub) AddSection(body string, sectionTitle string, internalFilename str
 		xhtml:    x,
 	}
 	e.sections = append(e.sections, s)
+	relativePath := filepath.Join(xhtmlFolderName, s.filename)
+	if refInternalFilename != "" {
+		refRelativePath := filepath.Join(xhtmlFolderName, refInternalFilename)
+		e.toc.addSubSection(refRelativePath, sectionTitle, relativePath)
+	} else {
+		e.toc.addSection(sectionTitle, relativePath)
+	}
 
 	return internalFilename, nil
+}
+
+func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+	return e.addSection(body, sectionTitle, internalFilename, internalCSSPath, "")
+}
+
+func (e *Epub) AddSubSection(body string, sectionTitle string, internalFilename string, internalCSSPath string, refInternalFilename string) (string, error) {
+	return e.addSection(body, sectionTitle, internalFilename, internalCSSPath, refInternalFilename)
 }
 
 // Author returns the author of the EPUB.
