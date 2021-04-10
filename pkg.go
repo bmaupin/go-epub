@@ -44,6 +44,7 @@ const (
 type pkg struct {
 	xml          *pkgRoot
 	authorMeta   *pkgMeta
+	coverMeta    *pkgMeta
 	modifiedMeta *pkgMeta
 }
 
@@ -94,10 +95,12 @@ type pkgItemref struct {
 //     <meta property="dcterms:modified">2011-01-01T12:00:00Z</meta>
 type pkgMeta struct {
 	Refines  string `xml:"refines,attr,omitempty"`
-	Property string `xml:"property,attr"`
+	Property string `xml:"property,attr,omitempty"`
 	Scheme   string `xml:"scheme,attr,omitempty"`
 	ID       string `xml:"id,attr,omitempty"`
 	Data     string `xml:",chardata"`
+	Name     string `xml:"name,attr,omitempty"`
+	Content  string `xml:"content,attr,omitempty"`
 }
 
 // The <metadata> element
@@ -180,6 +183,15 @@ func (p *pkg) setAuthor(author string) {
 	}
 
 	p.xml.Metadata.Meta = updateMeta(p.xml.Metadata.Meta, p.authorMeta)
+}
+
+// Add an EPUB 2 cover meta element for backward compatibility (http://idpf.org/forum/topic-715)
+func (p *pkg) setCover(coverRef string) {
+	p.coverMeta = &pkgMeta{
+		Name:    "cover",
+		Content: coverRef,
+	}
+	p.xml.Metadata.Meta = updateMeta(p.xml.Metadata.Meta, p.coverMeta)
 }
 
 func (p *pkg) setIdentifier(identifier string) {

@@ -332,6 +332,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	}
 
 	e.cover.imageFilename = filepath.Base(internalImagePath)
+	e.pkg.setCover(e.cover.imageFilename)
 
 	// Use default cover stylesheet if one isn't provided
 	if internalCSSPath == "" {
