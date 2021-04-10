@@ -32,6 +32,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -468,7 +469,7 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 
 	mediaMap[internalFilename] = source
 
-	return filepath.Join(
+	return path.Join(
 		"..",
 		mediaFolderName,
 		internalFilename,
