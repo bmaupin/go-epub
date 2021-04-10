@@ -32,6 +32,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -309,6 +310,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	}
 
 	e.cover.imageFilename = filepath.Base(internalImagePath)
+	e.pkg.setCover(e.cover.imageFilename)
 
 	// Use default cover stylesheet if one isn't provided
 	if internalCSSPath == "" {
@@ -436,7 +438,7 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 
 	mediaMap[internalFilename] = source
 
-	return filepath.Join(
+	return path.Join(
 		"..",
 		mediaFolderName,
 		internalFilename,
