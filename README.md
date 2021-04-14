@@ -15,22 +15,48 @@ For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
 
 ### Installation
 
-    go get github.com/bmaupin/go-epub
+```
+go get github.com/bmaupin/go-epub
+```
 
 ### Development
 
-    go get github.com/bmaupin/go-epub
-    cd $GOPATH/src/github.com/bmaupin/go-epub
+```
+go get github.com/bmaupin/go-epub
+cd $GOPATH/src/github.com/bmaupin/go-epub
+```
 
 Dependencies are managed using [Go modules](https://github.com/golang/go/wiki/Modules)
 
 ### Testing
 
-1. (Optional) Install EpubCheck
+#### EPUBCheck
 
-       wget https://github.com/IDPF/epubcheck/releases/download/v4.0.2/epubcheck-4.0.2.zip
-       unzip epubcheck-4.0.2.zip
+EPUBCheck is a tool that will check an EPUB for validation errors.
 
-2. Run tests
+If EPUBCheck is installed locally, it will be run alongside the Go tests. To install EPUBCheck:
 
-       go test
+1. Make sure you have Java installed on your system
+
+1. Get the latest version of EPUBCheck from [https://github.com/w3c/epubcheck/releases](https://github.com/w3c/epubcheck/releases)
+
+1. Download and extract EPUBCheck in the root directory of this project, e.g.
+
+   ```
+   wget https://github.com/IDPF/epubcheck/releases/download/v4.2.5/epubcheck-4.2.5.zip
+   unzip epubcheck-4.2.5.zip
+   ```
+
+If you do not wish to install EPUBCheck locally, you can manually validate the EPUB:
+
+1. Set `doCleanup = false` in epub_test.go
+
+1. Run the tests (see below)
+
+1. Upload the generated `My EPUB.epub` file to [http://validator.idpf.org/](http://validator.idpf.org/)
+
+#### Run tests
+
+```
+go test
+```

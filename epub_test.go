@@ -739,10 +739,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	return nil
 }
 
-// This function requires epubcheck to work (https://github.com/IDPF/epubcheck)
-//
-//     wget https://github.com/w3c/epubcheck/releases/download/v4.2.2/epubcheck-4.2.2.zip
-//     unzip epubcheck-4.2.2.zip
+// This function requires EPUBCheck to work; see README.md for more information
 func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
