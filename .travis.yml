@@ -14,8 +14,7 @@ go:
   - "1.16.x"
 # Use Go modules for dependency management (https://github.com/golang/go/wiki/Modules)
 env:
-  - epubcheck_version=4.2.5
-  - GO111MODULE=on
+  - epubcheck_version=4.2.5 GO111MODULE=on
 before_install:
   - wget https://github.com/IDPF/epubcheck/releases/download/v${epubcheck_version}/epubcheck-${epubcheck_version}.zip
   - unzip epubcheck-${epubcheck_version}.zip
