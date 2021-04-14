@@ -8,10 +8,16 @@ go:
   - "1.10.x"
   - "1.11.x"
   - "1.12.x"
+  - "1.13.x"
+  - "1.14.x"
+  - "1.15.x"
+  - "1.16.x"
 # Use Go modules for dependency management (https://github.com/golang/go/wiki/Modules)
 env:
-  - GO111MODULE=on
+  - epubcheck_version=4.2.5 GO111MODULE=on
 before_install:
+  - wget https://github.com/IDPF/epubcheck/releases/download/v${epubcheck_version}/epubcheck-${epubcheck_version}.zip
+  - unzip epubcheck-${epubcheck_version}.zip
   - go get github.com/mattn/goveralls
 # This replaces the default script, which runs go test, because goveralls runs the entire test suite
 script:
