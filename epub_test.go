@@ -632,7 +632,7 @@ func TestEpubValidity(t *testing.T) {
 	e.AddFont(testFontFromFileSource, "")
 	// Add CSS referencing the font in order to validate the font MIME type
 	testFontCSSPath, _ := e.AddCSS(testFontCSSSource, testFontCSSFilename)
-	e.AddSection(testSectionBody, "", "", testFontCSSPath)
+	e.AddSection(testSectionBody, testSectionTitle, "", testFontCSSPath)
 
 	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
