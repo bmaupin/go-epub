@@ -34,6 +34,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	// TODO: Eventually this should include the major version (e.g. github.com/gofrs/uuid/v3) but that would break
 	// compatibility with Go < 1.9 (https://github.com/golang/go/wiki/Modules#semantic-import-versioning)
@@ -97,6 +98,7 @@ img {
 
 // Epub implements an EPUB file.
 type Epub struct {
+    sync.Mutex
 	author string
 	cover  *epubCover
 	// The key is the css filename, the value is the css source
@@ -166,6 +168,12 @@ func NewEpub(title string) *Epub {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
+    e.Lock()
+    defer e.Unlock()
+    return e.addCSS(source, internalFilename)
+}
+
+func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
 	return addMedia(source, internalFilename, cssFileFormat, CSSFolderName, e.css)
 }
 
@@ -181,6 +189,8 @@ func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
+    e.Lock()
+    defer e.Unlock()
 	return addMedia(source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
 }
 
@@ -196,6 +206,8 @@ func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
+    e.Lock()
+    defer e.Unlock()
 	return addMedia(source, imageFilename, imageFileFormat, ImageFolderName, e.images)
 }
 
@@ -219,6 +231,12 @@ func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the section is optional.
 func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+    e.Lock()
+    defer e.Unlock()
+    return e.addSection(body, sectionTitle, internalFilename, internalCSSPath)
+}
+
+func (e *Epub) addSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
 		internalFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
@@ -273,6 +291,8 @@ func (e *Epub) Ppd() string {
 
 // SetAuthor sets the author of the EPUB.
 func (e *Epub) SetAuthor(author string) {
+    e.Lock()
+    defer e.Unlock()
 	e.author = author
 	e.pkg.setAuthor(author)
 }
@@ -287,6 +307,8 @@ func (e *Epub) SetAuthor(author string) {
 // used for the cover is optional. If the CSS path isn't provided, default CSS
 // will be used.
 func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
+    e.Lock()
+    defer e.Unlock()
 	// If a cover already exists
 	if e.cover.xhtmlFilename != "" {
 		// Remove the xhtml file
@@ -329,7 +351,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 			panic(fmt.Sprintf("Error writing CSS file: %s", err))
 		}
 
-		internalCSSPath, err = e.AddCSS(e.cover.cssTempFile, defaultCoverCSSFilename)
+		internalCSSPath, err = e.addCSS(e.cover.cssTempFile, defaultCoverCSSFilename)
 		// If that doesn't work, generate a filename
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			coverCSSFilename := fmt.Sprintf(
@@ -338,7 +360,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 				".css",
 			)
 
-			internalCSSPath, err = e.AddCSS(e.cover.cssTempFile, coverCSSFilename)
+			internalCSSPath, err = e.addCSS(e.cover.cssTempFile, coverCSSFilename)
 			if _, ok := err.(*FilenameAlreadyUsedError); ok {
 				// This shouldn't cause an error
 				panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
@@ -355,10 +377,10 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	coverBody := fmt.Sprintf(defaultCoverBody, internalImagePath)
 	// Title won't be used since the cover won't be added to the TOC
 	// First try to use the default cover filename
-	coverPath, err := e.AddSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
+	coverPath, err := e.addSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
 	// If that doesn't work, generate a filename
 	if _, ok := err.(*FilenameAlreadyUsedError); ok {
-		coverPath, err = e.AddSection(coverBody, "", "", internalCSSPath)
+		coverPath, err = e.addSection(coverBody, "", "", internalCSSPath)
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
@@ -371,6 +393,8 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 // ISBN or ISSN. If no identifier is set, a UUID will be automatically
 // generated.
 func (e *Epub) SetIdentifier(identifier string) {
+    e.Lock()
+    defer e.Unlock()
 	e.identifier = identifier
 	e.pkg.setIdentifier(identifier)
 	e.toc.setIdentifier(identifier)
@@ -378,24 +402,32 @@ func (e *Epub) SetIdentifier(identifier string) {
 
 // SetLang sets the language of the EPUB.
 func (e *Epub) SetLang(lang string) {
+    e.Lock()
+    defer e.Unlock()
 	e.lang = lang
 	e.pkg.setLang(lang)
 }
 
 // SetDescription sets the description of the EPUB.
 func (e *Epub) SetDescription(desc string) {
+    e.Lock()
+    defer e.Unlock()
 	e.desc = desc
 	e.pkg.setDescription(desc)
 }
 
 // SetPpd sets the page progression direction of the EPUB.
 func (e *Epub) SetPpd(direction string) {
+    e.Lock()
+    defer e.Unlock()
 	e.ppd = direction
 	e.pkg.setPpd(direction)
 }
 
 // SetTitle sets the title of the EPUB.
 func (e *Epub) SetTitle(title string) {
+    e.Lock()
+    defer e.Unlock()
 	e.title = title
 	e.pkg.setTitle(title)
 	e.toc.setTitle(title)
