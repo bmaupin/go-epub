@@ -657,6 +657,9 @@ func TestEpubValidity(t *testing.T) {
 
 	if doCleanup {
 		cleanup(testEpubFilename, tempDir)
+	} else {
+		// Always remove the files in tempDir; they can still be extracted from the test epub as needed
+		os.RemoveAll(tempDir)
 	}
 }
 
