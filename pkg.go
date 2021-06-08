@@ -107,10 +107,10 @@ type pkgMetadata struct {
 	// Ex: <dc:title>Your title here</dc:title>
 	Title string `xml:"dc:title"`
 	// Ex: <dc:language>en</dc:language>
-	Language string `xml:"dc:language"`
+	Language    string `xml:"dc:language"`
 	Description string `xml:"dc:description,omitempty"`
-	Creator  *pkgCreator
-	Meta     []pkgMeta `xml:"meta"`
+	Creator     *pkgCreator
+	Meta        []pkgMeta `xml:"meta"`
 }
 
 // The <spine> element
