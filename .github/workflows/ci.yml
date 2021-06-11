@@ -11,8 +11,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      EPUBCHECK_VERSION: 4.2.5
     steps:
     - uses: actions/checkout@v2
+
+    # This needs to come after the checkout, which wipes the working directory
+    - name: Download EPUBCheck
+      run: |
+        wget https://github.com/IDPF/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip
+        unzip epubcheck-${EPUBCHECK_VERSION}.zip
 
     - name: Set up Go
       uses: actions/setup-go@v2
