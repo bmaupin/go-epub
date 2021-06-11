@@ -1,0 +1,47 @@
+# Source: https://github.com/actions/starter-workflows/blob/main/ci/go.yml
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Test with the five most recent versions of Go
+        go: ['1.12', '1.13', '1.14', '1.15', '1.16']
+
+    env:
+      EPUBCHECK_VERSION: 4.2.5
+      # TODO: I think we can get rid of this once we're no longer testing with Go < 1.13
+      GO111MODULE: on
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    # This needs to come after the checkout, which wipes the working directory
+    - name: Download EPUBCheck
+      run: |
+        wget https://github.com/IDPF/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip
+        unzip epubcheck-${EPUBCHECK_VERSION}.zip
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16
+
+    - name: Test
+      run: go test -v -coverprofile=profile.cov ./...
+
+    - name: Send coverage
+      uses: shogo82148/actions-goveralls@v1
+      with:
+        path-to-profile: profile.cov
+        flag-name: Go-${{ matrix.go }}
+        parallel: true
