@@ -9,17 +9,11 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  # Test with EPUBCheck and send test coverage
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # Test with the five most recent versions of Go
-        go: ['1.12', '1.13', '1.14', '1.15', '1.16']
-
     env:
       EPUBCHECK_VERSION: 4.2.5
-      # TODO: I think we can get rid of this once we're no longer testing with Go < 1.13
-      GO111MODULE: on
 
     steps:
     - name: Check out code
@@ -34,7 +28,11 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16
+        # This is the latest 1.x version of Go
+        go-version: 1.x
+
+    - name: Build
+      run: go build -v ./...
 
     - name: Test
       run: go test -v -coverprofile=profile.cov ./...
@@ -43,5 +41,29 @@ jobs:
       uses: shogo82148/actions-goveralls@v1
       with:
         path-to-profile: profile.cov
-        flag-name: Go-${{ matrix.go }}
-        parallel: true
+
+
+  # Test with multiple versions of Go
+  test-go-versions:
+    runs-on: ubuntu-latest
+    env:
+      # TODO: I think we can get rid of this once we're no longer testing with Go < 1.13
+      GO111MODULE: on
+    strategy:
+      matrix:
+        # Test with the five most recent versions of Go; 1.x is the latest version (1.16)
+        go: ['1.12', '1.13', '1.14', '1.15', '1.x']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
