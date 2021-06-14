@@ -10,11 +10,8 @@ on:
 
 jobs:
   # Test with EPUBCheck and send test coverage
-  test:
+  test-epubcheck-coverage:
     runs-on: ubuntu-latest
-    env:
-      EPUBCHECK_VERSION: 4.2.5
-
     steps:
     - name: Check out code
       uses: actions/checkout@v2
@@ -22,8 +19,9 @@ jobs:
     # This needs to come after the checkout, which wipes the working directory
     - name: Download EPUBCheck
       run: |
-        wget https://github.com/IDPF/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip
-        unzip epubcheck-${EPUBCHECK_VERSION}.zip
+        # Download the latest version of EPUBCheck
+        wget $(curl -Ls -H "Accept: application/vnd.github.v3+json" 'https://api.github.com/repos/IDPF/epubcheck/releases?per_page=1' | jq '.[0].assets[0].browser_download_url' -r)
+        unzip epubcheck-*.zip
 
     - name: Set up Go
       uses: actions/setup-go@v2
