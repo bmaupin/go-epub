@@ -10,7 +10,7 @@ on:
 
 jobs:
   # Test with EPUBCheck and send test coverage
-  test-epubcheck-coverage:
+  test-epubcheck:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
@@ -59,6 +59,29 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+
+  # Test Mac and Windows with the latest version of Go
+  test-mac-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Don't cancel remaining jobs when one matrix job fails
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.x
 
     - name: Build
       run: go build -v ./...
