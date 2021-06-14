@@ -70,6 +70,8 @@ jobs:
   test-mac-windows:
     runs-on: ${{ matrix.os }}
     strategy:
+      # Don't cancel remaining jobs when one matrix job fails
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
 
