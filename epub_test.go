@@ -98,8 +98,25 @@ func TestEpubWrite(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
+	// Check the contents of the package file
+	// NOTE: This is tested first because it contains a timestamp; testing it later may result in a different timestamp
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.Identifier(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
+	if trimAllSpace(string(contents)) != trimAllSpace(testPkgContents) {
+		t.Errorf(
+			"Package file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testPkgContents)
+	}
+
 	// Check the contents of the mimetype file
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading mimetype file: %s", err)
 	}
@@ -124,22 +141,6 @@ func TestEpubWrite(t *testing.T) {
 				"Expected: %s",
 			contents,
 			testContainerContents)
-	}
-
-	// Check the contents of the package file
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
-	if err != nil {
-		t.Errorf("Unexpected error reading package file: %s", err)
-	}
-
-	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.Identifier(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
-	if trimAllSpace(string(contents)) != trimAllSpace(testPkgContents) {
-		t.Errorf(
-			"Package file contents don't match\n"+
-				"Got: %s\n"+
-				"Expected: %s",
-			contents,
-			testPkgContents)
 	}
 
 	cleanup(testEpubFilename, tempDir)
