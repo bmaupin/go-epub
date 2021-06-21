@@ -67,8 +67,8 @@ const (
 // Write writes the EPUB file. The destination path must be the full path to
 // the resulting file, including filename and extension.
 func (e *Epub) Write(destFilePath string) error {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	tempDir, err := ioutil.TempDir("", tempDirPrefix)
 	defer func() {
 		if err := os.RemoveAll(tempDir); err != nil {

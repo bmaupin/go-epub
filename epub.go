@@ -99,7 +99,7 @@ img {
 
 // Epub implements an EPUB file.
 type Epub struct {
-    sync.Mutex
+	sync.Mutex
 	author string
 	cover  *epubCover
 	// The key is the css filename, the value is the css source
@@ -169,9 +169,9 @@ func NewEpub(title string) *Epub {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
-    e.Lock()
-    defer e.Unlock()
-    return e.addCSS(source, internalFilename)
+	e.Lock()
+	defer e.Unlock()
+	return e.addCSS(source, internalFilename)
 }
 
 func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
@@ -190,8 +190,8 @@ func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	return addMedia(source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
 }
 
@@ -207,8 +207,8 @@ func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	return addMedia(source, imageFilename, imageFileFormat, ImageFolderName, e.images)
 }
 
@@ -232,9 +232,9 @@ func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the section is optional.
 func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
-    e.Lock()
-    defer e.Unlock()
-    return e.addSection(body, sectionTitle, internalFilename, internalCSSPath)
+	e.Lock()
+	defer e.Unlock()
+	return e.addSection(body, sectionTitle, internalFilename, internalCSSPath)
 }
 
 func (e *Epub) addSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
@@ -292,8 +292,8 @@ func (e *Epub) Ppd() string {
 
 // SetAuthor sets the author of the EPUB.
 func (e *Epub) SetAuthor(author string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	e.author = author
 	e.pkg.setAuthor(author)
 }
@@ -308,8 +308,8 @@ func (e *Epub) SetAuthor(author string) {
 // used for the cover is optional. If the CSS path isn't provided, default CSS
 // will be used.
 func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	// If a cover already exists
 	if e.cover.xhtmlFilename != "" {
 		// Remove the xhtml file
@@ -395,8 +395,8 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 // ISBN or ISSN. If no identifier is set, a UUID will be automatically
 // generated.
 func (e *Epub) SetIdentifier(identifier string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	e.identifier = identifier
 	e.pkg.setIdentifier(identifier)
 	e.toc.setIdentifier(identifier)
@@ -404,32 +404,32 @@ func (e *Epub) SetIdentifier(identifier string) {
 
 // SetLang sets the language of the EPUB.
 func (e *Epub) SetLang(lang string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	e.lang = lang
 	e.pkg.setLang(lang)
 }
 
 // SetDescription sets the description of the EPUB.
 func (e *Epub) SetDescription(desc string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	e.desc = desc
 	e.pkg.setDescription(desc)
 }
 
 // SetPpd sets the page progression direction of the EPUB.
 func (e *Epub) SetPpd(direction string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	e.ppd = direction
 	e.pkg.setPpd(direction)
 }
 
 // SetTitle sets the title of the EPUB.
 func (e *Epub) SetTitle(title string) {
-    e.Lock()
-    defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	e.title = title
 	e.pkg.setTitle(title)
 	e.toc.setTitle(title)
