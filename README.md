@@ -14,18 +14,9 @@
 
 For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
 
-### Installation
-
-```
-go get github.com/bmaupin/go-epub
-```
-
 ### Development
 
-```
-go get github.com/bmaupin/go-epub
-cd $GOPATH/src/github.com/bmaupin/go-epub
-```
+Clone this repository using Git. Run tests as documented below.
 
 Dependencies are managed using [Go modules](https://github.com/golang/go/wiki/Modules)
 
