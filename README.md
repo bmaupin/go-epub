@@ -18,7 +18,7 @@ For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
 
 Clone this repository using Git. Run tests as documented below.
 
-Dependencies are managed using [Go modules](https://github.com/golang/go/wiki/Modules)
+Dependencies are managed using [Go modules](https://golang.org/ref/mod)
 
 ### Testing
 
