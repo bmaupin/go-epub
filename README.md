@@ -14,6 +14,10 @@
 
 For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
 
+### Contributions
+
+Contributions are welcome; please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+
 ### Development
 
 Clone this repository using Git. Run tests as documented below.
