@@ -12,6 +12,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 // UnableToCreateEpubError is thrown by Write if it cannot create the destination EPUB file
@@ -329,6 +331,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 
 			var r io.ReadCloser
 			var resp *http.Response
+			var mediaType string
 			// If it's a URL
 			if u.Scheme == "http" || u.Scheme == "https" {
 				resp, err = http.Get(mediaSource)
@@ -364,6 +367,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 					panic(err)
 				}
 			}()
+
 			func() {
 				if err := w.Close(); err != nil {
 					panic(err)
@@ -375,11 +379,18 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 				return &FileRetrievalError{Source: mediaSource, Err: err}
 			}
 
-			mediaType := extensionMediaTypes[strings.ToLower(filepath.Ext(mediaFilename))]
 			if mediaType == "" {
-				panic(fmt.Sprintf(
-					"Unmatched file extension, media type not set for file: %s",
-					mediaFilename))
+				mime, _ := mimetype.DetectFile(mediaFilePath)
+				mediaType = mime.String()
+			}
+			if mediaType == "" {
+
+				mediaType = extensionMediaTypes[strings.ToLower(filepath.Ext(mediaFilename))]
+				if mediaType == "" {
+					panic(fmt.Sprintf(
+						"Unmatched file extension, media type not set for file: %s",
+						mediaFilename))
+				}
 			}
 
 			// The cover image has a special value for the properties attribute
