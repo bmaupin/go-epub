@@ -240,12 +240,21 @@ func (e *Epub) AddSection(body string, sectionTitle string, internalFilename str
 func (e *Epub) addSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
-		internalFilename = fmt.Sprintf(sectionFileFormat, len(e.sections)+1)
-	}
-
-	for _, section := range e.sections {
-		if section.filename == internalFilename {
-			return "", &FilenameAlreadyUsedError{Filename: internalFilename}
+		index := 1
+		for internalFilename == "" {
+			internalFilename = fmt.Sprintf(sectionFileFormat, index)
+			for _, section := range e.sections {
+				if section.filename == internalFilename {
+					internalFilename, index = "", index+1
+					break
+				}
+			}
+		}
+	} else {
+		for _, section := range e.sections {
+			if section.filename == internalFilename {
+				return "", &FilenameAlreadyUsedError{Filename: internalFilename}
+			}
 		}
 	}
 
