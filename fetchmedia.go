@@ -60,7 +60,14 @@ func fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) (mediaType s
 	if err != nil {
 		panic(err)
 	}
-	return mime.String(), nil
+	// Is it CSS?
+	mtype := mime.String()
+	if mime.Is("text/plain") {
+		if filepath.Ext(mediaSource) == ".css" || filepath.Ext(mediaFilename) == ".css" {
+			mtype = "text/css"
+		}
+	}
+	return mtype, nil
 }
 
 func fetchMediaFromURL(mediaSource string) (io.ReadCloser, error) {
