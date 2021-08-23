@@ -21,19 +21,6 @@ func (e *UnableToCreateEpubError) Error() string {
 	return fmt.Sprintf("Error creating EPUB at %q: %+v", e.Path, e.Err)
 }
 
-var extensionMediaTypes = map[string]string{
-	".css":   mediaTypeCSS,
-	".gif":   "image/gif",
-	".jpeg":  mediaTypeJpeg,
-	".jpg":   mediaTypeJpeg,
-	".otf":   "application/vnd.ms-opentype",
-	".png":   "image/png",
-	".svg":   "image/svg+xml",
-	".ttf":   "application/font-sfnt",
-	".woff":  "application/font-woff",
-	".woff2": "font/woff2",
-}
-
 const (
 	containerFilename     = "container.xml"
 	containerFileTemplate = `<?xml version="1.0" encoding="UTF-8"?>
