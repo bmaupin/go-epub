@@ -1,6 +1,6 @@
 module github.com/bmaupin/go-epub
 
-go 1.16
+go 1.15
 
 require (
 	github.com/gabriel-vasile/mimetype v1.3.1
