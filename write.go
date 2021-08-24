@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 	"unicode"
 	"unicode/utf8"
 )
@@ -22,19 +19,6 @@ type UnableToCreateEpubError struct {
 
 func (e *UnableToCreateEpubError) Error() string {
 	return fmt.Sprintf("Error creating EPUB at %q: %+v", e.Path, e.Err)
-}
-
-var extensionMediaTypes = map[string]string{
-	".css":   mediaTypeCSS,
-	".gif":   "image/gif",
-	".jpeg":  mediaTypeJpeg,
-	".jpg":   mediaTypeJpeg,
-	".otf":   "application/vnd.ms-opentype",
-	".png":   "image/png",
-	".svg":   "image/svg+xml",
-	".ttf":   "application/font-sfnt",
-	".woff":  "application/font-woff",
-	".woff2": "font/woff2",
 }
 
 const (
@@ -317,71 +301,14 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 	if len(mediaMap) > 0 {
 		mediaFolderPath := filepath.Join(tempDir, contentFolderName, mediaFolderName)
 		if err := os.Mkdir(mediaFolderPath, dirPermissions); err != nil {
-			panic(fmt.Sprintf("Unable to create directory: %s", err))
+			return fmt.Errorf("unable to create directory: %s", err)
 		}
 
 		for mediaFilename, mediaSource := range mediaMap {
-			// Get the media file from the source
-			u, err := url.Parse(mediaSource)
+			mediaType, err := fetchMedia(mediaSource, mediaFolderPath, mediaFilename)
 			if err != nil {
-				return &FileRetrievalError{Source: mediaSource, Err: err}
+				return err
 			}
-
-			var r io.ReadCloser
-			var resp *http.Response
-			// If it's a URL
-			if u.Scheme == "http" || u.Scheme == "https" {
-				resp, err = http.Get(mediaSource)
-				if err != nil {
-					return &FileRetrievalError{Source: mediaSource, Err: err}
-				}
-				r = resp.Body
-
-				// Otherwise, assume it's a local file
-			} else {
-				r, err = os.Open(mediaSource)
-			}
-			if err != nil {
-				return &FileRetrievalError{Source: mediaSource, Err: err}
-			}
-
-			mediaFilePath := filepath.Join(
-				mediaFolderPath,
-				mediaFilename,
-			)
-
-			// Add the file to the EPUB temp directory
-			w, err := os.Create(mediaFilePath)
-			if err != nil {
-				panic(fmt.Sprintf("Unable to create file: %s", err))
-			}
-
-			_, err = io.Copy(w, r)
-			// Close the reader and writer manually. If we use a defer instead,
-			// they won't close until the function exits.
-			func() {
-				if err := r.Close(); err != nil {
-					panic(err)
-				}
-			}()
-			func() {
-				if err := w.Close(); err != nil {
-					panic(err)
-				}
-			}()
-			if err != nil {
-				// There shouldn't be any problem with the writer, but the reader
-				// might have an issue
-				return &FileRetrievalError{Source: mediaSource, Err: err}
-			}
-
-			mediaType := extensionMediaTypes[strings.ToLower(filepath.Ext(mediaFilename))]
-			if mediaType == "" {
-				panic(fmt.Sprintf(
-					"Unmatched file extension, media type not set for file: %s",
-					mediaFilename))
-			}
-
 			// The cover image has a special value for the properties attribute
 			mediaProperties := ""
 			if mediaFilename == e.cover.imageFilename {
@@ -392,7 +319,6 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 			e.pkg.addToManifest(fixXMLId(mediaFilename), filepath.Join(mediaFolderName, mediaFilename), mediaType, mediaProperties)
 		}
 	}
-
 	return nil
 }
 
