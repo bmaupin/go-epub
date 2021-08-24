@@ -51,8 +51,8 @@ jobs:
       # Don't cancel remaining jobs when one matrix job fails
       fail-fast: false
       matrix:
-        # Test with the five most recent versions of Go; 1.x is the latest version (1.16)
-        go: ['1.15', '1.x']
+        # 1.x is the latest version of Go
+        go: ['1.15', '1.16', '1.x']
 
     steps:
     - uses: actions/checkout@v2
