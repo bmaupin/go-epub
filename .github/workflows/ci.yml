@@ -44,9 +44,6 @@ jobs:
   # Test with multiple versions of Go
   test-go-versions:
     runs-on: ubuntu-latest
-    env:
-      # TODO: I think we can get rid of this once we're no longer testing with Go < 1.13
-      GO111MODULE: on
     strategy:
       # Don't cancel remaining jobs when one matrix job fails
       fail-fast: false
