@@ -1,6 +1,7 @@
 package epub
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -34,7 +35,8 @@ AAAAAAAAAAAAAA==`, "\n", "", -1)
 
 func Test_fetchMedia(t *testing.T) {
 	filename := "gophercolor16x16.png"
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/image.png", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, err := os.Open(filepath.Join("testdata", filename))
 		if err != nil {
 			t.Fatal("cannot open testdata")
@@ -42,6 +44,10 @@ func Test_fetchMedia(t *testing.T) {
 		defer data.Close()
 		io.Copy(w, data)
 	}))
+	mux.HandleFunc("/test.css", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "body{}")
+	}))
+	ts := httptest.NewServer(mux)
 	defer ts.Close()
 
 	type args struct {
@@ -58,7 +64,7 @@ func Test_fetchMedia(t *testing.T) {
 		{
 			"URL request with test filename",
 			args{
-				mediaSource:     ts.URL,
+				mediaSource:     ts.URL + "/image.png",
 				mediaFolderPath: t.TempDir(),
 				mediaFilename:   "test",
 			},
@@ -95,7 +101,46 @@ func Test_fetchMedia(t *testing.T) {
 			"",
 			true,
 		},
-		// TODO: Add test cases.
+		{
+			"empty filename",
+			args{
+				mediaSource:     "badRequest",
+				mediaFolderPath: t.TempDir(),
+				mediaFilename:   "",
+			},
+			"",
+			true,
+		},
+		{
+			"bad path",
+			args{
+				mediaSource:     "badRequest",
+				mediaFolderPath: "-",
+				mediaFilename:   "",
+			},
+			"",
+			true,
+		},
+		{
+			"CSS",
+			args{
+				mediaSource:     ts.URL + "/test.css",
+				mediaFolderPath: t.TempDir(),
+				mediaFilename:   "test.css",
+			},
+			"text/css",
+			false,
+		},
+		{
+			"bad request",
+			args{
+				mediaSource:     ts.URL + "/nonexistent",
+				mediaFolderPath: t.TempDir(),
+				mediaFilename:   "test.css",
+			},
+			"",
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
