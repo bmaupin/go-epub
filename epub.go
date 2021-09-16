@@ -27,10 +27,8 @@ package epub
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -100,6 +98,7 @@ img {
 // Epub implements an EPUB file.
 type Epub struct {
 	sync.Mutex
+	*http.Client
 	author string
 	cover  *epubCover
 	// The key is the css filename, the value is the css source
@@ -144,6 +143,7 @@ func NewEpub(title string) *Epub {
 		imageFilename: "",
 		xhtmlFilename: "",
 	}
+	e.Client = http.DefaultClient
 	e.css = make(map[string]string)
 	e.fonts = make(map[string]string)
 	e.images = make(map[string]string)
@@ -175,7 +175,7 @@ func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
 }
 
 func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
-	return addMedia(source, internalFilename, cssFileFormat, CSSFolderName, e.css)
+	return addMedia(e.Client, source, internalFilename, cssFileFormat, CSSFolderName, e.css)
 }
 
 // AddFont adds a font file to the EPUB and returns a relative path to the font
@@ -192,7 +192,7 @@ func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
 func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
-	return addMedia(source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
+	return addMedia(e.Client, source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
 }
 
 // AddImage adds an image to the EPUB and returns a relative path to the image
@@ -209,7 +209,7 @@ func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
-	return addMedia(source, imageFilename, imageFileFormat, ImageFolderName, e.images)
+	return addMedia(e.Client, source, imageFilename, imageFileFormat, ImageFolderName, e.images)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a
@@ -451,15 +451,14 @@ func (e *Epub) Title() string {
 
 // Add a media file to the EPUB and return the path relative to the EPUB section
 // files
-func addMedia(source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
-	err := validateFileSource(source)
+func addMedia(client *http.Client, source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
+	err := grabber{client}.checkMedia(source)
 	if err != nil {
 		return "", &FileRetrievalError{
 			Source: source,
 			Err:    err,
 		}
 	}
-
 	if internalFilename == "" {
 		// If a filename isn't provided, use the filename from the source
 		internalFilename = filepath.Base(source)
@@ -484,36 +483,4 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 		mediaFolderName,
 		internalFilename,
 	), nil
-}
-
-func validateFileSource(source string) error {
-	u, err := url.Parse(source)
-	if err != nil {
-		return err
-	}
-
-	var r io.ReadCloser
-	var resp *http.Response
-	// If it's a URL
-	if u.Scheme == "http" || u.Scheme == "https" {
-		resp, err = http.Get(source)
-		if err != nil {
-			return err
-		}
-		r = resp.Body
-
-		// Otherwise, assume it's a local file
-	} else {
-		r, err = os.Open(source)
-	}
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := r.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	return nil
 }
