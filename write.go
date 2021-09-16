@@ -305,7 +305,7 @@ func (e *Epub) writeMedia(tempDir string, mediaMap map[string]string, mediaFolde
 		}
 
 		for mediaFilename, mediaSource := range mediaMap {
-			mediaType, err := fetchMedia(mediaSource, mediaFolderPath, mediaFilename)
+			mediaType, err := grabber{(e.Client)}.fetchMedia(mediaSource, mediaFolderPath, mediaFilename)
 			if err != nil {
 				return err
 			}
