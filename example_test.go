@@ -140,8 +140,8 @@ func ExampleEpub_AddSubSection() {
 
 	// Output:
 	// firstsection.xhtml
+	// section0001.xhtml
 	// section0002.xhtml
-	// section0003.xhtml
 }
 
 func ExampleEpub_SetCover() {

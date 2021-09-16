@@ -401,10 +401,10 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	coverBody := fmt.Sprintf(defaultCoverBody, internalImagePath)
 	// Title won't be used since the cover won't be added to the TOC
 	// First try to use the default cover filename
-	coverPath, err := e.addSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
+	coverPath, err := e.addSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath, "")
 	// If that doesn't work, generate a filename
 	if _, ok := err.(*FilenameAlreadyUsedError); ok {
-		coverPath, err = e.addSection(coverBody, "", "", internalCSSPath)
+		coverPath, err = e.addSection(coverBody, "", "", internalCSSPath, "")
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
@@ -473,8 +473,7 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 		}
 	}
 
-	if internalFilee.Lock()
-	defer e.Unlock()name == "" {
+	if internalFilename == "" {
 		// If a filename isn't provided, use the filename from the source
 		internalFilename = filepath.Base(source)
 		// If that's already used, try to generate a unique filename

@@ -99,7 +99,7 @@ type tocNcxNavPoint struct {
 	ID       string            `xml:"id,attr"`
 	Text     string            `xml:"navLabel>text"`
 	Content  tocNcxContent     `xml:"content"`
-	Children []*tocNcxNavPoint `xml:"navMap>navPoint"`
+	Children []*tocNcxNavPoint `xml:"navPoint"`
 }
 
 // Constructor for toc
@@ -160,7 +160,6 @@ func (t *toc) addSection(title string, relativePath string) {
 			Href: relativePath,
 			Data: title,
 		},
-		Children: []*tocNavItem{},
 	}
 	t.navTree[relativePath] = l
 	t.navXML.Links = append(t.navXML.Links, l)
@@ -187,7 +186,6 @@ func (t *toc) addSubSection(ref string, title string, relativePath string) {
 				Href: relativePath,
 				Data: title,
 			},
-			Children: []*tocNavItem{},
 		}
 		link.Children = append(link.Children, l)
 		t.navTree[relativePath] = l
