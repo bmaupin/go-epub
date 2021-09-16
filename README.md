@@ -1,8 +1,9 @@
-[![Build Status](https://travis-ci.org/bmaupin/go-epub.svg?branch=master)](https://travis-ci.org/bmaupin/go-epub)
-[![Coverage Status](https://coveralls.io/repos/github/bmaupin/go-epub/badge.svg?branch=master)](https://coveralls.io/github/bmaupin/go-epub?branch=master)
+[![CI](https://github.com/bmaupin/go-epub/workflows/CI/badge.svg)](https://github.com/bmaupin/go-epub/actions)
+[![Coverage Status](https://coveralls.io/repos/github/bmaupin/go-epub/badge.svg)](https://coveralls.io/github/bmaupin/go-epub)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bmaupin/go-epub)](https://goreportcard.com/report/github.com/bmaupin/go-epub)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bmaupin/go-epub/blob/master/LICENSE)
 [![GoDoc](https://godoc.org/github.com/bmaupin/go-epub?status.svg)](https://godoc.org/github.com/bmaupin/go-epub)
+
 ---
 
 ### Features
@@ -13,24 +14,45 @@
 
 For an example of actual usage, see https://github.com/bmaupin/go-docs-epub
 
-### Installation
+### Contributions
 
-    go get github.com/bmaupin/go-epub
+Contributions are welcome; please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
 
 ### Development
 
-    go get github.com/bmaupin/go-epub
-    cd $GOPATH/src/github.com/bmaupin/go-epub
+Clone this repository using Git. Run tests as documented below.
 
-Dependencies are managed using [Go modules](https://github.com/golang/go/wiki/Modules)
+Dependencies are managed using [Go modules](https://golang.org/ref/mod)
 
 ### Testing
 
-1. (Optional) Install EpubCheck
+#### EPUBCheck
 
-       wget https://github.com/IDPF/epubcheck/releases/download/v4.0.2/epubcheck-4.0.2.zip
-       unzip epubcheck-4.0.2.zip
+EPUBCheck is a tool that will check an EPUB for validation errors.
 
-2. Run tests
+If EPUBCheck is installed locally, it will be run alongside the Go tests. To install EPUBCheck:
 
-       go test
+1. Make sure you have Java installed on your system
+
+1. Get the latest version of EPUBCheck from [https://github.com/w3c/epubcheck/releases](https://github.com/w3c/epubcheck/releases)
+
+1. Download and extract EPUBCheck in the root directory of this project, e.g.
+
+   ```
+   wget https://github.com/IDPF/epubcheck/releases/download/v4.2.5/epubcheck-4.2.5.zip
+   unzip epubcheck-4.2.5.zip
+   ```
+
+If you do not wish to install EPUBCheck locally, you can manually validate the EPUB:
+
+1. Set `doCleanup = false` in epub_test.go
+
+1. Run the tests (see below)
+
+1. Upload the generated `My EPUB.epub` file to [http://validator.idpf.org/](http://validator.idpf.org/)
+
+#### Run tests
+
+```
+go test
+```

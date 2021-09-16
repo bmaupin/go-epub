@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -56,6 +57,8 @@ const (
 	testIdentifierTemplate    = `<dc:identifier id="pub-id">%s</dc:identifier>`
 	testImageFromFileFilename = "testfromfile.png"
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
+	testNumberFilenameStart   = "01filenametest.png"
+	testSpaceInFilename       = "filename with space.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
@@ -98,8 +101,25 @@ func TestEpubWrite(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
+	// Check the contents of the package file
+	// NOTE: This is tested first because it contains a timestamp; testing it later may result in a different timestamp
+	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.Identifier(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
+	if trimAllSpace(string(contents)) != trimAllSpace(testPkgContents) {
+		t.Errorf(
+			"Package file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testPkgContents)
+	}
+
 	// Check the contents of the mimetype file
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
+	contents, err = ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading mimetype file: %s", err)
 	}
@@ -124,22 +144,6 @@ func TestEpubWrite(t *testing.T) {
 				"Expected: %s",
 			contents,
 			testContainerContents)
-	}
-
-	// Check the contents of the package file
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
-	if err != nil {
-		t.Errorf("Unexpected error reading package file: %s", err)
-	}
-
-	testPkgContents := fmt.Sprintf(testPkgContentTemplate, e.Identifier(), testEpubTitle, time.Now().UTC().Format("2006-01-02T15:04:05Z"))
-	if trimAllSpace(string(contents)) != trimAllSpace(testPkgContents) {
-		t.Errorf(
-			"Package file contents don't match\n"+
-				"Got: %s\n"+
-				"Expected: %s",
-			contents,
-			testPkgContents)
 	}
 
 	cleanup(testEpubFilename, tempDir)
@@ -591,6 +595,56 @@ func TestSetCover(t *testing.T) {
 	cleanup(testEpubFilename, tempDir)
 }
 
+func TestManifestItems(t *testing.T) {
+	testManifestItems := []string{`id="filenamewithspace.png" href="images/filename with space.png" media-type="image/png"></item>`,
+		`id="gophercolor16x16.png" href="images/gophercolor16x16.png" media-type="image/png"></item>`,
+		`id="id01filenametest.png" href="images/01filenametest.png" media-type="image/png"></item>`,
+		`id="image0005.png" href="images/image0005.png" media-type="image/png"></item>`,
+		`id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"></item>`,
+		`id="testfromfile.png" href="images/testfromfile.png" media-type="image/png"></item>`,
+	}
+
+	e := NewEpub(testEpubTitle)
+	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	e.AddImage(testImageFromFileSource, "")
+	// In particular, we want to test these next two, which will be modified by fixXMLId()
+	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
+	e.AddImage(testImageFromFileSource, testSpaceInFilename)
+	e.AddImage(testImageFromURLSource, "")
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	pkgFileContent, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	if err != nil {
+		t.Errorf("Unexpected error reading package file: %s", err)
+	}
+
+	// Get just the manifest portion of the package file
+	manifestContentFromFile := string(pkgFileContent)[strings.Index(string(pkgFileContent), "<manifest>"):strings.Index(string(pkgFileContent), "</manifest>")]
+	// Convert the manifest portion of the package file to a slice
+	pkgFileManifestItems := strings.Split(manifestContentFromFile, "<item")
+	// Drop the <manifest> and </manifest>
+	pkgFileManifestItems = pkgFileManifestItems[1 : len(pkgFileManifestItems)-1]
+	// Trim whitespace for each item
+	for i := range pkgFileManifestItems {
+		pkgFileManifestItems[i] = strings.TrimSpace(pkgFileManifestItems[i])
+	}
+	// Sort the manifest items from the package file (they will be in a random order)
+	sort.Strings(pkgFileManifestItems)
+
+	// Compare the slices by converting them to strings
+	if strings.Join(pkgFileManifestItems[:], ",") != strings.Join(testManifestItems[:], ",") {
+		t.Errorf(
+			"Package file manifest items don't match\n"+
+				"Got: \n%s\n\n"+
+				"Expected: \n%s\n",
+			strings.Join(pkgFileManifestItems[:], "\n"),
+			strings.Join(testManifestItems[:], "\n"))
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
 func TestFilenameAlreadyUsedError(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 
@@ -632,11 +686,12 @@ func TestEpubValidity(t *testing.T) {
 	e.AddFont(testFontFromFileSource, "")
 	// Add CSS referencing the font in order to validate the font MIME type
 	testFontCSSPath, _ := e.AddCSS(testFontCSSSource, testFontCSSFilename)
-	e.AddSection(testSectionBody, "", "", testFontCSSPath)
+	e.AddSection(testSectionBody, testSectionTitle, "", testFontCSSPath)
 
 	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
+	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
 	e.SetDescription(testEpubDescription)
@@ -657,6 +712,9 @@ func TestEpubValidity(t *testing.T) {
 
 	if doCleanup {
 		cleanup(testEpubFilename, tempDir)
+	} else {
+		// Always remove the files in tempDir; they can still be extracted from the test epub as needed
+		os.RemoveAll(tempDir)
 	}
 }
 
@@ -739,10 +797,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	return nil
 }
 
-// This function requires epubcheck to work (https://github.com/IDPF/epubcheck)
-//
-//     wget https://github.com/w3c/epubcheck/releases/download/v4.2.2/epubcheck-4.2.2.zip
-//     unzip epubcheck-4.2.2.zip
+// This function requires EPUBCheck to work; see README.md for more information
 func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
 	cwd, err := os.Getwd()
 	if err != nil {

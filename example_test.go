@@ -106,7 +106,7 @@ func ExampleEpub_AddSection() {
 
 	// Output:
 	// firstsection.xhtml
-	// section0002.xhtml
+	// section0001.xhtml
 }
 
 func ExampleEpub_AddSubSection() {

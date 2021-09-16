@@ -1,0 +1,88 @@
+# Source: https://github.com/actions/starter-workflows/blob/main/ci/go.yml
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Test with EPUBCheck and send test coverage
+  test-epubcheck:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    # This needs to come after the checkout, which wipes the working directory
+    - name: Download EPUBCheck
+      run: |
+        # Download the latest version of EPUBCheck
+        wget $(curl -Ls -H "Accept: application/vnd.github.v3+json" 'https://api.github.com/repos/IDPF/epubcheck/releases?per_page=1' | jq '.[0].assets[0].browser_download_url' -r)
+        unzip epubcheck-*.zip
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        # This is the latest 1.x version of Go
+        go-version: 1.x
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v -coverprofile=profile.cov ./...
+
+    - name: Send coverage
+      uses: shogo82148/actions-goveralls@v1
+      with:
+        path-to-profile: profile.cov
+
+
+  # Test with multiple versions of Go
+  test-go-versions:
+    runs-on: ubuntu-latest
+    strategy:
+      # Don't cancel remaining jobs when one matrix job fails
+      fail-fast: false
+      matrix:
+        # 1.x is the latest version of Go
+        go: ['1.15', '1.16', '1.x']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+
+  # Test Mac and Windows with the latest version of Go
+  test-mac-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.x
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
