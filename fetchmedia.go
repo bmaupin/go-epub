@@ -23,25 +23,21 @@ type grabber struct {
 func (g grabber) checkMedia(mediaSource string) error {
 	fetchErrors := make([]error, 0)
 	for _, f := range []func(string, bool) (io.ReadCloser, error){
-		g.fetchMediaFromURL,
-		g.fetchMediaLocally,
-		g.fetchMediaDataURL,
+		g.localHandler,
+		g.httpHandler,
+		g.dataURLHandler,
 	} {
 		var err error
 		source, err := f(mediaSource, true)
 		if source != nil {
 			source.Close()
 		}
-		if err != nil {
-			fetchErrors = append(fetchErrors, err)
-			continue
+		if err == nil {
+			return nil
 		}
-		break
+		fetchErrors = append(fetchErrors, err)
 	}
-	if len(fetchErrors) == 3 {
-		return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
-	}
-	return nil
+	return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
 }
 
 // fetchMedia from mediaSource into mediaFolderPath as mediaFilename returning its type.
@@ -61,9 +57,9 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 	var source io.ReadCloser
 	fetchErrors := make([]error, 0)
 	for _, f := range []func(string, bool) (io.ReadCloser, error){
-		g.fetchMediaFromURL,
-		g.fetchMediaLocally,
-		g.fetchMediaDataURL,
+		g.localHandler,
+		g.httpHandler,
+		g.dataURLHandler,
 	} {
 		var err error
 		source, err = f(mediaSource, false)
@@ -100,7 +96,7 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 	return mtype, nil
 }
 
-func (g grabber) fetchMediaFromURL(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
+func (g grabber) httpHandler(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
 	var resp *http.Response
 	var err error
 	if onlyCheck {
@@ -117,16 +113,17 @@ func (g grabber) fetchMediaFromURL(mediaSource string, onlyCheck bool) (io.ReadC
 	return resp.Body, nil
 }
 
-func (g grabber) fetchMediaLocally(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
+func (g grabber) localHandler(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
 	if onlyCheck {
-		f, err := os.Open(mediaSource)
-		f.Close()
-		return nil, err
+		if _, err := os.Stat(mediaSource); os.IsNotExist(err) {
+			return nil, err
+		}
+		return nil, nil
 	}
 	return os.Open(mediaSource)
 }
 
-func (g grabber) fetchMediaDataURL(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
+func (g grabber) dataURLHandler(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
 	if onlyCheck {
 		_, err := dataurl.DecodeString(mediaSource)
 		return nil, err
