@@ -60,15 +60,20 @@ type toc struct {
 }
 
 type tocNavBody struct {
-	XMLName  xml.Name      `xml:"nav"`
-	EpubType string        `xml:"epub:type,attr"`
-	H1       string        `xml:"h1"`
-	Links    []*tocNavItem `xml:"ol>li"`
+	XMLName  xml.Name    `xml:"nav"`
+	EpubType string      `xml:"epub:type,attr"`
+	H1       string      `xml:"h1"`
+	Links    *tocNavList `xml:"ol"`
+}
+
+type tocNavList struct {
+	XMLName xml.Name      `xml:"ol,omitempty"`
+	Items   []*tocNavItem `xml:"li"`
 }
 
 type tocNavItem struct {
-	A        tocNavLink    `xml:"a"`
-	Children []*tocNavItem `xml:"ol>li"`
+	A        tocNavLink `xml:"a"`
+	Children *tocNavList
 }
 
 type tocNavLink struct {
@@ -162,7 +167,7 @@ func (t *toc) addSection(title string, relativePath string) {
 		},
 	}
 	t.navTree[relativePath] = l
-	t.navXML.Links = append(t.navXML.Links, l)
+	t.navXML.Links.Items = append(t.navXML.Links.Items, l)
 	uuid, _ := uuid.NewV4()
 	np := &tocNcxNavPoint{
 		ID:   "navPoint-" + uuid.String(),
@@ -170,7 +175,6 @@ func (t *toc) addSection(title string, relativePath string) {
 		Content: tocNcxContent{
 			Src: relativePath,
 		},
-		Children: []*tocNcxNavPoint{},
 	}
 	t.ncxXML.NavMap = append(t.ncxXML.NavMap, np)
 	t.NxcTree[relativePath] = np
@@ -187,7 +191,10 @@ func (t *toc) addSubSection(ref string, title string, relativePath string) {
 				Data: title,
 			},
 		}
-		link.Children = append(link.Children, l)
+		if link.Children == nil {
+			link.Children = &tocNavList{}
+		}
+		link.Children.Items = append(link.Children.Items, l)
 		t.navTree[relativePath] = l
 
 		navMap, _ := t.NxcTree[refRelativePath]
