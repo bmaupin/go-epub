@@ -14,9 +14,35 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
+// grabber is a top level structure that allows a custom http client.
+// if onlyChecl is true, the methods will not perform actual grab to spare memory and bandwidth
+type grabber struct {
+	*http.Client
+}
+
+func (g grabber) checkMedia(mediaSource string) error {
+	fetchErrors := make([]error, 0)
+	for _, f := range []func(string, bool) (io.ReadCloser, error){
+		g.localHandler,
+		g.httpHandler,
+		g.dataURLHandler,
+	} {
+		var err error
+		source, err := f(mediaSource, true)
+		if source != nil {
+			source.Close()
+		}
+		if err == nil {
+			return nil
+		}
+		fetchErrors = append(fetchErrors, err)
+	}
+	return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
+}
+
 // fetchMedia from mediaSource into mediaFolderPath as mediaFilename returning its type.
 // the mediaSource can be a URL, a local path or an inline dataurl (as specified in RFC 2397)
-func fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) (mediaType string, err error) {
+func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) (mediaType string, err error) {
 
 	mediaFilePath := filepath.Join(
 		mediaFolderPath,
@@ -30,13 +56,13 @@ func fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) (mediaType s
 	defer w.Close()
 	var source io.ReadCloser
 	fetchErrors := make([]error, 0)
-	for _, f := range []func(string) (io.ReadCloser, error){
-		fetchMediaFromURL,
-		fetchMediaLocally,
-		fetchMediaDataURL,
+	for _, f := range []func(string, bool) (io.ReadCloser, error){
+		g.localHandler,
+		g.httpHandler,
+		g.dataURLHandler,
 	} {
 		var err error
-		source, err = f(mediaSource)
+		source, err = f(mediaSource, false)
 		if err != nil {
 			fetchErrors = append(fetchErrors, err)
 			continue
@@ -70,8 +96,14 @@ func fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) (mediaType s
 	return mtype, nil
 }
 
-func fetchMediaFromURL(mediaSource string) (io.ReadCloser, error) {
-	resp, err := http.Get(mediaSource)
+func (g grabber) httpHandler(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
+	var resp *http.Response
+	var err error
+	if onlyCheck {
+		resp, err = g.Head(mediaSource)
+	} else {
+		resp, err = g.Get(mediaSource)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -81,11 +113,21 @@ func fetchMediaFromURL(mediaSource string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func fetchMediaLocally(mediaSource string) (io.ReadCloser, error) {
+func (g grabber) localHandler(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
+	if onlyCheck {
+		if _, err := os.Stat(mediaSource); os.IsNotExist(err) {
+			return nil, err
+		}
+		return nil, nil
+	}
 	return os.Open(mediaSource)
 }
 
-func fetchMediaDataURL(mediaSource string) (io.ReadCloser, error) {
+func (g grabber) dataURLHandler(mediaSource string, onlyCheck bool) (io.ReadCloser, error) {
+	if onlyCheck {
+		_, err := dataurl.DecodeString(mediaSource)
+		return nil, err
+	}
 	data, err := dataurl.DecodeString(mediaSource)
 	if err != nil {
 		return nil, err

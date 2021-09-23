@@ -27,10 +27,8 @@ package epub
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -100,6 +98,7 @@ img {
 // Epub implements an EPUB file.
 type Epub struct {
 	sync.Mutex
+	*http.Client
 	author string
 	cover  *epubCover
 	// The key is the css filename, the value is the css source
@@ -144,6 +143,7 @@ func NewEpub(title string) *Epub {
 		imageFilename: "",
 		xhtmlFilename: "",
 	}
+	e.Client = http.DefaultClient
 	e.css = make(map[string]string)
 	e.fonts = make(map[string]string)
 	e.images = make(map[string]string)
@@ -161,7 +161,7 @@ func NewEpub(title string) *Epub {
 // file that can be used in EPUB sections in the format:
 // ../CSSFolderName/internalFilename
 //
-// The CSS source should either be a URL or a path to a local file; in either
+// The CSS source should either be a URL, a path to a local file or a embeded dataurl; in either
 // case, the CSS file will be retrieved and stored in the EPUB.
 //
 // The internal filename will be used when storing the CSS file in the EPUB
@@ -175,14 +175,14 @@ func (e *Epub) AddCSS(source string, internalFilename string) (string, error) {
 }
 
 func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
-	return addMedia(source, internalFilename, cssFileFormat, CSSFolderName, e.css)
+	return addMedia(e.Client, source, internalFilename, cssFileFormat, CSSFolderName, e.css)
 }
 
 // AddFont adds a font file to the EPUB and returns a relative path to the font
 // file that can be used in EPUB sections in the format:
 // ../FontFolderName/internalFilename
 //
-// The font source should either be a URL or a path to a local file; in either
+// The font source should either be a URL, a path to a local file or a embeded dataurl; in either
 // case, the font file will be retrieved and stored in the EPUB.
 //
 // The internal filename will be used when storing the font file in the EPUB
@@ -192,14 +192,14 @@ func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
 func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
-	return addMedia(source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
+	return addMedia(e.Client, source, internalFilename, fontFileFormat, FontFolderName, e.fonts)
 }
 
 // AddImage adds an image to the EPUB and returns a relative path to the image
 // file that can be used in EPUB sections in the format:
 // ../ImageFolderName/internalFilename
 //
-// The image source should either be a URL or a path to a local file; in either
+// The image source should either be a URL, a path to a local file or a embeded dataurl; in either
 // case, the image file will be retrieved and stored in the EPUB.
 //
 // The internal filename will be used when storing the image file in the EPUB
@@ -209,7 +209,7 @@ func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
-	return addMedia(source, imageFilename, imageFileFormat, ImageFolderName, e.images)
+	return addMedia(e.Client, source, imageFilename, imageFileFormat, ImageFolderName, e.images)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a
@@ -451,15 +451,14 @@ func (e *Epub) Title() string {
 
 // Add a media file to the EPUB and return the path relative to the EPUB section
 // files
-func addMedia(source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
-	err := validateFileSource(source)
+func addMedia(client *http.Client, source string, internalFilename string, mediaFileFormat string, mediaFolderName string, mediaMap map[string]string) (string, error) {
+	err := grabber{client}.checkMedia(source)
 	if err != nil {
 		return "", &FileRetrievalError{
 			Source: source,
 			Err:    err,
 		}
 	}
-
 	if internalFilename == "" {
 		// If a filename isn't provided, use the filename from the source
 		internalFilename = filepath.Base(source)
@@ -484,36 +483,4 @@ func addMedia(source string, internalFilename string, mediaFileFormat string, me
 		mediaFolderName,
 		internalFilename,
 	), nil
-}
-
-func validateFileSource(source string) error {
-	u, err := url.Parse(source)
-	if err != nil {
-		return err
-	}
-
-	var r io.ReadCloser
-	var resp *http.Response
-	// If it's a URL
-	if u.Scheme == "http" || u.Scheme == "https" {
-		resp, err = http.Get(source)
-		if err != nil {
-			return err
-		}
-		r = resp.Body
-
-		// Otherwise, assume it's a local file
-	} else {
-		r, err = os.Open(source)
-	}
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := r.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	return nil
 }
