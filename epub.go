@@ -161,7 +161,7 @@ func NewEpub(title string) *Epub {
 // file that can be used in EPUB sections in the format:
 // ../CSSFolderName/internalFilename
 //
-// The CSS source should either be a URL, a path to a local file or a embeded dataurl; in either
+// The CSS source should either be a URL, a path to a local file, or an embedded data URL; in any
 // case, the CSS file will be retrieved and stored in the EPUB.
 //
 // The internal filename will be used when storing the CSS file in the EPUB
@@ -182,7 +182,7 @@ func (e *Epub) addCSS(source string, internalFilename string) (string, error) {
 // file that can be used in EPUB sections in the format:
 // ../FontFolderName/internalFilename
 //
-// The font source should either be a URL, a path to a local file or a embeded dataurl; in either
+// The font source should either be a URL, a path to a local file, or an embedded data URL; in any
 // case, the font file will be retrieved and stored in the EPUB.
 //
 // The internal filename will be used when storing the font file in the EPUB
@@ -199,7 +199,7 @@ func (e *Epub) AddFont(source string, internalFilename string) (string, error) {
 // file that can be used in EPUB sections in the format:
 // ../ImageFolderName/internalFilename
 //
-// The image source should either be a URL, a path to a local file or a embeded dataurl; in either
+// The image source should either be a URL, a path to a local file, or an embedded data URL; in any
 // case, the image file will be retrieved and stored in the EPUB.
 //
 // The internal filename will be used when storing the image file in the EPUB
