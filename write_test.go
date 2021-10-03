@@ -13,6 +13,6 @@ func TestEpubWriteTo(t *testing.T) {
 		t.Fatal(err)
 	}
 	if int64(len(b.Bytes())) != n {
-		t.Fail()
+		t.Fatalf("Expected size %v, got %v", len(b.Bytes()), n)
 	}
 }
