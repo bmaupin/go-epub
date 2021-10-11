@@ -3,8 +3,8 @@ package epub
 import (
 	"os"
 
+	"github.com/bmaupin/go-epub/internal/storage"
 	"github.com/bmaupin/go-epub/internal/storage/osfs"
-	"github.com/bmaupin/go-epub/storage"
 )
 
 type FSType int
