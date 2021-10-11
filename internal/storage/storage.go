@@ -22,5 +22,5 @@ type Storage interface {
 
 type File interface {
 	fs.File
-	io.WriteSeeker
+	io.Writer
 }

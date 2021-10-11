@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/bmaupin/go-epub/internal/storage"
+	"github.com/bmaupin/go-epub/internal/storage/memory"
 	"github.com/bmaupin/go-epub/internal/storage/osfs"
 )
 
@@ -28,7 +29,7 @@ func Use(s FSType) {
 		filesystem = osfs.NewOSFS(os.TempDir())
 	case MemoryFS:
 		//TODO
-		filesystem = nil
+		filesystem = memory.NewMemory()
 	default:
 		panic("unexpected FSType")
 	}
