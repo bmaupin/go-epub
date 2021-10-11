@@ -22,10 +22,10 @@ const (
 )
 
 // Use s as default storage/ This is tipically used in an init function.
+// Default to local filesystem
 func Use(s FSType) {
 	switch s {
 	case OsFS:
-		//TODO
 		filesystem = osfs.NewOSFS(os.TempDir())
 	case MemoryFS:
 		//TODO

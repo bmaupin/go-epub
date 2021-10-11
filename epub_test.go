@@ -677,7 +677,7 @@ func TestUnableToCreateEpubError(t *testing.T) {
 	}
 }
 
-func TestEpubValidity(t *testing.T) {
+func testEpubValidity(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
@@ -714,8 +714,20 @@ func TestEpubValidity(t *testing.T) {
 		cleanup(testEpubFilename, tempDir)
 	} else {
 		// Always remove the files in tempDir; they can still be extracted from the test epub as needed
-		os.RemoveAll(tempDir)
+		filesystem.RemoveAll(tempDir)
 	}
+
+}
+
+func TestEpubValidity(t *testing.T) {
+	t.Run("LocalFS", func(t *testing.T) {
+		Use(OsFS)
+		testEpubValidity(t)
+	})
+	t.Run("MemoryFS", func(t *testing.T) {
+		Use(MemoryFS)
+		testEpubValidity(t)
+	})
 }
 
 func cleanup(epubFilename string, tempDir string) {

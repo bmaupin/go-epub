@@ -8,10 +8,13 @@ import (
 
 type file struct {
 	name    string
-	isDir   bool
 	modTime time.Time
 	content bytes.Buffer
-	perm    fs.FileMode
+	mode    fs.FileMode
+}
+
+func (f *file) Info() (fs.FileInfo, error) {
+	return f, nil
 }
 
 func (f *file) Stat() (fs.FileInfo, error) {
@@ -38,8 +41,12 @@ func (f *file) Size() int64 {
 	return int64(f.content.Len())
 }
 
+func (f *file) Type() fs.FileMode {
+	return f.mode & fs.ModeType
+}
+
 func (f *file) Mode() fs.FileMode {
-	return f.perm
+	return f.mode
 }
 
 func (f *file) ModTime() time.Time {
@@ -47,7 +54,7 @@ func (f *file) ModTime() time.Time {
 }
 
 func (f *file) IsDir() bool {
-	return f.isDir
+	return f.mode&fs.ModeDir != 0
 }
 
 func (f *file) Sys() interface{} {

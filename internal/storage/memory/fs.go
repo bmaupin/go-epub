@@ -3,6 +3,7 @@ package memory
 import (
 	"bytes"
 	"io/fs"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,7 +16,13 @@ type Memory struct {
 
 func NewMemory() *Memory {
 	return &Memory{
-		fs: make(map[string]*file),
+		fs: map[string]*file{
+			"/": {
+				name:    filepath.Base("/"),
+				modTime: time.Now(),
+				mode:    fs.ModeDir | (0666),
+			},
+		},
 	}
 }
 
@@ -43,10 +50,9 @@ func (m *Memory) WriteFile(name string, data []byte, perm fs.FileMode) error {
 		return fs.ErrInvalid
 	}
 	m.fs[name] = &file{
-		name:    name,
-		isDir:   false,
+		name:    filepath.Base(name),
 		modTime: time.Now(),
-		perm:    perm,
+		mode:    (perm),
 		content: *bytes.NewBuffer(data),
 	}
 	return nil
@@ -54,14 +60,13 @@ func (m *Memory) WriteFile(name string, data []byte, perm fs.FileMode) error {
 
 // Mkdir creates a new directory with the specified name and permission bits (before umask). If there is an error, it will be of type *PathError.
 func (m *Memory) Mkdir(name string, perm fs.FileMode) error {
-	if !fs.ValidPath(name) {
+	if !fs.ValidPath(filepath.Base(name)) {
 		return fs.ErrInvalid
 	}
 	f := &file{
-		name:    name,
-		isDir:   true,
+		name:    filepath.Base(name),
 		modTime: time.Now(),
-		perm:    perm,
+		mode:    fs.ModeDir | (perm),
 	}
 	m.fs[name] = f
 	return nil
@@ -79,16 +84,27 @@ func (m *Memory) RemoveAll(name string) error {
 
 // Create creates or truncates the named file. If the file already exists, it is truncated. If the file does not exist, it is created with mode 0666 (before umask). If successful, methods on the returned File can be used for I/O; the associated file descriptor has mode O_RDWR. If there is an error, it will be of type *PathError.
 func (m *Memory) Create(name string) (storage.File, error) {
-	if !fs.ValidPath(name) {
+	if !fs.ValidPath(filepath.Base(name)) {
 		return nil, fs.ErrInvalid
 	}
 	f := &file{
-		name:    name,
-		isDir:   false,
+		name:    filepath.Base(name),
 		modTime: time.Now(),
-		perm:    0666,
+		mode:    0666,
 		content: bytes.Buffer{},
 	}
 	m.fs[name] = f
 	return f, nil
+}
+
+// ReadDir reads the named directory
+// and returns a list of directory entries sorted by filename.
+func (m *Memory) ReadDir(name string) ([]fs.DirEntry, error) {
+	output := make([]fs.DirEntry, 0)
+	for k, v := range m.fs {
+		if filepath.Dir(k) == name {
+			output = append(output, v)
+		}
+	}
+	return output, nil
 }

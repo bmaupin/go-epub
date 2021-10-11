@@ -275,7 +275,7 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 
 		r, err := filesystem.Open(path)
 		if err != nil {
-			return fmt.Errorf("error opening file being added to EPUB: %w", err)
+			return fmt.Errorf("error opening file %v being added to EPUB: %w", path, err)
 		}
 		defer func() {
 			if err := r.Close(); err != nil {

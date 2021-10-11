@@ -51,7 +51,7 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 	// failfast, create the output file handler at the begining, if we cannot write the file, bail out
 	w, err := filesystem.Create(mediaFilePath)
 	if err != nil {
-		return "", fmt.Errorf("unable to create file: %s", err)
+		return "", fmt.Errorf("unable to create file %s: %s", mediaFilePath, err)
 	}
 	defer w.Close()
 	var source io.ReadCloser
@@ -86,7 +86,6 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 		return "", &FileRetrievalError{Source: mediaSource, Err: err}
 	}
 	// Detect the mediaType
-	//w.Seek(0, io.SeekStart)
 	mime, err := mimetype.DetectReader(&buffer)
 	if err != nil {
 		panic(err)

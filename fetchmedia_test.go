@@ -156,8 +156,6 @@ func Test_fetchMedia(t *testing.T) {
 			}
 			var file fs.File
 			if file, err = filesystem.Open(filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename)); os.IsNotExist(err) {
-				//if _, err := os.Stat(filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename)); os.IsNotExist(err) {
-				// path/to/whatever does not exist
 				t.Errorf("fetchMedia(): file %v does not exist (source %v): %v", filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename), tt.args.mediaSource, err)
 			}
 			if err == nil {
