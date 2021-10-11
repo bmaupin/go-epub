@@ -49,7 +49,7 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 		mediaFilename,
 	)
 	// failfast, create the output file handler at the begining, if we cannot write the file, bail out
-	w, err := os.Create(mediaFilePath)
+	w, err := filesystem.Create(mediaFilePath)
 	if err != nil {
 		return "", fmt.Errorf("unable to create file: %s", err)
 	}

@@ -3,7 +3,6 @@ package epub
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 )
 
 const (
@@ -124,7 +123,7 @@ func (x *xhtml) write(xhtmlFilePath string) {
 	// It's generally nice to have files end with a newline
 	xhtmlFileContent = append(xhtmlFileContent, "\n"...)
 
-	if err := ioutil.WriteFile(xhtmlFilePath, []byte(xhtmlFileContent), filePermissions); err != nil {
+	if err := filesystem.WriteFile(xhtmlFilePath, []byte(xhtmlFileContent), filePermissions); err != nil {
 		panic(fmt.Sprintf("Error writing XHTML file: %s", err))
 	}
 }

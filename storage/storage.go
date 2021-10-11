@@ -3,42 +3,24 @@
 package storage
 
 import (
+	"io"
 	"io/fs"
 )
-
-type FSType int
-
-// Filesystem is the current filesytem used as the underlying layer to manage the files.
-// See the storage.Use method to change it.
-var Filesystem Storage
-
-const (
-	// This defines the local filesystem
-	OsFS FSType = iota
-	// This defines the memory filesystem
-	MemoryFS
-)
-
-// Use s as default storage/ This is tipically used in an init function.
-func Use(s FSType) {
-	switch s {
-	case OsFS:
-		//TODO
-		Filesystem = nil
-	case MemoryFS:
-		//TODO
-		Filesystem = nil
-	default:
-		panic("unexpected FSType")
-	}
-}
 
 // Storage is an abstraction of the filesystem
 type Storage interface {
 	fs.FS
+	// WriteFile writes data to the named file, creating it if necessary. If the file does not exist, WriteFile creates it with permissions perm (before umask); otherwise WriteFile truncates it before writing, without changing permissions.
 	WriteFile(name string, data []byte, perm fs.FileMode) error
+	// Mkdir creates a new directory with the specified name and permission bits (before umask). If there is an error, it will be of type *PathError.
+	Mkdir(name string, perm fs.FileMode) error
+	// RemoveAll removes path and any children it contains. It removes everything it can but returns the first error it encounters. If the path does not exist, RemoveAll returns nil (no error). If there is an error, it will be of type *PathError.
+	RemoveAll(name string) error
+	// Create creates or truncates the named file. If the file already exists, it is truncated. If the file does not exist, it is created with mode 0666 (before umask). If successful, methods on the returned File can be used for I/O; the associated file descriptor has mode O_RDWR. If there is an error, it will be of type *PathError.
+	Create(name string) (File, error)
 }
 
-func WriteFile(name string, data []byte, perm fs.FileMode) error {
-	return Filesystem.WriteFile(name, data, perm)
+type File interface {
+	fs.File
+	io.WriteSeeker
 }

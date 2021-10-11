@@ -3,6 +3,7 @@ package epub
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -65,7 +66,7 @@ func Test_fetchMedia(t *testing.T) {
 			"URL request with test filename",
 			args{
 				mediaSource:     ts.URL + "/image.png",
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "test",
 			},
 			"image/png",
@@ -75,7 +76,7 @@ func Test_fetchMedia(t *testing.T) {
 			"local file with test filename",
 			args{
 				mediaSource:     filepath.Join("testdata", filename),
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "test",
 			},
 			"image/png",
@@ -85,7 +86,7 @@ func Test_fetchMedia(t *testing.T) {
 			"dataurl media with test filename",
 			args{
 				mediaSource:     `data:image/vnd.microsoft.icon;name=golang%20favicon;base64,` + golangFavicon,
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "test",
 			},
 			"image/x-icon",
@@ -95,7 +96,7 @@ func Test_fetchMedia(t *testing.T) {
 			"bad request",
 			args{
 				mediaSource:     "badRequest",
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "test",
 			},
 			"",
@@ -105,7 +106,7 @@ func Test_fetchMedia(t *testing.T) {
 			"empty filename",
 			args{
 				mediaSource:     "badRequest",
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "",
 			},
 			"",
@@ -125,7 +126,7 @@ func Test_fetchMedia(t *testing.T) {
 			"CSS",
 			args{
 				mediaSource:     ts.URL + "/test.css",
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "test.css",
 			},
 			"text/css",
@@ -135,7 +136,7 @@ func Test_fetchMedia(t *testing.T) {
 			"bad request",
 			args{
 				mediaSource:     ts.URL + "/nonexistent",
-				mediaFolderPath: t.TempDir(),
+				mediaFolderPath: "/",
 				mediaFilename:   "test.css",
 			},
 			"",
@@ -153,9 +154,14 @@ func Test_fetchMedia(t *testing.T) {
 			if gotMediaType != tt.wantMediaType {
 				t.Errorf("fetchMedia() = %v, want %v", gotMediaType, tt.wantMediaType)
 			}
-			if _, err := os.Stat(filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename)); os.IsNotExist(err) {
+			var file fs.File
+			if file, err = filesystem.Open(filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename)); os.IsNotExist(err) {
+				//if _, err := os.Stat(filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename)); os.IsNotExist(err) {
 				// path/to/whatever does not exist
 				t.Errorf("fetchMedia(): file %v does not exist (source %v): %v", filepath.Join(tt.args.mediaFolderPath, tt.args.mediaFilename), tt.args.mediaSource, err)
+			}
+			if err == nil {
+				file.Close()
 			}
 		})
 	}

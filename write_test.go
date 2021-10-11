@@ -19,6 +19,10 @@ func TestEpubWriteTo(t *testing.T) {
 	}
 }
 
+func TestZip(t *testing.T) {
+
+}
+
 func TestEpub_writeEpub(t *testing.T) {
 	type fields struct {
 		Mutex      sync.Mutex
