@@ -75,7 +75,7 @@ func (m *Memory) Mkdir(name string, perm fs.FileMode) error {
 // RemoveAll removes path and any children it contains. It removes everything it can but returns the first error it encounters. If the path does not exist, RemoveAll returns nil (no error). If there is an error, it will be of type *PathError.
 func (m *Memory) RemoveAll(name string) error {
 	for k := range m.fs {
-		if strings.HasPrefix(name, k) {
+		if strings.HasPrefix(k, name) {
 			delete(m.fs, k)
 		}
 	}
