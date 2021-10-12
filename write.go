@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/gofrs/uuid"
 )
 
 // UnableToCreateEpubError is thrown by Write if it cannot create the destination EPUB file
@@ -54,18 +56,7 @@ const (
 func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 	e.Lock()
 	defer e.Unlock()
-	tempDir := tempDirPrefix
-	/*
-		tempDir, err := ioutil.TempDir("", tempDirPrefix)
-		defer func() {
-			if err := os.RemoveAll(tempDir); err != nil {
-				panic(fmt.Sprintf("Error removing temp directory: %s", err))
-			}
-		}()
-		if err != nil {
-			panic(fmt.Sprintf("Error creating temp directory: %s", err))
-		}
-	*/
+	tempDir := uuid.Must(uuid.NewV4()).String()
 
 	err := filesystem.Mkdir(tempDir, dirPermissions)
 	if err != nil {
