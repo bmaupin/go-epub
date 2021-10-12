@@ -108,3 +108,18 @@ func (m *Memory) ReadDir(name string) ([]fs.DirEntry, error) {
 	}
 	return output, nil
 }
+
+// Stat returns a FileInfo describing the file.
+// If there is an error, it should be of type *PathError.
+// This makes Memory compatible with the StatFS interface
+func (m *Memory) Stat(name string) (fs.FileInfo, error) {
+	f, ok := m.fs[name]
+	if !ok {
+		return nil, &fs.PathError{
+			Op:   "Stat",
+			Path: name,
+			Err:  fs.ErrNotExist,
+		}
+	}
+	return f.Stat()
+}
