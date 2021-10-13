@@ -39,8 +39,10 @@ func ReadFile(fs Storage, name string) ([]byte, error) {
 }
 func MkdirAll(fs Storage, dir string, perm fs.FileMode) error {
 	list := make([]string, 0)
-	for dir := filepath.Dir(dir); dir != string(filepath.Separator) && dir != "."; dir = filepath.Dir(dir) {
+	stop := ""
+	for dir := filepath.Dir(dir); dir != stop; dir = filepath.Dir(dir) {
 		list = append(list, dir)
+		stop = dir
 	}
 	for i := len(list); i > 0; i-- {
 		err := fs.Mkdir(list[i-1], perm)
