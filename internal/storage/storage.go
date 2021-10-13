@@ -5,6 +5,9 @@ package storage
 import (
 	"io"
 	"io/fs"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 // Storage is an abstraction of the filesystem
@@ -23,4 +26,28 @@ type Storage interface {
 type File interface {
 	fs.File
 	io.Writer
+}
+
+// ReadFile returns the content of name in the filesystem
+func ReadFile(fs Storage, name string) ([]byte, error) {
+	f, err := fs.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return ioutil.ReadAll(f)
+}
+func MkdirAll(fs Storage, dir string, perm fs.FileMode) error {
+	list := make([]string, 0)
+	for dir := filepath.Dir(dir); dir != string(filepath.Separator) && dir != "."; dir = filepath.Dir(dir) {
+		list = append(list, dir)
+	}
+	for i := len(list); i > 0; i-- {
+		err := fs.Mkdir(list[i-1], perm)
+		if err != nil && !os.IsExist(err) {
+			return err
+		}
+	}
+	return nil
+
 }
