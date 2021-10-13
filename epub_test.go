@@ -15,6 +15,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/bmaupin/go-epub/internal/storage"
+	"github.com/gofrs/uuid"
 )
 
 const (
@@ -103,7 +106,7 @@ func TestEpubWrite(t *testing.T) {
 
 	// Check the contents of the package file
 	// NOTE: This is tested first because it contains a timestamp; testing it later may result in a different timestamp
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -119,7 +122,7 @@ func TestEpubWrite(t *testing.T) {
 	}
 
 	// Check the contents of the mimetype file
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, mimetypeFilename))
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, mimetypeFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading mimetype file: %s", err)
 	}
@@ -133,7 +136,7 @@ func TestEpubWrite(t *testing.T) {
 	}
 
 	// Check the contents of the container file
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, metaInfFolderName, containerFilename))
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, metaInfFolderName, containerFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading container file: %s", err)
 	}
@@ -170,26 +173,12 @@ func TestAddCSS(t *testing.T) {
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	// The CSS file path is relative to the XHTML folder
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS1Path))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS1Path))
 	if err != nil {
 		t.Errorf("Unexpected error reading CSS file: %s", err)
 	}
 
-	testCSSContents, err := ioutil.ReadFile(testCoverCSSSource)
-	if err != nil {
-		t.Errorf("Unexpected error reading CSS file: %s", err)
-	}
-
-	if trimAllSpace(string(contents)) != trimAllSpace(string(testCSSContents)) {
-		t.Errorf(
-			"CSS file contents don't match\n"+
-				"Got: %s\n"+
-				"Expected: %s",
-			contents,
-			testCSSContents)
-	}
-
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS2Path))
+	testCSSContents, err := os.ReadFile(testCoverCSSSource)
 	if err != nil {
 		t.Errorf("Unexpected error reading CSS file: %s", err)
 	}
@@ -203,7 +192,21 @@ func TestAddCSS(t *testing.T) {
 			testCSSContents)
 	}
 
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionPath))
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testCSS2Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading CSS file: %s", err)
+	}
+
+	if trimAllSpace(string(contents)) != trimAllSpace(string(testCSSContents)) {
+		t.Errorf(
+			"CSS file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testCSSContents)
+	}
+
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSectionPath))
 	if err != nil {
 		t.Errorf("Unexpected error reading section file: %s", err)
 	}
@@ -231,12 +234,12 @@ func TestAddFont(t *testing.T) {
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	// The font path is relative to the XHTML folder
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testFontFromFilePath))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testFontFromFilePath))
 	if err != nil {
 		t.Errorf("Unexpected error reading font file from EPUB: %s", err)
 	}
 
-	testFontContents, err := ioutil.ReadFile(testFontFromFileSource)
+	testFontContents, err := os.ReadFile(testFontFromFileSource)
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata font file: %s", err)
 	}
@@ -262,12 +265,12 @@ func TestAddImage(t *testing.T) {
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
 	// The image path is relative to the XHTML folder
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromFilePath))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromFilePath))
 	if err != nil {
 		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
 	}
 
-	testImageContents, err := ioutil.ReadFile(testImageFromFileSource)
+	testImageContents, err := os.ReadFile(testImageFromFileSource)
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata image file: %s", err)
 	}
@@ -275,7 +278,7 @@ func TestAddImage(t *testing.T) {
 		t.Errorf("Image file contents don't match")
 	}
 
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromURLPath))
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testImageFromURLPath))
 	if err != nil {
 		t.Errorf("Unexpected error reading image file from EPUB: %s", err)
 	}
@@ -309,7 +312,7 @@ func TestAddSection(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
 	if err != nil {
 		t.Errorf("Unexpected error reading section file: %s", err)
 	}
@@ -324,7 +327,7 @@ func TestAddSection(t *testing.T) {
 			testSectionContents)
 	}
 
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
 	if err != nil {
 		t.Errorf("Unexpected error reading section file: %s", err)
 	}
@@ -356,7 +359,7 @@ func TestEpubAuthor(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -389,7 +392,7 @@ func TestEpubLang(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -422,7 +425,7 @@ func TestEpubPpd(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -454,7 +457,7 @@ func TestEpubTitle(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -485,7 +488,7 @@ func TestEpubTitle(t *testing.T) {
 
 	tempDir = writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err = ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -518,7 +521,7 @@ func TestEpubDescription(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -551,7 +554,7 @@ func TestEpubIdentifier(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -577,7 +580,7 @@ func TestSetCover(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	contents, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, xhtmlFolderName, defaultCoverXhtmlFilename))
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, defaultCoverXhtmlFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading cover XHTML file: %s", err)
 	}
@@ -614,7 +617,7 @@ func TestManifestItems(t *testing.T) {
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
-	pkgFileContent, err := ioutil.ReadFile(filepath.Join(tempDir, contentFolderName, pkgFilename))
+	pkgFileContent, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, pkgFilename))
 	if err != nil {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
@@ -732,7 +735,7 @@ func TestEpubValidity(t *testing.T) {
 
 func cleanup(epubFilename string, tempDir string) {
 	os.Remove(epubFilename)
-	os.RemoveAll(tempDir)
+	filesystem.RemoveAll(tempDir)
 }
 
 // TrimAllSpace trims all space from each line of the string and removes empty
@@ -752,11 +755,16 @@ func trimAllSpace(s string) string {
 // UnzipFile unzips a file located at sourceFilePath to the provided destination directory
 func unzipFile(sourceFilePath string, destDirPath string) error {
 	// First, make sure the destination exists and is a directory
-	info, err := os.Stat(destDirPath)
+	f, err := filesystem.Open(destDirPath)
 	if err != nil {
 		return err
 	}
-	if !info.Mode().IsDir() {
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
 		return errors.New("destination is not a directory")
 	}
 
@@ -782,14 +790,17 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 			}
 		}()
 
-		destFilePath := filepath.Join(destDirPath, f.Name)
+		destFilePath := filepath.Join(destDirPath, strings.TrimLeft(f.Name, filepath.Dir(sourceFilePath)))
 
 		// Create destination subdirectories if necessary
 		destBaseDirPath, _ := filepath.Split(destFilePath)
-		os.MkdirAll(destBaseDirPath, testDirPerm)
+		err = storage.MkdirAll(filesystem, destBaseDirPath, testDirPerm)
+		if err != nil {
+			return err
+		}
 
 		// Create the destination file
-		w, err := os.Create(destFilePath)
+		w, err := filesystem.Create(destFilePath)
 		if err != nil {
 			return err
 		}
@@ -849,7 +860,8 @@ func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
 }
 
 func writeAndExtractEpub(t *testing.T, e *Epub, epubFilename string) string {
-	tempDir, err := ioutil.TempDir("", tempDirPrefix)
+	tempDir := uuid.Must(uuid.NewV4()).String()
+	err := filesystem.Mkdir(tempDir, 0777)
 	if err != nil {
 		t.Errorf("Unexpected error creating temp dir: %s", err)
 	}
