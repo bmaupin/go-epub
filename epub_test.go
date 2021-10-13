@@ -680,7 +680,7 @@ func TestUnableToCreateEpubError(t *testing.T) {
 	}
 }
 
-func testEpubValidity(t *testing.T) {
+func testEpubValidity(t testing.TB) {
 	e := NewEpub(testEpubTitle)
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
@@ -711,14 +711,31 @@ func testEpubValidity(t *testing.T) {
 	}
 
 	// Always print the output so we can see warnings as well
-	fmt.Println(string(output))
-
+	if output != nil {
+		fmt.Println(string(output))
+	}
 	if doCleanup {
 		cleanup(testEpubFilename, tempDir)
 	} else {
 		// Always remove the files in tempDir; they can still be extracted from the test epub as needed
 		filesystem.RemoveAll(tempDir)
 	}
+
+}
+
+func BenchmarkEpubValidity(b *testing.B) {
+	b.Run("LocalFS", func(b *testing.B) {
+		Use(OsFS)
+		for i := 0; i < b.N; i++ {
+			testEpubValidity(b)
+		}
+	})
+	b.Run("MemoryFS", func(b *testing.B) {
+		Use(MemoryFS)
+		for i := 0; i < b.N; i++ {
+			testEpubValidity(b)
+		}
+	})
 
 }
 
@@ -821,7 +838,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 }
 
 // This function requires EPUBCheck to work; see README.md for more information
-func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
+func validateEpub(t testing.TB, epubFilename string) ([]byte, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Error("Error getting working directory")
@@ -851,15 +868,17 @@ func validateEpub(t *testing.T, epubFilename string) ([]byte, error) {
 	}
 
 	if pathToEpubcheck == "" {
-		fmt.Println("Epubcheck tool not installed, skipping EPUB validation.")
-		return []byte{}, nil
+		if testing.Verbose() {
+			fmt.Println("Epubcheck tool not installed, skipping EPUB validation.")
+		}
+		return nil, nil
 	}
 
 	cmd := exec.Command("java", "-jar", pathToEpubcheck, epubFilename)
 	return cmd.CombinedOutput()
 }
 
-func writeAndExtractEpub(t *testing.T, e *Epub, epubFilename string) string {
+func writeAndExtractEpub(t testing.TB, e *Epub, epubFilename string) string {
 	tempDir := uuid.Must(uuid.NewV4()).String()
 	err := filesystem.Mkdir(tempDir, 0777)
 	if err != nil {
