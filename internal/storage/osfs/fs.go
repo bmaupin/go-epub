@@ -37,3 +37,11 @@ func (o *OSFS) RemoveAll(name string) error {
 func (o *OSFS) Create(name string) (storage.File, error) {
 	return os.Create(filepath.Join(o.rootDir, name))
 }
+
+func (o *OSFS) Stat(name string) (fs.FileInfo, error) {
+	return os.Stat(filepath.Join(o.rootDir, name))
+}
+
+func (o *OSFS) Open(name string) (fs.File, error) {
+	return os.Open(filepath.Join(o.rootDir, name))
+}
