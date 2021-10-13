@@ -2,6 +2,7 @@ package memory
 
 import (
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"testing"
 )
@@ -105,11 +106,11 @@ func TestMemory_ReadDir(t *testing.T) {
 	if !stat.IsDir() {
 		t.Fail()
 	}
-	_, err = fs.Create(filepath.Join(dir, "test.test"))
+	_, err = fs.Create(path.Join(dir, "test.test"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = fs.Create(filepath.Join(dir, "test2.test"))
+	_, err = fs.Create(path.Join(dir, "test2.test"))
 	if err != nil {
 		t.Fatal(err)
 	}

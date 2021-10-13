@@ -3,7 +3,7 @@ package memory
 import (
 	"bytes"
 	"io/fs"
-	"path/filepath"
+	"path"
 	"strings"
 	"time"
 
@@ -18,7 +18,7 @@ func NewMemory() *Memory {
 	return &Memory{
 		fs: map[string]*file{
 			"/": {
-				name:    filepath.Base("/"),
+				name:    path.Base("/"),
 				modTime: time.Now(),
 				mode:    fs.ModeDir | (0666),
 			},
@@ -50,7 +50,7 @@ func (m *Memory) WriteFile(name string, data []byte, perm fs.FileMode) error {
 		return fs.ErrInvalid
 	}
 	m.fs[name] = &file{
-		name:    filepath.Base(name),
+		name:    path.Base(name),
 		modTime: time.Now(),
 		mode:    (perm),
 		content: *bytes.NewBuffer(data),
@@ -60,11 +60,11 @@ func (m *Memory) WriteFile(name string, data []byte, perm fs.FileMode) error {
 
 // Mkdir creates a new directory with the specified name and permission bits (before umask). If there is an error, it will be of type *PathError.
 func (m *Memory) Mkdir(name string, perm fs.FileMode) error {
-	if !fs.ValidPath(filepath.Base(name)) {
+	if !fs.ValidPath(path.Base(name)) {
 		return fs.ErrInvalid
 	}
 	f := &file{
-		name:    filepath.Base(name),
+		name:    path.Base(name),
 		modTime: time.Now(),
 		mode:    fs.ModeDir | (perm),
 	}
@@ -84,11 +84,11 @@ func (m *Memory) RemoveAll(name string) error {
 
 // Create creates or truncates the named file. If the file already exists, it is truncated. If the file does not exist, it is created with mode 0666 (before umask). If successful, methods on the returned File can be used for I/O; the associated file descriptor has mode O_RDWR. If there is an error, it will be of type *PathError.
 func (m *Memory) Create(name string) (storage.File, error) {
-	if !fs.ValidPath(filepath.Base(name)) {
+	if !fs.ValidPath(path.Base(name)) {
 		return nil, fs.ErrInvalid
 	}
 	f := &file{
-		name:    filepath.Base(name),
+		name:    path.Base(name),
 		modTime: time.Now(),
 		mode:    0666,
 		content: bytes.Buffer{},
@@ -102,7 +102,7 @@ func (m *Memory) Create(name string) (storage.File, error) {
 func (m *Memory) ReadDir(name string) ([]fs.DirEntry, error) {
 	output := make([]fs.DirEntry, 0)
 	for k, v := range m.fs {
-		if filepath.Dir(k) == name {
+		if path.Dir(k) == name {
 			output = append(output, v)
 		}
 	}
