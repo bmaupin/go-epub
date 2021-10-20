@@ -3,7 +3,6 @@ package epub
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"time"
 )
@@ -271,7 +270,7 @@ func (p *pkg) write(tempDir string) {
 	// It's generally nice to have files end with a newline
 	pkgFileContent = append(pkgFileContent, "\n"...)
 
-	if err := ioutil.WriteFile(pkgFilePath, []byte(pkgFileContent), filePermissions); err != nil {
+	if err := filesystem.WriteFile(pkgFilePath, []byte(pkgFileContent), filePermissions); err != nil {
 		panic(fmt.Sprintf("Error writing package file: %s", err))
 	}
 }

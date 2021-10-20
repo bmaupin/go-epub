@@ -3,7 +3,6 @@ package epub
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"strconv"
 )
@@ -219,7 +218,7 @@ func (t *toc) writeNcxDoc(tempDir string) {
 	ncxFileContent = append(ncxFileContent, "\n"...)
 
 	ncxFilePath := filepath.Join(tempDir, contentFolderName, tocNcxFilename)
-	if err := ioutil.WriteFile(ncxFilePath, []byte(ncxFileContent), filePermissions); err != nil {
+	if err := filesystem.WriteFile(ncxFilePath, []byte(ncxFileContent), filePermissions); err != nil {
 		panic(fmt.Sprintf("Error writing EPUB v2 TOC file: %s", err))
 	}
 }
