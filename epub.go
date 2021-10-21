@@ -28,7 +28,6 @@ package epub
 import (
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -39,6 +38,7 @@ import (
 	// TODO: Eventually this should include the major version (e.g. github.com/gofrs/uuid/v3) but that would break
 	// compatibility with Go < 1.9 (https://github.com/golang/go/wiki/Modules#semantic-import-versioning)
 	"github.com/gofrs/uuid"
+	"github.com/vincent-petithory/dataurl"
 )
 
 // FilenameAlreadyUsedError is thrown by AddCSS, AddFont, AddImage, or AddSection
@@ -346,23 +346,9 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 
 	// Use default cover stylesheet if one isn't provided
 	if internalCSSPath == "" {
-		// Create a temporary file to hold the default cover CSS
-		tempFile, err := ioutil.TempFile("", tempDirPrefix)
-		if err != nil {
-			panic(fmt.Sprintf("Error creating temp file: %s", err))
-		}
-		defer func() {
-			if err := tempFile.Close(); err != nil {
-				panic(fmt.Sprintf("Error closing temp file: %s", err))
-			}
-		}()
-		e.cover.cssTempFile = tempFile.Name()
-
-		// Write the default cover CSS to the temp file
-		if _, err = tempFile.WriteString(defaultCoverCSSContent); err != nil {
-			panic(fmt.Sprintf("Error writing CSS file: %s", err))
-		}
-
+		// Encode the default CSS
+		e.cover.cssTempFile = dataurl.EncodeBytes([]byte(defaultCoverCSSContent))
+		var err error
 		internalCSSPath, err = e.addCSS(e.cover.cssTempFile, defaultCoverCSSFilename)
 		// If that doesn't work, generate a filename
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
