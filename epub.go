@@ -27,6 +27,7 @@ package epub
 
 import (
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
@@ -448,8 +449,9 @@ func addMedia(client *http.Client, source string, internalFilename string, media
 	if internalFilename == "" {
 		// If a filename isn't provided, use the filename from the source
 		internalFilename = filepath.Base(source)
-		// If that's already used, try to generate a unique filename
-		if _, ok := mediaMap[internalFilename]; ok {
+		_, ok := mediaMap[internalFilename]
+		// if filename is too long, invalid or already used, try to generate a unique filename
+		if len(internalFilename) > 255 || !fs.ValidPath(internalFilename) || ok {
 			internalFilename = fmt.Sprintf(
 				mediaFileFormat,
 				len(mediaMap)+1,
