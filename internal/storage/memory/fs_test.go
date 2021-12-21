@@ -70,6 +70,7 @@ func TestMemory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("writefile error: %v", err)
 	}
+	assertPrefix(t, fs, "c")
 	f, err := fs.Open(filepath.Join("directory", "test"))
 	if err != nil {
 		t.Fatalf("open error: %v", err)
@@ -79,7 +80,7 @@ func TestMemory(t *testing.T) {
 		t.Fatalf("readall error: %v", err)
 	}
 	if string(content) != "content" {
-		t.Fatal("unexpected content")
+		t.Fatalf("unexpected content: unexpected 'content', got '%s'", string(content))
 	}
 	err = fs.RemoveAll("directory")
 	if err != nil {
@@ -128,5 +129,30 @@ func TestMemory_Stat(t *testing.T) {
 	_, err := fs.Stat("BADFILE")
 	if err == nil {
 		t.Fail()
+	}
+}
+
+func assertPrefix(t *testing.T, fs *Memory, prefix string) {
+	t.Helper()
+
+	// Open file
+	f, err := fs.Open(filepath.Join("directory", "test"))
+	if err != nil {
+		t.Fatalf("open error: %v", err)
+	}
+	defer f.Close()
+
+	// Read length bytes
+	length := len(prefix)
+	b := make([]byte, length)
+	n, err := f.Read(b)
+	if err != nil {
+		t.Fatalf("read error: %v", err)
+	}
+	if n != length {
+		t.Fatal("incorrect read count")
+	}
+	if string(b) != prefix {
+		t.Fatalf("unexpected content: unexpected '%s', got '%s'", prefix, string(b))
 	}
 }
