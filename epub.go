@@ -67,6 +67,7 @@ const (
 	CSSFolderName   = "css"
 	FontFolderName  = "fonts"
 	ImageFolderName = "images"
+	VideoFolderName = "videos"
 )
 
 const (
@@ -92,6 +93,7 @@ img {
 	defaultEpubLang           = "en"
 	fontFileFormat            = "font%04d%s"
 	imageFileFormat           = "image%04d%s"
+	videoFileFormat           = "video%04d%s"
 	sectionFileFormat         = "section%04d.xhtml"
 	urnUUIDPrefix             = "urn:uuid:"
 )
@@ -109,6 +111,8 @@ type Epub struct {
 	identifier string
 	// The key is the image filename, the value is the image source
 	images map[string]string
+	// The key is the video filename, the value is the video source
+	videos map[string]string
 	// Language
 	lang string
 	// Description
@@ -148,6 +152,7 @@ func NewEpub(title string) *Epub {
 	e.css = make(map[string]string)
 	e.fonts = make(map[string]string)
 	e.images = make(map[string]string)
+	e.videos = make(map[string]string)
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
@@ -211,6 +216,23 @@ func (e *Epub) AddImage(source string, imageFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
 	return addMedia(e.Client, source, imageFilename, imageFileFormat, ImageFolderName, e.images)
+}
+
+// AddVideo adds an video to the EPUB and returns a relative path to the video
+// file that can be used in EPUB sections in the format:
+// ../VideoFolderName/internalFilename
+//
+// The video source should either be a URL, a path to a local file, or an embedded data URL; in any
+// case, the video file will be retrieved and stored in the EPUB.
+//
+// The internal filename will be used when storing the video file in the EPUB
+// and must be unique among all video files. If the same filename is used more
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
+// optional; if no filename is provided, one will be generated.
+func (e *Epub) AddVideo(source string, videoFilename string) (string, error) {
+	e.Lock()
+	defer e.Unlock()
+	return addMedia(e.Client, source, videoFilename, videoFileFormat, VideoFolderName, e.videos)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a

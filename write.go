@@ -97,6 +97,13 @@ func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 
 	// Must be called after:
 	// createEpubFolders()
+	err = e.writeVideos(tempDir)
+	if err != nil {
+		return 0, err
+	}
+
+	// Must be called after:
+	// createEpubFolders()
 	e.writeSections(tempDir)
 
 	// Must be called after:
@@ -108,6 +115,7 @@ func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 	// createEpubFolders()
 	// writeCSSFiles()
 	// writeImages()
+	// writeVideos()
 	// writeSections()
 	// writeToc()
 	e.writePackageFile(tempDir)
@@ -322,7 +330,12 @@ func (e *Epub) writeImages(rootEpubDir string) error {
 	return e.writeMedia(rootEpubDir, e.images, ImageFolderName)
 }
 
-// Get images from their source and save them in the temporary directory
+// Get videos from their source and save them in the temporary directory
+func (e *Epub) writeVideos(rootEpubDir string) error {
+	return e.writeMedia(rootEpubDir, e.videos, VideoFolderName)
+}
+
+// Get media from their source and save them in the temporary directory
 func (e *Epub) writeMedia(rootEpubDir string, mediaMap map[string]string, mediaFolderName string) error {
 	if len(mediaMap) > 0 {
 		mediaFolderPath := filepath.Join(rootEpubDir, contentFolderName, mediaFolderName)
