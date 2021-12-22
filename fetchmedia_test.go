@@ -35,6 +35,17 @@ Tv/Ip07//uF2//7hdv/+4Xb//uF2/8zBlv/Kv4//pZJU/3tzTv9UTjj/19nd/////wD///8A4eLl
 AAAAAAAAAAAAAA==`, "\n", "", -1)
 
 func Test_fetchMedia(t *testing.T) {
+	t.Run("LocalFS", func(t *testing.T) {
+		Use(OsFS)
+		testFetchMedia(t)
+	})
+	t.Run("MemoryFS", func(t *testing.T) {
+		Use(MemoryFS)
+		testFetchMedia(t)
+	})
+}
+
+func testFetchMedia(t *testing.T) {
 	filename := "gophercolor16x16.png"
 	mux := http.NewServeMux()
 	mux.HandleFunc("/image.png", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
