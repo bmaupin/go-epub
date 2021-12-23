@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"bytes"
 	"io/fs"
 	"path"
 	"strings"
@@ -49,12 +48,15 @@ func (m *Memory) WriteFile(name string, data []byte, perm fs.FileMode) error {
 	if !fs.ValidPath(name) {
 		return fs.ErrInvalid
 	}
-	m.fs[name] = &file{
+	f := &file{
 		name:    path.Base(name),
 		modTime: time.Now(),
 		mode:    (perm),
-		content: *bytes.NewBuffer(data),
 	}
+	if _, err := f.Write(data); err != nil {
+		return err
+	}
+	m.fs[name] = f
 	return nil
 }
 
@@ -91,7 +93,6 @@ func (m *Memory) Create(name string) (storage.File, error) {
 		name:    path.Base(name),
 		modTime: time.Now(),
 		mode:    0666,
-		content: bytes.Buffer{},
 	}
 	m.fs[name] = f
 	return f, nil
