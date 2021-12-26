@@ -52,9 +52,7 @@ func (m *Memory) WriteFile(name string, data []byte, perm fs.FileMode) error {
 		name:    path.Base(name),
 		modTime: time.Now(),
 		mode:    (perm),
-	}
-	if _, err := f.Write(data); err != nil {
-		return err
+		content: data,
 	}
 	m.fs[name] = f
 	return nil
