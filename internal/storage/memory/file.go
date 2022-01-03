@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"bytes"
+	"io"
 	"io/fs"
 	"time"
 )
@@ -9,7 +9,8 @@ import (
 type file struct {
 	name    string
 	modTime time.Time
-	content bytes.Buffer
+	offset  int
+	content []byte
 	mode    fs.FileMode
 }
 
@@ -22,15 +23,28 @@ func (f *file) Stat() (fs.FileInfo, error) {
 }
 
 func (f *file) Read(b []byte) (int, error) {
-	return f.content.Read(b)
+	length := len(f.content)
+	start := f.offset
+	if start == length {
+		return 0, io.EOF
+	}
+	end := start + len(b)
+	if end > length {
+		end = length
+	}
+	f.offset = end
+	count := copy(b, f.content[start:end])
+	return count, nil
 }
 
 func (f *file) Close() error {
+	f.offset = 0
 	return nil
 }
 
 func (f *file) Write(p []byte) (n int, err error) {
-	return f.content.Write(p)
+	f.content = append(f.content, p...)
+	return len(p), nil
 }
 
 func (f *file) Name() string {
@@ -38,7 +52,7 @@ func (f *file) Name() string {
 }
 
 func (f *file) Size() int64 {
-	return int64(f.content.Len())
+	return int64(len(f.content))
 }
 
 func (f *file) Type() fs.FileMode {

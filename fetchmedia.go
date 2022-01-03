@@ -74,22 +74,25 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 
 	}
 	defer source.Close()
-	// Defining two buffers
-	var buffer bytes.Buffer
 
-	// Calling MultiWriter method with its parameters
-	writer := io.MultiWriter(w, &buffer)
-	_, err = io.Copy(writer, source)
+	_, err = io.Copy(w, source)
 	if err != nil {
 		// There shouldn't be any problem with the writer, but the reader
 		// might have an issue
 		return "", &FileRetrievalError{Source: mediaSource, Err: err}
 	}
+
 	// Detect the mediaType
-	mime, err := mimetype.DetectReader(&buffer)
+	r, err := filesystem.Open(mediaFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+	mime, err := mimetype.DetectReader(r)
 	if err != nil {
 		panic(err)
 	}
+
 	// Is it CSS?
 	mtype := mime.String()
 	if mime.Is("text/plain") {

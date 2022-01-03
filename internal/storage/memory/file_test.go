@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"bytes"
 	"fmt"
 	"io/fs"
 	"testing"
@@ -15,7 +14,6 @@ func Test_file(t *testing.T) {
 	f := &file{
 		name:    name,
 		modTime: now,
-		content: bytes.Buffer{},
 	}
 	fmt.Fprint(f, content)
 	if f.Size() != int64(len(content)) {

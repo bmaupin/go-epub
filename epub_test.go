@@ -63,6 +63,9 @@ const (
 	testNumberFilenameStart   = "01filenametest.png"
 	testSpaceInFilename       = "filename with space.png"
 	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
+	testVideoFromFileFilename = "testfromfile.mp4"
+	testVideoFromFileSource   = "testdata/sample_640x360.mp4"
+	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
 	testPpdTemplate           = `page-progression-direction="%s"`
@@ -293,6 +296,56 @@ func TestAddImage(t *testing.T) {
 	}
 	if bytes.Compare(contents, testImageContents) != 0 {
 		t.Errorf("Image file contents don't match")
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
+func TestAddVideo(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+	testVideoFromFilePath, err := e.AddVideo(testVideoFromFileSource, testVideoFromFileFilename)
+	if err != nil {
+		t.Errorf("Error adding video: %s", err)
+	}
+	fmt.Println(testVideoFromFilePath)
+
+	testVideoFromURLPath, err := e.AddVideo(testVideoFromURLSource, "")
+	if err != nil {
+		t.Errorf("Error adding video: %s", err)
+	}
+	fmt.Println(testVideoFromURLPath)
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	// The video path is relative to the XHTML folder
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testVideoFromFilePath))
+	if err != nil {
+		t.Errorf("Unexpected error reading video file from EPUB: %s", err)
+	}
+
+	testVideoContents, err := os.ReadFile(testVideoFromFileSource)
+	if err != nil {
+		t.Errorf("Unexpected error reading testdata video file: %s", err)
+	}
+	if bytes.Compare(contents, testVideoContents) != 0 {
+		t.Errorf("Video file contents don't match")
+	}
+
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testVideoFromURLPath))
+	if err != nil {
+		t.Errorf("Unexpected error reading video file from EPUB: %s", err)
+	}
+
+	resp, err := http.Get(testVideoFromURLSource)
+	if err != nil {
+		t.Errorf("Unexpected error response from test video URL: %s", err)
+	}
+	testVideoContents, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Unexpected error reading test video file from URL: %s", err)
+	}
+	if bytes.Compare(contents, testVideoContents) != 0 {
+		t.Errorf("Video file contents don't match")
 	}
 
 	cleanup(testEpubFilename, tempDir)
@@ -695,6 +748,7 @@ func testEpubValidity(t testing.TB) {
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromURLSource, "")
 	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
+	e.AddVideo(testVideoFromURLSource, testVideoFromFileFilename)
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
 	e.SetDescription(testEpubDescription)

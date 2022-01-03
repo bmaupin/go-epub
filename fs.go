@@ -21,7 +21,7 @@ const (
 	MemoryFS
 )
 
-// Use s as default storage/ This is tipically used in an init function.
+// Use s as default storage/ This is typically used in an init function.
 // Default to local filesystem
 func Use(s FSType) {
 	switch s {
