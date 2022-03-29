@@ -34,7 +34,7 @@ const (
 	testCoverCSSSource       = "testdata/cover.css"
 	testCoverContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
   <head>
     <title>%s</title>
     <link rel="stylesheet" type="text/css" href="%s"></link>
@@ -88,7 +88,7 @@ const (
 	<p>This is a paragraph.</p>`
 	testSectionContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
   <head>
     <title>%s</title>
   </head>

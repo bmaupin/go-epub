@@ -283,6 +283,7 @@ func (e *Epub) addSection(body string, sectionTitle string, internalFilename str
 
 	x := newXhtml(body)
 	x.setTitle(sectionTitle)
+	x.setXmlnsEpub(xmlnsEpub)
 
 	if internalCSSPath != "" {
 		x.setCSS(internalCSSPath)
