@@ -147,7 +147,7 @@ type epubCover struct {
 type epubSection struct {
 	filename string
 	xhtml    *xhtml
-  child    *epubSection
+  children *[]epubSection
 }
 
 // NewEpub returns a new Epub.
@@ -299,29 +299,29 @@ func (e *Epub) AddSubSection(parentFilename string, body string, sectionTitle st
 }
 
 func (e *Epub) addSection(parentFilename string, body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
-  var parentSection *epubSection
+  parentIndex := -1
 
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
 		index := 1
 		for internalFilename == "" {
 			internalFilename = fmt.Sprintf(sectionFileFormat, index)
-			for _, section := range e.sections {
+			for item, section := range e.sections {
         if section.filename == parentFilename {
-          parentSection = &section
+          parentIndex = item
         }
 				if section.filename == internalFilename {
 					internalFilename, index = "", index+1
-          if parentFilename == "" || parentSection != nil {
+          if parentFilename == "" || parentIndex != -1 {
 					  break
           }
 				}
 			}
 		}
 	} else {
-		for _, section := range e.sections {
+		for item, section := range e.sections {
       if section.filename == parentFilename {
-        parentSection = &section
+        parentIndex = item
       }
 			if section.filename == internalFilename {
 				return "", &FilenameAlreadyUsedError{Filename: internalFilename}
@@ -329,7 +329,7 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 		}
 	}
 
-  if parentFilename != "" && parentSection == nil {
+  if parentFilename != "" && parentIndex == -1 {
     return "", &ParentDoesNotExistError{Filename: parentFilename}
   }
 
@@ -344,11 +344,15 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 	s := epubSection{
 		filename: internalFilename,
 		xhtml:    x,
-    child: nil,
+    children: nil,
 	}
 
-  if parentSection != nil {
-    (*parentSection).child = &s
+  if parentIndex != -1 {
+    if e.sections[parentIndex].children == nil {
+      var section []epubSection
+      e.sections[parentIndex].children = &section
+    }
+    (*e.sections[parentIndex].children) = append(*e.sections[parentIndex].children, s)
   } else {
 	  e.sections = append(e.sections, s)
   }

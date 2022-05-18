@@ -397,6 +397,52 @@ func TestAddSection(t *testing.T) {
 	cleanup(testEpubFilename, tempDir)
 }
 
+func TestAddSubSection(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+
+	testSection2Path, err := e.AddSubSection(testSection1Path, testSectionBody, testSectionTitle, "", "")
+	if err != nil {
+		t.Errorf("Error adding subsection: %s", err)
+	}
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testSectionContents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBody)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSectionContents)
+	}
+
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSectionContents)
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
 func TestEpubAuthor(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	e.SetAuthor(testEpubAuthor)

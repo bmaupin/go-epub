@@ -110,6 +110,35 @@ func ExampleEpub_AddSection() {
 	// section0001.xhtml
 }
 
+func ExampleEpub_AddSubSection() {
+	e := epub.NewEpub("My title")
+
+	// Add a section. The CSS path is optional
+	section1Body := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>`
+	section1Path, err := e.AddSection(section1Body, "Section 1", "firstsection.xhtml", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Link to the first section
+	section2Body := fmt.Sprintf(`    <h1>Section 2</h1>
+	<a href="%s">Link to section 1</a>`,
+		section1Path)
+	// The title and filename are also optional
+	section2Path, err := e.AddSubSection(section1Path, section2Body, "", "", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(section1Path)
+	fmt.Println(section2Path)
+
+	// Output:
+	// firstsection.xhtml
+	// section0001.xhtml
+}
+
 func ExampleEpub_SetCover() {
 	e := epub.NewEpub("My title")
 
