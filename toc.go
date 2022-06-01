@@ -58,7 +58,7 @@ type toc struct {
 	ncxXML *tocNcxRoot
 
 	title  string // EPUB title
-  author string // EPUB author
+	author string // EPUB author
 }
 
 type tocNavBody struct {
@@ -69,7 +69,7 @@ type tocNavBody struct {
 }
 
 type tocNavItem struct {
-	A        tocNavLink `xml:"a"`
+	A        tocNavLink    `xml:"a"`
 	Children *[]tocNavItem `xml:"ol>li,omitempty"`
 }
 
@@ -84,7 +84,7 @@ type tocNcxRoot struct {
 	Version string           `xml:"version,attr"`
 	Meta    tocNcxMeta       `xml:"head>meta"`
 	Title   string           `xml:"docTitle>text"`
-  Author  string           `xml:"docAuthor>text"`
+	Author  string           `xml:"docAuthor>text"`
 	NavMap  []tocNcxNavPoint `xml:"navMap>navPoint"`
 }
 
@@ -98,11 +98,11 @@ type tocNcxMeta struct {
 }
 
 type tocNcxNavPoint struct {
-	XMLName xml.Name          `xml:"navPoint"`
+	XMLName  xml.Name          `xml:"navPoint"`
 	ID       string            `xml:"id,attr"`
 	Text     string            `xml:"navLabel>text"`
 	Content  tocNcxContent     `xml:"content"`
-  Children *[]tocNcxNavPoint `xml:"navPoint,omitempty"`
+	Children *[]tocNcxNavPoint `xml:"navPoint,omitempty"`
 }
 
 // Constructor for toc
@@ -161,7 +161,7 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 			Href: relativePath,
 			Data: title,
 		},
-    Children: nil,
+		Children: nil,
 	}
 	t.navXML.Links = append(t.navXML.Links, *l)
 
@@ -171,70 +171,70 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 		Content: tocNcxContent{
 			Src: relativePath,
 		},
-    Children: nil,
+		Children: nil,
 	}
 	t.ncxXML.NavMap = append(t.ncxXML.NavMap, *np)
 }
 
 // Add a sub section to the TOC (navXML as well as ncxXML)
 func (t *toc) addSubSection(parent string, index int, title string, relativePath string) {
-  var parentNcx *tocNcxNavPoint
-  var parentNav *tocNavItem
-	
-  relativePath = filepath.ToSlash(relativePath)
-  parent = filepath.ToSlash(parent)
+	var parentNcx *tocNcxNavPoint
+	var parentNav *tocNavItem
 
-  for _, nav := range t.navXML.Links {
-    if nav.A.Href == parent {
-      parentNav = &nav
-    }
-  }
+	relativePath = filepath.ToSlash(relativePath)
+	parent = filepath.ToSlash(parent)
+
+	for _, nav := range t.navXML.Links {
+		if nav.A.Href == parent {
+			parentNav = &nav
+		}
+	}
 	l := &tocNavItem{
 		A: tocNavLink{
 			Href: relativePath,
 			Data: title,
 		},
 	}
-  if parentNav != nil {
-    // Create a new array if none exists
-    if parentNav.Children == nil {
-      n := make([]tocNavItem, 0)
-      parentNav.Children = &n
-    }
-    children := append(*parentNav.Children, *l)
-    parentNav.Children = &children
-  } else {
-    t.navXML.Links = append(t.navXML.Links, *l)
-  }
+	if parentNav != nil {
+		// Create a new array if none exists
+		if parentNav.Children == nil {
+			n := make([]tocNavItem, 0)
+			parentNav.Children = &n
+		}
+		children := append(*parentNav.Children, *l)
+		parentNav.Children = &children
+	} else {
+		t.navXML.Links = append(t.navXML.Links, *l)
+	}
 
-  // Get parent object
-  for _, ncx := range t.ncxXML.NavMap {
-    if ncx.Content.Src == parent {
-      parentNcx = &ncx
-    }
-  }
+	// Get parent object
+	for _, ncx := range t.ncxXML.NavMap {
+		if ncx.Content.Src == parent {
+			parentNcx = &ncx
+		}
+	}
 	np := &tocNcxNavPoint{
 		ID:   "navPoint-" + strconv.Itoa(index),
 		Text: title,
 		Content: tocNcxContent{
 			Src: relativePath,
 		},
-    Children: nil,
+		Children: nil,
 	}
-  if parentNcx != nil {
-    if parentNcx.Children == nil {
-      n := make([]tocNcxNavPoint, 0)
-      parentNcx.Children = &n
-    }
-    children := append(*parentNcx.Children, *np)
-    parentNcx.Children = &children
-  } else {
-    t.ncxXML.NavMap = append(t.ncxXML.NavMap, *np)
-  }
+	if parentNcx != nil {
+		if parentNcx.Children == nil {
+			n := make([]tocNcxNavPoint, 0)
+			parentNcx.Children = &n
+		}
+		children := append(*parentNcx.Children, *np)
+		parentNcx.Children = &children
+	} else {
+		t.ncxXML.NavMap = append(t.ncxXML.NavMap, *np)
+	}
 }
 
 func (t *toc) setIdentifier(identifier string) {
-  t.ncxXML.Meta.Content = identifier
+	t.ncxXML.Meta.Content = identifier
 }
 
 func (t *toc) setTitle(title string) {
@@ -242,7 +242,7 @@ func (t *toc) setTitle(title string) {
 }
 
 func (t *toc) setAuthor(author string) {
-  t.author = author
+	t.author = author
 }
 
 // Write the TOC files
@@ -273,7 +273,7 @@ func (t *toc) writeNavDoc(tempDir string) {
 // Write the EPUB v2 TOC file (toc.ncx) to the temporary directory
 func (t *toc) writeNcxDoc(tempDir string) {
 	t.ncxXML.Title = t.title
-  t.ncxXML.Author = t.author
+	t.ncxXML.Author = t.author
 
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXML, "", "  ")
 	if err != nil {

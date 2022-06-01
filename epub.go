@@ -65,11 +65,11 @@ func (e *FileRetrievalError) Error() string {
 // ParentDoesNotExistError is thrown by AddSubSection if the parent with the
 // previously defined internal filename does not exist.
 type ParentDoesNotExistError struct {
-  Filename string // Filename that caused the error
+	Filename string // Filename that caused the error
 }
 
 func (e *ParentDoesNotExistError) Error() string {
-  return fmt.Sprintf("Parent with the internal filename %s does not exist", e.Filename)
+	return fmt.Sprintf("Parent with the internal filename %s does not exist", e.Filename)
 }
 
 // Folder names used for resources inside the EPUB
@@ -147,7 +147,7 @@ type epubCover struct {
 type epubSection struct {
 	filename string
 	xhtml    *xhtml
-  children *[]epubSection
+	children *[]epubSection
 }
 
 // NewEpub returns a new Epub.
@@ -293,13 +293,13 @@ func (e *Epub) AddSection(body string, sectionTitle string, internalFilename str
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the section is optional.
 func (e *Epub) AddSubSection(parentFilename string, body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
-  e.Lock()
-  defer e.Unlock()
+	e.Lock()
+	defer e.Unlock()
 	return e.addSection(parentFilename, body, sectionTitle, internalFilename, internalCSSPath)
 }
 
 func (e *Epub) addSection(parentFilename string, body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
-  parentIndex := -1
+	parentIndex := -1
 
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
@@ -307,46 +307,46 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 		for internalFilename == "" {
 			internalFilename = fmt.Sprintf(sectionFileFormat, index)
 			for item, section := range e.sections {
-        if section.filename == parentFilename {
-          parentIndex = item
-        }
+				if section.filename == parentFilename {
+					parentIndex = item
+				}
 				if section.filename == internalFilename {
 					internalFilename, index = "", index+1
-          if parentFilename == "" || parentIndex != -1 {
-					  break
-          }
+					if parentFilename == "" || parentIndex != -1 {
+						break
+					}
 				}
-        // Check for nested sections with the same filename to avoid duplicate entries
-        if section.children != nil {
-          for _, subsection := range *section.children {
-            if subsection.filename == internalFilename {
-					    internalFilename, index = "", index+1
-            }
-          }
-        }
+				// Check for nested sections with the same filename to avoid duplicate entries
+				if section.children != nil {
+					for _, subsection := range *section.children {
+						if subsection.filename == internalFilename {
+							internalFilename, index = "", index+1
+						}
+					}
+				}
 			}
 		}
 	} else {
 		for item, section := range e.sections {
-      if section.filename == parentFilename {
-        parentIndex = item
-      }
+			if section.filename == parentFilename {
+				parentIndex = item
+			}
 			if section.filename == internalFilename {
 				return "", &FilenameAlreadyUsedError{Filename: internalFilename}
 			}
-      if section.children != nil {
-        for _, subsection := range *section.children {
-          if subsection.filename == internalFilename {
-				    return "", &FilenameAlreadyUsedError{Filename: internalFilename}
-          }
-        }
-      }
+			if section.children != nil {
+				for _, subsection := range *section.children {
+					if subsection.filename == internalFilename {
+						return "", &FilenameAlreadyUsedError{Filename: internalFilename}
+					}
+				}
+			}
 		}
 	}
 
-  if parentFilename != "" && parentIndex == -1 {
-    return "", &ParentDoesNotExistError{Filename: parentFilename}
-  }
+	if parentFilename != "" && parentIndex == -1 {
+		return "", &ParentDoesNotExistError{Filename: parentFilename}
+	}
 
 	x := newXhtml(body)
 	x.setTitle(sectionTitle)
@@ -359,18 +359,18 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 	s := epubSection{
 		filename: internalFilename,
 		xhtml:    x,
-    children: nil,
+		children: nil,
 	}
 
-  if parentIndex != -1 {
-    if e.sections[parentIndex].children == nil {
-      var section []epubSection
-      e.sections[parentIndex].children = &section
-    }
-    (*e.sections[parentIndex].children) = append(*e.sections[parentIndex].children, s)
-  } else {
-	  e.sections = append(e.sections, s)
-  }
+	if parentIndex != -1 {
+		if e.sections[parentIndex].children == nil {
+			var section []epubSection
+			e.sections[parentIndex].children = &section
+		}
+		(*e.sections[parentIndex].children) = append(*e.sections[parentIndex].children, s)
+	} else {
+		e.sections = append(e.sections, s)
+	}
 
 	return internalFilename, nil
 }

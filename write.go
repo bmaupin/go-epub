@@ -407,7 +407,7 @@ func (e *Epub) writePackageFile(rootEpubDir string) {
 // Write the section files to the temporary directory and add the sections to
 // the TOC and package files
 func (e *Epub) writeSections(rootEpubDir string) {
-  var index int
+	var index int
 
 	if len(e.sections) > 0 {
 		// If a cover was set, add it to the package spine first so it shows up
@@ -430,28 +430,28 @@ func (e *Epub) writeSections(rootEpubDir string) {
 			if section.xhtml.Title() != "" && section.filename != e.cover.xhtmlFilename {
 				e.toc.addSection(index, section.xhtml.Title(), relativePath)
 
-        // Add subsections
-        if section.children != nil {
-          for _, child := range *section.children {
-            index += 1
-            relativeSubPath := filepath.Join(xhtmlFolderName, child.filename)
-            e.toc.addSubSection(relativePath, index, section.xhtml.Title(), relativeSubPath)
+				// Add subsections
+				if section.children != nil {
+					for _, child := range *section.children {
+						index += 1
+						relativeSubPath := filepath.Join(xhtmlFolderName, child.filename)
+						e.toc.addSubSection(relativePath, index, section.xhtml.Title(), relativeSubPath)
 
-			      subSectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, child.filename)
-            child.xhtml.write(subSectionFilePath)
-            
-            // Add subsection to spine
-            e.pkg.addToSpine(child.filename)
-          }
-        }
-      }
+						subSectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, child.filename)
+						child.xhtml.write(subSectionFilePath)
+
+						// Add subsection to spine
+						e.pkg.addToSpine(child.filename)
+					}
+				}
+			}
 			// The cover page should have already been added to the spine first
 			if section.filename != e.cover.xhtmlFilename {
 				e.pkg.addToSpine(section.filename)
 			}
 			e.pkg.addToManifest(section.filename, relativePath, mediaTypeXhtml, "")
 
-      index += 1
+			index += 1
 		}
 	}
 }
