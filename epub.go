@@ -316,6 +316,14 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 					  break
           }
 				}
+        // Check for nested sections with the same filename to avoid duplicate entries
+        if section.children != nil {
+          for _, subsection := range *section.children {
+            if subsection.filename == internalFilename {
+					    internalFilename, index = "", index+1
+            }
+          }
+        }
 			}
 		}
 	} else {
@@ -326,6 +334,13 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 			if section.filename == internalFilename {
 				return "", &FilenameAlreadyUsedError{Filename: internalFilename}
 			}
+      if section.children != nil {
+        for _, subsection := range *section.children {
+          if subsection.filename == internalFilename {
+				    return "", &FilenameAlreadyUsedError{Filename: internalFilename}
+          }
+        }
+      }
 		}
 	}
 

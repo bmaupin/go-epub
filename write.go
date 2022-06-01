@@ -439,6 +439,9 @@ func (e *Epub) writeSections(rootEpubDir string) {
 
 			      subSectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, child.filename)
             child.xhtml.write(subSectionFilePath)
+            
+            // Add subsection to spine
+            e.pkg.addToSpine(child.filename)
           }
         }
       }
