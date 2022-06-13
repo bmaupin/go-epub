@@ -424,8 +424,14 @@ func (e *Epub) writeSections(rootEpubDir string) {
 
 			sectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, section.filename)
 			section.xhtml.write(sectionFilePath)
-
 			relativePath := filepath.Join(xhtmlFolderName, section.filename)
+
+			// The cover page should have already been added to the spine first
+			if section.filename != e.cover.xhtmlFilename {
+				e.pkg.addToSpine(section.filename)
+			}
+			e.pkg.addToManifest(section.filename, relativePath, mediaTypeXhtml, "")
+
 			// Don't add pages without titles or the cover to the TOC
 			if section.xhtml.Title() != "" && section.filename != e.cover.xhtmlFilename {
 				e.toc.addSection(index, section.xhtml.Title(), relativePath)
@@ -442,14 +448,10 @@ func (e *Epub) writeSections(rootEpubDir string) {
 
 						// Add subsection to spine
 						e.pkg.addToSpine(child.filename)
+						e.pkg.addToManifest(child.filename, relativeSubPath, mediaTypeXhtml, "")
 					}
 				}
 			}
-			// The cover page should have already been added to the spine first
-			if section.filename != e.cover.xhtmlFilename {
-				e.pkg.addToSpine(section.filename)
-			}
-			e.pkg.addToManifest(section.filename, relativePath, mediaTypeXhtml, "")
 
 			index += 1
 		}

@@ -178,42 +178,42 @@ func (t *toc) addSection(index int, title string, relativePath string) {
 
 // Add a sub section to the TOC (navXML as well as ncxXML)
 func (t *toc) addSubSection(parent string, index int, title string, relativePath string) {
-	var parentNcx *tocNcxNavPoint
-	var parentNav *tocNavItem
+	var parentNcxIndex int
+	var parentNavIndex int
 
 	relativePath = filepath.ToSlash(relativePath)
 	parent = filepath.ToSlash(parent)
 
-	for _, nav := range t.navXML.Links {
+	for index, nav := range t.navXML.Links {
 		if nav.A.Href == parent {
-			parentNav = &nav
+			parentNavIndex = index
 		}
 	}
-	l := &tocNavItem{
+	l := tocNavItem{
 		A: tocNavLink{
 			Href: relativePath,
 			Data: title,
 		},
 	}
-	if parentNav != nil {
+	if len(t.navXML.Links) > parentNavIndex  {
 		// Create a new array if none exists
-		if parentNav.Children == nil {
+		if t.navXML.Links[parentNavIndex].Children == nil {
 			n := make([]tocNavItem, 0)
-			parentNav.Children = &n
+			t.navXML.Links[parentNavIndex].Children = &n
 		}
-		children := append(*parentNav.Children, *l)
-		parentNav.Children = &children
+		children := append(*t.navXML.Links[parentNavIndex].Children, l)
+		t.navXML.Links[parentNavIndex].Children = &children
 	} else {
-		t.navXML.Links = append(t.navXML.Links, *l)
+		t.navXML.Links = append(t.navXML.Links, l)
 	}
 
 	// Get parent object
-	for _, ncx := range t.ncxXML.NavMap {
+	for index, ncx := range t.ncxXML.NavMap {
 		if ncx.Content.Src == parent {
-			parentNcx = &ncx
+			parentNcxIndex = index
 		}
 	}
-	np := &tocNcxNavPoint{
+	np := tocNcxNavPoint{
 		ID:   "navPoint-" + strconv.Itoa(index),
 		Text: title,
 		Content: tocNcxContent{
@@ -221,15 +221,15 @@ func (t *toc) addSubSection(parent string, index int, title string, relativePath
 		},
 		Children: nil,
 	}
-	if parentNcx != nil {
-		if parentNcx.Children == nil {
+	if parentNcxIndex > len(t.ncxXML.NavMap) {
+		if t.ncxXML.NavMap[parentNcxIndex].Children == nil {
 			n := make([]tocNcxNavPoint, 0)
-			parentNcx.Children = &n
+			t.ncxXML.NavMap[parentNcxIndex].Children = &n
 		}
-		children := append(*parentNcx.Children, *np)
-		parentNcx.Children = &children
+		children := append(*t.ncxXML.NavMap[parentNcxIndex].Children, np)
+		t.ncxXML.NavMap[parentNcxIndex].Children = &children
 	} else {
-		t.ncxXML.NavMap = append(t.ncxXML.NavMap, *np)
+		t.ncxXML.NavMap = append(t.ncxXML.NavMap, np)
 	}
 }
 
