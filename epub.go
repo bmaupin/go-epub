@@ -62,6 +62,16 @@ func (e *FileRetrievalError) Error() string {
 	return fmt.Sprintf("Error retrieving %q from source: %+v", e.Source, e.Err)
 }
 
+// ParentDoesNotExistError is thrown by AddSubSection if the parent with the
+// previously defined internal filename does not exist.
+type ParentDoesNotExistError struct {
+	Filename string // Filename that caused the error
+}
+
+func (e *ParentDoesNotExistError) Error() string {
+	return fmt.Sprintf("Parent with the internal filename %s does not exist", e.Filename)
+}
+
 // Folder names used for resources inside the EPUB
 const (
 	CSSFolderName   = "css"
@@ -137,6 +147,7 @@ type epubCover struct {
 type epubSection struct {
 	filename string
 	xhtml    *xhtml
+	children *[]epubSection
 }
 
 // NewEpub returns a new Epub.
@@ -257,28 +268,84 @@ func (e *Epub) AddVideo(source string, videoFilename string) (string, error) {
 func (e *Epub) AddSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
-	return e.addSection(body, sectionTitle, internalFilename, internalCSSPath)
+	return e.addSection("", body, sectionTitle, internalFilename, internalCSSPath)
 }
 
-func (e *Epub) addSection(body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+// AddSubSection adds a nested section (chapter, etc) to an existing section.
+// The method returns a relative path to the section that can be used from another
+// section (for links).
+//
+// The parent filename must be a valid filename from another section already added.
+//
+// The body must be valid XHTML that will go between the <body> tags of the
+// section XHTML file. The content will not be validated.
+//
+// The title will be used for the table of contents. The section will be shown
+// as a nested entry of the parent section in the table of contents. The
+// title is optional; if no title is provided, the section will not be added to
+// the table of contents.
+//
+// The internal filename will be used when storing the section file in the EPUB
+// and must be unique among all section files. If the same filename is used more
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
+// optional; if no filename is provided, one will be generated.
+//
+// The internal path to an already-added CSS file (as returned by AddCSS) to be
+// used for the section is optional.
+func (e *Epub) AddSubSection(parentFilename string, body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+	e.Lock()
+	defer e.Unlock()
+	return e.addSection(parentFilename, body, sectionTitle, internalFilename, internalCSSPath)
+}
+
+func (e *Epub) addSection(parentFilename string, body string, sectionTitle string, internalFilename string, internalCSSPath string) (string, error) {
+	parentIndex := -1
+
 	// Generate a filename if one isn't provided
 	if internalFilename == "" {
 		index := 1
 		for internalFilename == "" {
 			internalFilename = fmt.Sprintf(sectionFileFormat, index)
-			for _, section := range e.sections {
+			for item, section := range e.sections {
+				if section.filename == parentFilename {
+					parentIndex = item
+				}
 				if section.filename == internalFilename {
 					internalFilename, index = "", index+1
-					break
+					if parentFilename == "" || parentIndex != -1 {
+						break
+					}
+				}
+				// Check for nested sections with the same filename to avoid duplicate entries
+				if section.children != nil {
+					for _, subsection := range *section.children {
+						if subsection.filename == internalFilename {
+							internalFilename, index = "", index+1
+						}
+					}
 				}
 			}
 		}
 	} else {
-		for _, section := range e.sections {
+		for item, section := range e.sections {
+			if section.filename == parentFilename {
+				parentIndex = item
+			}
 			if section.filename == internalFilename {
 				return "", &FilenameAlreadyUsedError{Filename: internalFilename}
 			}
+			if section.children != nil {
+				for _, subsection := range *section.children {
+					if subsection.filename == internalFilename {
+						return "", &FilenameAlreadyUsedError{Filename: internalFilename}
+					}
+				}
+			}
 		}
+	}
+
+	if parentFilename != "" && parentIndex == -1 {
+		return "", &ParentDoesNotExistError{Filename: parentFilename}
 	}
 
 	x := newXhtml(body)
@@ -292,8 +359,18 @@ func (e *Epub) addSection(body string, sectionTitle string, internalFilename str
 	s := epubSection{
 		filename: internalFilename,
 		xhtml:    x,
+		children: nil,
 	}
-	e.sections = append(e.sections, s)
+
+	if parentIndex != -1 {
+		if e.sections[parentIndex].children == nil {
+			var section []epubSection
+			e.sections[parentIndex].children = &section
+		}
+		(*e.sections[parentIndex].children) = append(*e.sections[parentIndex].children, s)
+	} else {
+		e.sections = append(e.sections, s)
+	}
 
 	return internalFilename, nil
 }
@@ -398,10 +475,10 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 	coverBody := fmt.Sprintf(defaultCoverBody, internalImagePath)
 	// Title won't be used since the cover won't be added to the TOC
 	// First try to use the default cover filename
-	coverPath, err := e.addSection(coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
+	coverPath, err := e.addSection("", coverBody, "", defaultCoverXhtmlFilename, internalCSSPath)
 	// If that doesn't work, generate a filename
 	if _, ok := err.(*FilenameAlreadyUsedError); ok {
-		coverPath, err = e.addSection(coverBody, "", "", internalCSSPath)
+		coverPath, err = e.addSection("", coverBody, "", "", internalCSSPath)
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
 			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
