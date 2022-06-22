@@ -255,7 +255,7 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 		}
 
 		var w io.Writer
-		if path == filepath.Join(rootEpubDir, mimetypeFilename) {
+		if filepath.FromSlash(path) == filepath.Join(rootEpubDir, mimetypeFilename) {
 			// Skip the mimetype file if it's already been written
 			if skipMimetypeFile == true {
 				return nil
