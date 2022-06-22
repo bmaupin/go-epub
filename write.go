@@ -441,7 +441,7 @@ func (e *Epub) writeSections(rootEpubDir string) {
 					for _, child := range *section.children {
 						index += 1
 						relativeSubPath := filepath.Join(xhtmlFolderName, child.filename)
-						e.toc.addSubSection(relativePath, index, section.xhtml.Title(), relativeSubPath)
+						e.toc.addSubSection(relativePath, index, child.xhtml.Title(), relativeSubPath)
 
 						subSectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, child.filename)
 						child.xhtml.write(subSectionFilePath)
