@@ -255,7 +255,7 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 		}
 
 		var w io.Writer
-		if path == filepath.Join(rootEpubDir, mimetypeFilename) {
+		if filepath.FromSlash(path) == filepath.Join(rootEpubDir, mimetypeFilename) {
 			// Skip the mimetype file if it's already been written
 			if skipMimetypeFile == true {
 				return nil
@@ -441,7 +441,7 @@ func (e *Epub) writeSections(rootEpubDir string) {
 					for _, child := range *section.children {
 						index += 1
 						relativeSubPath := filepath.Join(xhtmlFolderName, child.filename)
-						e.toc.addSubSection(relativePath, index, section.xhtml.Title(), relativeSubPath)
+						e.toc.addSubSection(relativePath, index, child.xhtml.Title(), relativeSubPath)
 
 						subSectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, child.filename)
 						child.xhtml.write(subSectionFilePath)
