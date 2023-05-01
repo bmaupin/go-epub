@@ -261,10 +261,10 @@ func (e *Epub) AddVideo(source string, videoFilename string) (string, error) {
 // and must be unique among all audio files. If the same filename is used more
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
-func (e *Epub) AddAudio(source string, videoFilename string) (string, error) {
+func (e *Epub) AddAudio(source string, audioFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
-	return addMedia(e.Client, source, videoFilename, audioFileFormat, AudioFolderName, e.audios)
+	return addMedia(e.Client, source, audioFilename, audioFileFormat, AudioFolderName, e.audios)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a
