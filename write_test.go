@@ -38,6 +38,10 @@ func TestWriteToErrors(t *testing.T) {
 		e := NewEpub(testEpubTitle)
 		testWriteToErrors(t, e, e.AddVideo, "sample_640x360.mp4")
 	})
+	t.Run("Audio", func(t *testing.T) {
+		e := NewEpub(testEpubTitle)
+		testWriteToErrors(t, e, e.AddAudio, "sample_audio.wav")
+	})
 }
 
 func testWriteToErrors(t *testing.T, e *Epub, adder func(string, string) (string, error), name string) {

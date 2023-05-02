@@ -21,7 +21,6 @@ Basic usage:
 	if err != nil {
 		// handle error
 	}
-
 */
 package epub
 
@@ -78,6 +77,7 @@ const (
 	FontFolderName  = "fonts"
 	ImageFolderName = "images"
 	VideoFolderName = "videos"
+	AudioFolderName = "audios"
 )
 
 const (
@@ -106,6 +106,7 @@ img {
 	videoFileFormat           = "video%04d%s"
 	sectionFileFormat         = "section%04d.xhtml"
 	urnUUIDPrefix             = "urn:uuid:"
+	audioFileFormat           = "audio%04d%s"
 )
 
 // Epub implements an EPUB file.
@@ -123,6 +124,8 @@ type Epub struct {
 	images map[string]string
 	// The key is the video filename, the value is the video source
 	videos map[string]string
+	// The key is the audio filename, the value is the audio source
+	audios map[string]string
 	// Language
 	lang string
 	// Description
@@ -164,6 +167,7 @@ func NewEpub(title string) *Epub {
 	e.fonts = make(map[string]string)
 	e.images = make(map[string]string)
 	e.videos = make(map[string]string)
+	e.audios = make(map[string]string)
 	e.pkg = newPackage()
 	e.toc = newToc()
 	// Set minimal required attributes
@@ -244,6 +248,23 @@ func (e *Epub) AddVideo(source string, videoFilename string) (string, error) {
 	e.Lock()
 	defer e.Unlock()
 	return addMedia(e.Client, source, videoFilename, videoFileFormat, VideoFolderName, e.videos)
+}
+
+// AddAudio adds an audio to the EPUB and returns a relative path to the audio
+// file that can be used in EPUB sections in the format:
+// ../AudioFolderName/internalFilename
+//
+// The audio source should either be a URL, a path to a local file, or an embedded data URL; in any
+// case, the audio file will be retrieved and stored in the EPUB.
+//
+// The internal filename will be used when storing the audio file in the EPUB
+// and must be unique among all audio files. If the same filename is used more
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
+// optional; if no filename is provided, one will be generated.
+func (e *Epub) AddAudio(source string, audioFilename string) (string, error) {
+	e.Lock()
+	defer e.Unlock()
+	return addMedia(e.Client, source, audioFilename, audioFileFormat, AudioFolderName, e.audios)
 }
 
 // AddSection adds a new section (chapter, etc) to the EPUB and returns a

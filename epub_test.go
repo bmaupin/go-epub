@@ -66,6 +66,9 @@ const (
 	testVideoFromFileFilename = "testfromfile.mp4"
 	testVideoFromFileSource   = "testdata/sample_640x360.mp4"
 	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
+	testAudioFromFileFilename = "sample_audio.wav"
+	testAudioFromFileSource   = "testdata/sample_audio.wav"
+	testAudioFromURLSource    = "https://file-examples.com/storage/fe644084cb644d3709528c4/2017/11/file_example_WAV_1MG.wav"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
 	testPpdTemplate           = `page-progression-direction="%s"`
@@ -346,6 +349,56 @@ func TestAddVideo(t *testing.T) {
 	}
 	if bytes.Compare(contents, testVideoContents) != 0 {
 		t.Errorf("Video file contents don't match")
+	}
+
+	cleanup(testEpubFilename, tempDir)
+}
+
+func TestAddAudio(t *testing.T) {
+	e := NewEpub(testEpubTitle)
+	testAudioFromFilePath, err := e.AddAudio(testAudioFromFileSource, testAudioFromFileFilename)
+	if err != nil {
+		t.Errorf("Error adding audio: %s", err)
+	}
+	fmt.Println(testAudioFromFilePath)
+
+	testAudioFromURLPath, err := e.AddAudio(testAudioFromURLSource, "")
+	if err != nil {
+		t.Errorf("Error adding audio: %s", err)
+	}
+	fmt.Println(testAudioFromURLPath)
+
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	// The audio path is relative to the XHTML folder
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testAudioFromFilePath))
+	if err != nil {
+		t.Errorf("Unexpected error reading audio file from EPUB: %s", err)
+	}
+
+	testAudioContents, err := os.ReadFile(testAudioFromFileSource)
+	if err != nil {
+		t.Errorf("Unexpected error reading testdata audio file: %s", err)
+	}
+	if bytes.Compare(contents, testAudioContents) != 0 {
+		t.Errorf("Audio file contents don't match")
+	}
+
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testAudioFromURLPath))
+	if err != nil {
+		t.Errorf("Unexpected error reading audio file from EPUB: %s", err)
+	}
+
+	resp, err := http.Get(testAudioFromURLSource)
+	if err != nil {
+		t.Errorf("Unexpected error response from test audio URL: %s", err)
+	}
+	testAudioContents, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Unexpected error reading test audio file from URL: %s", err)
+	}
+	if bytes.Compare(contents, testAudioContents) != 0 {
+		t.Errorf("Audio file contents don't match")
 	}
 
 	cleanup(testEpubFilename, tempDir)
@@ -797,6 +850,7 @@ func testEpubValidity(t testing.TB) {
 	e.AddImage(testImageFromURLSource, "")
 	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
 	e.AddVideo(testVideoFromURLSource, testVideoFromFileFilename)
+	e.AddAudio(testAudioFromURLSource, testAudioFromFileFilename)
 	e.SetAuthor(testEpubAuthor)
 	e.SetCover(testImagePath, "")
 	e.SetDescription(testEpubDescription)

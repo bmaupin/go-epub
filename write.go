@@ -104,6 +104,13 @@ func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 
 	// Must be called after:
 	// createEpubFolders()
+	err = e.writeAudios(tempDir)
+	if err != nil {
+		return 0, err
+	}
+
+	// Must be called after:
+	// createEpubFolders()
 	e.writeSections(tempDir)
 
 	// Must be called after:
@@ -116,6 +123,7 @@ func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 	// writeCSSFiles()
 	// writeImages()
 	// writeVideos()
+	// writeAudios()
 	// writeSections()
 	// writeToc()
 	e.writePackageFile(tempDir)
@@ -333,6 +341,11 @@ func (e *Epub) writeImages(rootEpubDir string) error {
 // Get videos from their source and save them in the temporary directory
 func (e *Epub) writeVideos(rootEpubDir string) error {
 	return e.writeMedia(rootEpubDir, e.videos, VideoFolderName)
+}
+
+// Get audios from their source and save them in the temporary directory
+func (e *Epub) writeAudios(rootEpubDir string) error {
+	return e.writeMedia(rootEpubDir, e.audios, AudioFolderName)
 }
 
 // Get media from their source and save them in the temporary directory
