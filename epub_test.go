@@ -36,10 +36,10 @@ const (
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
   <head>
-    <title>%s</title>
+    <title dir="auto">%s</title>
     <link rel="stylesheet" type="text/css" href="%s"></link>
   </head>
-  <body>
+  <body dir="auto">
     <img src="%s" alt="Cover Image" />
   </body>
 </html>`
@@ -93,9 +93,9 @@ const (
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
   <head>
-    <title>%s</title>
+    <title dir="auto">%s</title>
   </head>
-  <body>
+  <body dir="auto">
     %s
   </body>
 </html>`

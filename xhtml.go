@@ -13,9 +13,9 @@ const (
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title></title>
+    <title dir="auto"></title>
   </head>
-  <body></body>
+  <body dir="auto"></body>
 </html>
 `
 )
