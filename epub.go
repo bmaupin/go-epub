@@ -27,10 +27,12 @@ package epub
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -555,6 +557,51 @@ func (e *Epub) SetTitle(title string) {
 // Title returns the title of the EPUB.
 func (e *Epub) Title() string {
 	return e.title
+}
+
+// EmbeddedImages download <img> tags in EPUB and modify body to show images
+// file inside of EPUB:
+// ../ImageFolderName/internalFilename
+//
+// The image source should either be a URL, a path to a local file, or an embedded data URL; in any
+// case, the image file will be retrieved and stored in the EPUB.
+//
+// The internal filename will be used when storing the image file in the EPUB
+// and must be unique among all image files. If the same filename is used more
+// than once, FilenameAlreadyUsedError will be returned. The internal filename is
+// optional; if no filename is provided, one will be generated.
+
+// Just call EmbeddedImages() after section added
+func (e *Epub) EmbeddedImages() error {
+	imageTagRegex := regexp.MustCompile(`<img.*?src="(.*?)".*?>`)
+	for i, section := range e.sections {
+		imageTagMatches := imageTagRegex.FindAllStringSubmatch(section.xhtml.xml.Body.XML, -1)
+
+		// Check if imageTagMatches is empty
+		if len(imageTagMatches) == 0 {
+			continue // Skip to the next section
+		}
+		images := make(map[string]string)
+
+		for _, match := range imageTagMatches {
+			imageURL := match[1]
+			if !strings.HasPrefix(imageURL, "data:image/") {
+				images[imageURL] = match[0]
+				filePath, err := e.AddImage(string(imageURL), "")
+				if err != nil {
+					log.Printf("can't add image to the epub: %s", err)
+					continue
+				}
+				e.sections[i].xhtml.xml.Body.XML = strings.ReplaceAll(section.xhtml.xml.Body.XML, match[0], replaceSrcAttribute(match[0], filePath))
+			}
+		}
+	}
+	return nil
+}
+
+func replaceSrcAttribute(imgTag string, filePath string) string {
+	re := regexp.MustCompile(`src="([^"]*)"`)
+	return re.ReplaceAllString(imgTag, fmt.Sprintf(`src="%s"`, filePath))
 }
 
 // Add a media file to the EPUB and return the path relative to the EPUB section
