@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/bmaupin/go-epub/internal/storage"
 	"github.com/gofrs/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -59,16 +59,16 @@ const (
 	testFontFromFileSource    = "testdata/redacted-script-regular.ttf"
 	testIdentifierTemplate    = `<dc:identifier id="pub-id">%s</dc:identifier>`
 	testImageFromFileFilename = "testfromfile.png"
-	testImageFromFileSource   = "testdata/gophercolor16x16.png"
+	testImageFromFileSource   = "testdata/sample.png"
 	testNumberFilenameStart   = "01filenametest.png"
 	testSpaceInFilename       = "filename with space.png"
-	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
+	testImageFromURLSource    = "https://file-examples.com/storage/fe072e668b64cd6ce9c9963/2017/10/file_example_PNG_1MB.png"
 	testVideoFromFileFilename = "testfromfile.mp4"
 	testVideoFromFileSource   = "testdata/sample_640x360.mp4"
-	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
+	testVideoFromURLSource    = "https://file-examples.com/storage/fe072e668b64cd6ce9c9963/2017/04/file_example_MP4_640_3MG.mp4"
 	testAudioFromFileFilename = "sample_audio.wav"
 	testAudioFromFileSource   = "testdata/sample_audio.wav"
-	testAudioFromURLSource    = "https://file-examples.com/storage/fe644084cb644d3709528c4/2017/11/file_example_WAV_1MG.wav"
+	testAudioFromURLSource    = "https://file-examples.com/storage/fe072e668b64cd6ce9c9963/2017/11/file_example_WAV_1MG.wav"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
 	testPpdTemplate           = `page-progression-direction="%s"`
@@ -293,7 +293,7 @@ func TestAddImage(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error response from test image URL: %s", err)
 	}
-	testImageContents, err = ioutil.ReadAll(resp.Body)
+	testImageContents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Unexpected error reading test image file from URL: %s", err)
 	}
@@ -343,7 +343,7 @@ func TestAddVideo(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error response from test video URL: %s", err)
 	}
-	testVideoContents, err = ioutil.ReadAll(resp.Body)
+	testVideoContents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Unexpected error reading test video file from URL: %s", err)
 	}
@@ -393,7 +393,7 @@ func TestAddAudio(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error response from test audio URL: %s", err)
 	}
-	testAudioContents, err = ioutil.ReadAll(resp.Body)
+	testAudioContents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Unexpected error reading test audio file from URL: %s", err)
 	}
@@ -751,21 +751,27 @@ func TestSetCover(t *testing.T) {
 }
 
 func TestManifestItems(t *testing.T) {
-	testManifestItems := []string{`id="filenamewithspace.png" href="images/filename with space.png" media-type="image/png"></item>`,
-		`id="gophercolor16x16.png" href="images/gophercolor16x16.png" media-type="image/png"></item>`,
+	testManifestItems := []string{
+		`id="file_example_PNG_1MB.png" href="images/file_example_PNG_1MB.png" media-type="image/png"></item>`,
+		`id="filenamewithspace.png" href="images/filename with space.png" media-type="image/png"></item>`,
 		`id="id01filenametest.png" href="images/01filenametest.png" media-type="image/png"></item>`,
-		`id="image0005.png" href="images/image0005.png" media-type="image/png"></item>`,
 		`id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"></item>`,
+		`id="sample.png" href="images/sample.png" media-type="image/png"></item>`,
 		`id="testfromfile.png" href="images/testfromfile.png" media-type="image/png"></item>`,
 	}
 
 	e := NewEpub(testEpubTitle)
-	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
-	e.AddImage(testImageFromFileSource, "")
+	_, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	require.NoError(t, err)
+	_, err = e.AddImage(testImageFromFileSource, "")
+	require.NoError(t, err)
 	// In particular, we want to test these next two, which will be modified by fixXMLId()
-	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
-	e.AddImage(testImageFromFileSource, testSpaceInFilename)
-	e.AddImage(testImageFromURLSource, "")
+	_, err = e.AddImage(testImageFromFileSource, testNumberFilenameStart)
+	require.NoError(t, err)
+	_, err = e.AddImage(testImageFromFileSource, testSpaceInFilename)
+	require.NoError(t, err)
+	_, err = e.AddImage(testImageFromURLSource, "")
+	require.NoError(t, err)
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -1000,7 +1006,7 @@ func validateEpub(t testing.TB, epubFilename string) ([]byte, error) {
 		t.Error("Error getting working directory")
 	}
 
-	items, err := ioutil.ReadDir(cwd)
+	items, err := os.ReadDir(cwd)
 	if err != nil {
 		t.Error("Error getting contents of working directory")
 	}
@@ -1012,7 +1018,7 @@ func validateEpub(t testing.TB, epubFilename string) ([]byte, error) {
 			break
 
 		} else if strings.HasPrefix(i.Name(), testEpubcheckPrefix) {
-			if i.Mode().IsDir() {
+			if i.IsDir() {
 				pathToEpubcheck = filepath.Join(i.Name(), testEpubcheckJarfile)
 				if _, err := os.Stat(pathToEpubcheck); err == nil {
 					break
