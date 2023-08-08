@@ -559,7 +559,7 @@ func (e *Epub) Title() string {
 	return e.title
 }
 
-// EmbeddedImages download <img> tags in EPUB and modify body to show images
+// EmbedImages download <img> tags in EPUB and modify body to show images
 // file inside of EPUB:
 // ../ImageFolderName/internalFilename
 //
@@ -571,8 +571,8 @@ func (e *Epub) Title() string {
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
 
-// Just call EmbeddedImages() after section added
-func (e *Epub) EmbeddedImages() error {
+// Just call EmbedImages() after section added
+func (e *Epub) EmbedImages() error {
 	imageTagRegex := regexp.MustCompile(`<img.*?src="(.*?)".*?>`)
 	for i, section := range e.sections {
 		imageTagMatches := imageTagRegex.FindAllStringSubmatch(section.xhtml.xml.Body.XML, -1)

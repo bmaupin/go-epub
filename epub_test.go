@@ -1079,7 +1079,7 @@ func TestEmbdedImage(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
 	}
-	e.EmbeddedImages()
+	e.EmbedImages()
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
