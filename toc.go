@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -106,51 +108,46 @@ type tocNcxNavPoint struct {
 }
 
 // Constructor for toc
-func newToc() *toc {
+func newToc() (*toc, error) {
 	t := &toc{}
+	var err error
 
-	t.navXML = newTocNavXML()
+	t.navXML, err = newTocNavXML()
+	if err != nil {
+		return nil, errors.New("can't create navXML")
+	}
 
-	t.ncxXML = newTocNcxXML()
+	t.ncxXML, err = newTocNcxXML()
+	if err != nil {
+		return nil, errors.New("can't create ncxXML")
+	}
 
-	return t
+	return t, nil
 }
 
 // Constructor for tocNavBody
-func newTocNavXML() *tocNavBody {
+func newTocNavXML() (*tocNavBody, error) {
 	b := &tocNavBody{
 		EpubType: tocNavEpubType,
 	}
 	err := xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error unmarshalling tocNavBody: %s\n"+
-				"\ttocNavBody=%#v\n"+
-				"\ttocNavBodyTemplate=%s",
-			err,
-			*b,
-			tocNavBodyTemplate))
+		return nil, fmt.Errorf("Error unmarshalling tocNavBody: %s\n"+"\ttocNavBody=%#v\n"+"\ttocNavBodyTemplate=%s", err, *b, tocNavBodyTemplate)
 	}
 
-	return b
+	return b, nil
 }
 
 // Constructor for tocNcxRoot
-func newTocNcxXML() *tocNcxRoot {
+func newTocNcxXML() (*tocNcxRoot, error) {
 	n := &tocNcxRoot{}
 
 	err := xml.Unmarshal([]byte(tocNcxTemplate), &n)
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error unmarshalling tocNcxRoot: %s\n"+
-				"\ttocNcxRoot=%#v\n"+
-				"\ttocNcxTemplate=%s",
-			err,
-			*n,
-			tocNcxTemplate))
+		return nil, fmt.Errorf("Error unmarshalling tocNcxRoot: %s\n"+"\ttocNcxRoot=%#v\n"+"\ttocNcxTemplate=%s", err, *n, tocNcxTemplate)
 	}
 
-	return n
+	return n, nil
 }
 
 // Add a section to the TOC (navXML as well as ncxXML)
@@ -195,7 +192,7 @@ func (t *toc) addSubSection(parent string, index int, title string, relativePath
 			Data: title,
 		},
 	}
-	if len(t.navXML.Links) > parentNavIndex  {
+	if len(t.navXML.Links) > parentNavIndex {
 		// Create a new array if none exists
 		if t.navXML.Links[parentNavIndex].Children == nil {
 			n := make([]tocNavItem, 0)
@@ -246,42 +243,48 @@ func (t *toc) setAuthor(author string) {
 }
 
 // Write the TOC files
-func (t *toc) write(tempDir string) {
-	t.writeNavDoc(tempDir)
-	t.writeNcxDoc(tempDir)
+func (t *toc) write(tempDir string) error {
+	err := t.writeNavDoc(tempDir)
+	if err != nil {
+		return err
+	}
+	err = t.writeNcxDoc(tempDir)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Write the the EPUB v3 TOC file (nav.xhtml) to the temporary directory
-func (t *toc) writeNavDoc(tempDir string) {
+func (t *toc) writeNavDoc(tempDir string) error {
 	navBodyContent, err := xml.MarshalIndent(t.navXML, "    ", "  ")
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error marshalling XML for EPUB v3 TOC file: %s\n"+
-				"\tXML=%#v",
-			err,
-			t.navXML))
+		return fmt.Errorf("Error marshalling XML for EPUB v3 TOC file: %s\n"+"\tXML=%#v", err, t.navXML)
 	}
 
-	n := newXhtml(string(navBodyContent))
+	n, err := newXhtml(string(navBodyContent))
+	if err != nil {
+		return errors.Wrap(err, "can't create xhtml for TOC file")
+	}
 	n.setXmlnsEpub(xmlnsEpub)
 	n.setTitle(t.title)
 
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
-	n.write(navFilePath)
+	err = n.write(navFilePath)
+	if err != nil {
+		return errors.Wrap(err, "can't write TOC file")
+	}
+	return nil
 }
 
 // Write the EPUB v2 TOC file (toc.ncx) to the temporary directory
-func (t *toc) writeNcxDoc(tempDir string) {
+func (t *toc) writeNcxDoc(tempDir string) error {
 	t.ncxXML.Title = t.title
 	t.ncxXML.Author = t.author
 
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXML, "", "  ")
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error marshalling XML for EPUB v2 TOC file: %s\n"+
-				"\tXML=%#v",
-			err,
-			t.ncxXML))
+		return fmt.Errorf("Error marshalling XML for EPUB v2 TOC file: %s\n"+"+\tXML=%#v", err, t, t.ncxXML)
 	}
 
 	// Add the xml header to the output
@@ -291,6 +294,7 @@ func (t *toc) writeNcxDoc(tempDir string) {
 
 	ncxFilePath := filepath.Join(tempDir, contentFolderName, tocNcxFilename)
 	if err := filesystem.WriteFile(ncxFilePath, []byte(ncxFileContent), filePermissions); err != nil {
-		panic(fmt.Sprintf("Error writing EPUB v2 TOC file: %s", err))
+		return fmt.Errorf("Error writing EPUB v2 TOC file: %s", err)
 	}
+	return nil
 }

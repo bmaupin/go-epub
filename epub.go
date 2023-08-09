@@ -37,6 +37,7 @@ import (
 	// TODO: Eventually this should include the major version (e.g. github.com/gofrs/uuid/v3) but that would break
 	// compatibility with Go < 1.9 (https://github.com/golang/go/wiki/Modules#semantic-import-versioning)
 	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
 	"github.com/vincent-petithory/dataurl"
 )
 
@@ -154,7 +155,8 @@ type epubSection struct {
 }
 
 // NewEpub returns a new Epub.
-func NewEpub(title string) *Epub {
+func NewEpub(title string) (*Epub, error) {
+	var err error
 	e := &Epub{}
 	e.cover = &epubCover{
 		cssFilename:   "",
@@ -169,13 +171,16 @@ func NewEpub(title string) *Epub {
 	e.videos = make(map[string]string)
 	e.audios = make(map[string]string)
 	e.pkg = newPackage()
-	e.toc = newToc()
+	e.toc, err = newToc()
+	if err != nil {
+		return nil, fmt.Errorf("Can't create NewEpub: %s", err)
+	}
 	// Set minimal required attributes
 	e.SetIdentifier(urnUUIDPrefix + uuid.Must(uuid.NewV4()).String())
 	e.SetLang(defaultEpubLang)
 	e.SetTitle(title)
 
-	return e
+	return e, nil
 }
 
 // AddCSS adds a CSS file to the EPUB and returns a relative path to the CSS
@@ -369,7 +374,10 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 		return "", &ParentDoesNotExistError{Filename: parentFilename}
 	}
 
-	x := newXhtml(body)
+	x, err := newXhtml(body)
+	if err != nil {
+		return internalFilename, errors.Wrap(err, "can't add section we cant create xhtml")
+	}
 	x.setTitle(sectionTitle)
 	x.setXmlnsEpub(xmlnsEpub)
 
