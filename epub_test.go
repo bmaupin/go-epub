@@ -1064,7 +1064,7 @@ func writeAndExtractEpub(t testing.TB, e *Epub, epubFilename string) string {
 	return tempDir
 }
 
-func TestEmbdedImage(t *testing.T) {
+func TestEmbedImages(t *testing.T) {
 	e := NewEpub(testEpubTitle)
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {

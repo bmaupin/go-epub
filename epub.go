@@ -572,7 +572,7 @@ func (e *Epub) Title() string {
 // optional; if no filename is provided, one will be generated.
 
 // Just call EmbedImages() after section added
-func (e *Epub) EmbedImages() error {
+func (e *Epub) EmbedImages() {
 	imageTagRegex := regexp.MustCompile(`<img.*?src="(.*?)".*?>`)
 	for i, section := range e.sections {
 		imageTagMatches := imageTagRegex.FindAllStringSubmatch(section.xhtml.xml.Body.XML, -1)
@@ -596,7 +596,6 @@ func (e *Epub) EmbedImages() error {
 			}
 		}
 	}
-	return nil
 }
 
 func replaceSrcAttribute(imgTag string, filePath string) string {
