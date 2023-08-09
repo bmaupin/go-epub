@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -89,16 +90,13 @@ const (
 </package>`
 	testSectionBody = `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	testSectionBodyWithImage = `    <h1>Section 1</h1>
-	<p>This is a paragraph.</p>
-	<p><img src="https://100r.co/media/content/blog/wsw_01.jpg" loading="lazy"/></p>`
 	testSectionBodyWithnotabledownloadImage = `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>
-	<p><img src="https://100r.co/media/content/blog/wsw_01404.jpg" loading="lazy"/></p>`
+	<p><img src="https://example.com/fileNotExist.jpg" loading="lazy"/></p>`
 
 	testSectionBodyWithImageEmbed = `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>
-	<p><img src="../images/wsw_01.jpg" loading="lazy"/></p>`
+	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
 	testSectionContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -1065,6 +1063,17 @@ func writeAndExtractEpub(t testing.TB, e *Epub, epubFilename string) string {
 }
 
 func TestEmbedImages(t *testing.T) {
+	// create a file server handler for the 'testdata' directory
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testSectionBodyWithImage := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>
+	<p><img src="` + server.URL + `/gophercolor16x16.png" loading="lazy"/></p>`
+
 	e := NewEpub(testEpubTitle)
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
