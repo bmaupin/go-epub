@@ -570,6 +570,7 @@ func (e *Epub) Title() string {
 // and must be unique among all image files. If the same filename is used more
 // than once, FilenameAlreadyUsedError will be returned. The internal filename is
 // optional; if no filename is provided, one will be generated.
+// if go-epub can't download image it keep it untoch and not return any error just log that
 
 // Just call EmbedImages() after section added
 func (e *Epub) EmbedImages() {
