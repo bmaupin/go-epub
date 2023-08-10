@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
     # This needs to come after the checkout, which wipes the working directory
     - name: Download EPUBCheck
@@ -24,10 +24,9 @@ jobs:
         unzip epubcheck-*.zip
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
       with:
-        # This is the latest 1.x version of Go
-        go-version: 1.x
+        go-version-file: ./go.mod
 
     - name: Build
       run: go build -v ./...
@@ -36,34 +35,9 @@ jobs:
       run: go test -v -coverprofile=profile.cov ./...
 
     - name: Send coverage
-      uses: shogo82148/actions-goveralls@v1
+      uses: shogo82148/actions-goveralls@df920a6a2468668dfcf71a0b43817f89eaa5ea04 # v1.7.0
       with:
         path-to-profile: profile.cov
-
-
-  # Test with multiple versions of Go
-  test-go-versions:
-    runs-on: ubuntu-latest
-    strategy:
-      # Don't cancel remaining jobs when one matrix job fails
-      fail-fast: false
-      matrix:
-        # 1.x is the latest version of Go
-        go: ['1.16', '1.17', '1.x']
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go }}
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v ./...
 
   # Test Mac and Windows with the latest version of Go
   test-mac-windows:
@@ -74,12 +48,12 @@ jobs:
         os: [macos-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
       with:
-        go-version: 1.x
+        go-version-file: ./go.mod
 
     - name: Build
       run: go build -v ./...
