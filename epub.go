@@ -169,7 +169,10 @@ func NewEpub(title string) (*Epub, error) {
 	e.images = make(map[string]string)
 	e.videos = make(map[string]string)
 	e.audios = make(map[string]string)
-	e.pkg = newPackage()
+	e.pkg, err = newPackage()
+	if err != nil {
+		return nil, fmt.Errorf("can't create NewEpub: %w", err)
+	}
 	e.toc, err = newToc()
 	if err != nil {
 		return nil, fmt.Errorf("can't create NewEpub: %w", err)
@@ -446,7 +449,7 @@ func (e *Epub) SetAuthor(author string) {
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the cover is optional. If the CSS path isn't provided, default CSS
 // will be used.
-func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
+func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) error {
 	e.Lock()
 	defer e.Unlock()
 	// If a cover already exists
@@ -490,12 +493,12 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 			internalCSSPath, err = e.addCSS(e.cover.cssTempFile, coverCSSFilename)
 			if _, ok := err.(*FilenameAlreadyUsedError); ok {
 				// This shouldn't cause an error
-				panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
+				return fmt.Errorf("Error adding default cover CSS file becuse of: %w", err)
 			}
 		}
 		if err != nil {
 			if _, ok := err.(*FilenameAlreadyUsedError); !ok {
-				panic(fmt.Sprintf("DEBUG %+v", err))
+				return err
 			}
 		}
 	}
@@ -510,10 +513,11 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 		coverPath, err = e.addSection("", coverBody, "", "", internalCSSPath)
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
-			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
+			return fmt.Errorf("Error adding default cover XHTML file becuse of: %w", err)
 		}
 	}
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
+	return nil
 }
 
 // SetIdentifier sets the unique identifier of the EPUB, such as a UUID, DOI,
