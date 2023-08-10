@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -114,12 +112,12 @@ func newToc() (*toc, error) {
 
 	t.navXML, err = newTocNavXML()
 	if err != nil {
-		return nil, errors.New("can't create navXML")
+		return nil, fmt.Errorf("can't create navXML %w", err)
 	}
 
 	t.ncxXML, err = newTocNcxXML()
 	if err != nil {
-		return nil, errors.New("can't create ncxXML")
+		return nil, fmt.Errorf("can't create navXML becuse of %w", err)
 	}
 
 	return t, nil
@@ -132,7 +130,7 @@ func newTocNavXML() (*tocNavBody, error) {
 	}
 	err := xml.Unmarshal([]byte(tocNavBodyTemplate), &b)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshalling tocNavBody: %s\n"+"\ttocNavBody=%#v\n"+"\ttocNavBodyTemplate=%s", err, *b, tocNavBodyTemplate)
+		return nil, fmt.Errorf("Error unmarshalling tocNavBody: %w\n"+"\ttocNavBody=%#v\n"+"\ttocNavBodyTemplate=%s", err, *b, tocNavBodyTemplate)
 	}
 
 	return b, nil
@@ -144,7 +142,7 @@ func newTocNcxXML() (*tocNcxRoot, error) {
 
 	err := xml.Unmarshal([]byte(tocNcxTemplate), &n)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshalling tocNcxRoot: %s\n"+"\ttocNcxRoot=%#v\n"+"\ttocNcxTemplate=%s", err, *n, tocNcxTemplate)
+		return nil, fmt.Errorf("Error unmarshalling tocNcxRoot: %w\n"+"\ttocNcxRoot=%#v\n"+"\ttocNcxTemplate=%s", err, *n, tocNcxTemplate)
 	}
 
 	return n, nil
@@ -259,12 +257,12 @@ func (t *toc) write(tempDir string) error {
 func (t *toc) writeNavDoc(tempDir string) error {
 	navBodyContent, err := xml.MarshalIndent(t.navXML, "    ", "  ")
 	if err != nil {
-		return fmt.Errorf("Error marshalling XML for EPUB v3 TOC file: %s\n"+"\tXML=%#v", err, t.navXML)
+		return fmt.Errorf("Error marshalling XML for EPUB v3 TOC file: %w\n"+"\tXML=%#v", err, t.navXML)
 	}
 
 	n, err := newXhtml(string(navBodyContent))
 	if err != nil {
-		return errors.Wrap(err, "can't create xhtml for TOC file")
+		return fmt.Errorf("can't create xhtml for TOC file becuase of: %w", err)
 	}
 	n.setXmlnsEpub(xmlnsEpub)
 	n.setTitle(t.title)
@@ -272,7 +270,7 @@ func (t *toc) writeNavDoc(tempDir string) error {
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
 	err = n.write(navFilePath)
 	if err != nil {
-		return errors.Wrap(err, "can't write TOC file")
+		return fmt.Errorf("can't write TOC file becuase of: %w", err)
 	}
 	return nil
 }
@@ -284,7 +282,7 @@ func (t *toc) writeNcxDoc(tempDir string) error {
 
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXML, "", "  ")
 	if err != nil {
-		return fmt.Errorf("Error marshalling XML for EPUB v2 TOC file: %s\n"+"+\tXML=%#v", err, t, t.ncxXML)
+		return fmt.Errorf("Error marshalling XML for EPUB v2 TOC file: %w\n"+"+\tXML=%#v", err, t, t.ncxXML)
 	}
 
 	// Add the xml header to the output
@@ -294,7 +292,7 @@ func (t *toc) writeNcxDoc(tempDir string) error {
 
 	ncxFilePath := filepath.Join(tempDir, contentFolderName, tocNcxFilename)
 	if err := filesystem.WriteFile(ncxFilePath, []byte(ncxFileContent), filePermissions); err != nil {
-		return fmt.Errorf("Error writing EPUB v2 TOC file: %s", err)
+		return fmt.Errorf("Error writing EPUB v2 TOC file: %w", err)
 	}
 	return nil
 }
