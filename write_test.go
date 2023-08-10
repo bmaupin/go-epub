@@ -3,11 +3,10 @@ package epub
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestEpubWriteTo(t *testing.T) {
@@ -33,7 +32,7 @@ func TestWriteToErrors(t *testing.T) {
 	})
 	t.Run("Image", func(t *testing.T) {
 		e := NewEpub(testEpubTitle)
-		testWriteToErrors(t, e, e.AddImage, "sample.png")
+		testWriteToErrors(t, e, e.AddImage, "gophercolor16x16.png")
 	})
 	t.Run("Video", func(t *testing.T) {
 		e := NewEpub(testEpubTitle)
@@ -52,12 +51,11 @@ func testWriteToErrors(t *testing.T, e *Epub, adder func(string, string) (string
 		t.Fatalf("cannot open testdata: %v", err)
 	}
 	defer data.Close()
-	temp, err := os.CreateTemp("", "temp")
+	temp, err := ioutil.TempFile("", "temp")
 	if err != nil {
 		t.Fatalf("unable to create temp file: %v", err)
 	}
-	_, err = io.Copy(temp, data)
-	require.NoError(t, err)
+	io.Copy(temp, data)
 	temp.Close()
 	// Add temp file to epub
 	if _, err := adder(temp.Name(), ""); err != nil {
