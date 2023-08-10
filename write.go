@@ -69,12 +69,18 @@ func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 			log.Print("Error removing temp directory: %w", err)
 		}
 	}()
-	writeMimetype(tempDir)
+	err = writeMimetype(tempDir)
+	if err != nil {
+		return 0, err
+	}
 	createEpubFolders(tempDir)
 
 	// Must be called after:
 	// createEpubFolders()
-	writeContainerFile(tempDir)
+	err = writeContainerFile(tempDir)
+	if err != nil {
+		return 0, err
+	}
 
 	// Must be called after:
 	// createEpubFolders()
