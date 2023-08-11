@@ -33,6 +33,8 @@ func (g grabber) checkMedia(mediaSource string) error {
 		}
 		if source != nil {
 			source.Close()
+		}
+		if err == nil{
 			return nil
 		}
 	}
