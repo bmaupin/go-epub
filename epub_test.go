@@ -63,13 +63,12 @@ const (
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
 	testNumberFilenameStart   = "01filenametest.png"
 	testSpaceInFilename       = "filename with space.png"
-	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
+	//testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testVideoFromFileFilename = "testfromfile.mp4"
 	testVideoFromFileSource   = "testdata/sample_640x360.mp4"
 	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
 	testAudioFromFileFilename = "sample_audio.wav"
 	testAudioFromFileSource   = "testdata/sample_audio.wav"
-	testAudioFromURLSource    = "https://file-examples.com/storage/fe1dbaea7664d369bb6e226/2017/11/file_example_WAV_1MG.wav"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
 	testPpdTemplate           = `page-progression-direction="%s"`
@@ -265,6 +264,13 @@ func TestAddFont(t *testing.T) {
 }
 
 func TestAddImage(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	e := NewEpub(testEpubTitle)
 	testImageFromFilePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	if err != nil {
@@ -370,6 +376,17 @@ func TestAddAudio(t *testing.T) {
 	}
 	fmt.Println(testAudioFromFilePath)
 
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	//	testSectionBodyWithImage := `    <h1>Section 1</h1>
+	//	<p>This is a paragraph.</p>
+	//	<p><img src="` + server.URL + `/gophercolor16x16.png" loading="lazy"/></p>`
+
+	testAudioFromURLSource := server.URL + "/sample_audio.wav"
 	testAudioFromURLPath, err := e.AddAudio(testAudioFromURLSource, "")
 	if err != nil {
 		t.Errorf("Error adding audio: %s", err)
@@ -759,6 +776,13 @@ func TestSetCover(t *testing.T) {
 }
 
 func TestManifestItems(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	testManifestItems := []string{`id="filenamewithspace.png" href="images/filename with space.png" media-type="image/png"></item>`,
 		`id="gophercolor16x16.png" href="images/gophercolor16x16.png" media-type="image/png"></item>`,
 		`id="id01filenametest.png" href="images/01filenametest.png" media-type="image/png"></item>`,
@@ -841,6 +865,14 @@ func TestUnableToCreateEpubError(t *testing.T) {
 }
 
 func testEpubValidity(t testing.TB) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testAudioFromURLSource := server.URL + "/sample_audio.wav"
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	e := NewEpub(testEpubTitle)
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
