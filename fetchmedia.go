@@ -27,15 +27,14 @@ func (g grabber) checkMedia(mediaSource string) error {
 		g.httpHandler,
 		g.dataURLHandler,
 	} {
-		var err error
 		source, err := f(mediaSource, true)
+		if err != nil {
+			fetchErrors = append(fetchErrors, err)
+		}
 		if source != nil {
 			source.Close()
-		}
-		if err == nil {
 			return nil
 		}
-		fetchErrors = append(fetchErrors, err)
 	}
 	return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
 }
