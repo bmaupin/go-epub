@@ -90,9 +90,7 @@ const (
 	testSectionBody = `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
 	testSectionBodyWithnotabledownloadImage = `    <h1>Section 1</h1>
-	<p>This is a paragraph.</p>
-	<p><img src="https://example.com/fileNotExist.jpg" loading="lazy"/></p>`
-
+	<p>This is a paragraph.</p><p><img src="https://example.com/fileNotExist.jpg" loading="lazy"/></p>`
 	testSectionBodyWithImageEmbed = `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>
 	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
@@ -103,8 +101,8 @@ const (
     <title>%s</title>
   </head>
   <body>
-    %s
-  </body>
+%s
+</body>
 </html>`
 	testSectionFilename = "section0001.xhtml"
 	testSectionTitle    = "Section 1"
@@ -864,6 +862,83 @@ func TestUnableToCreateEpubError(t *testing.T) {
 	}
 }
 
+func TestEmbedImage(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testSectionBodyWithImage := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>
+	<p><img src="` + server.URL + `/gophercolor16x16.png" loading="lazy"/></p>`
+	testSectionBodyWithImageExpect := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>
+	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
+	e := NewEpub(testEpubTitle)
+	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+
+	testSection2Path, err := e.AddSection(testSectionBodyWithnotabledownloadImage, testSectionTitle, "", "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+	testSection3Path, err := e.AddSection(testSectionBodyWithImage, testSectionTitle, "", "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+	e.EmbedImages()
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+	// test 1
+	testSectionContents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBody)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSectionContents)
+	}
+	// test 2
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testSection2Contents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBodyWithnotabledownloadImage)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSection2Contents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSection2Contents)
+	}
+	// test 3
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection3Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testSection3Contents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBodyWithImageExpect)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSection3Contents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSection3Contents)
+	}
+	cleanup(testEpubFilename, tempDir)
+}
+
 func testEpubValidity(t testing.TB) {
 	fs := http.FileServer(http.Dir("./testdata/"))
 
@@ -1092,79 +1167,4 @@ func writeAndExtractEpub(t testing.TB, e *Epub, epubFilename string) string {
 	}
 
 	return tempDir
-}
-
-func TestEmbedImages(t *testing.T) {
-	// create a file server handler for the 'testdata' directory
-	fs := http.FileServer(http.Dir("./testdata/"))
-
-	// start a test server with the file server handler
-	server := httptest.NewServer(fs)
-	defer server.Close()
-
-	testSectionBodyWithImage := `    <h1>Section 1</h1>
-	<p>This is a paragraph.</p>
-	<p><img src="` + server.URL + `/gophercolor16x16.png" loading="lazy"/></p>`
-
-	e := NewEpub(testEpubTitle)
-	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
-	if err != nil {
-		t.Errorf("Error adding section: %s", err)
-	}
-
-	testSection2Path, err := e.AddSection(testSectionBodyWithImage, testSectionTitle, "", "")
-	if err != nil {
-		t.Errorf("Error adding section: %s", err)
-	}
-	testSection3Path, err := e.AddSection(testSectionBodyWithnotabledownloadImage, testSectionTitle, "", "")
-	if err != nil {
-		t.Errorf("Error adding section: %s", err)
-	}
-	e.EmbedImages()
-
-	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
-
-	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
-	if err != nil {
-		t.Errorf("Unexpected error reading section file: %s", err)
-	}
-
-	testSectionContents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBody)
-	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
-		t.Errorf(
-			"Section file contents don't match\n"+
-				"Got: %s\n"+
-				"Expected: %s",
-			contents,
-			testSectionContents)
-	}
-
-	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
-	if err != nil {
-		t.Errorf("Unexpected error reading section file: %s", err)
-	}
-	testSectionContents = fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBodyWithImageEmbed)
-	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
-		t.Errorf(
-			"Section file contents don't match\n"+
-				"Got: %s\n"+
-				"Expected: %s",
-			contents,
-			testSectionContents)
-	}
-
-	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection3Path))
-	if err != nil {
-		t.Errorf("Unexpected error reading section file: %s", err)
-	}
-	testSectionContents = fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBodyWithnotabledownloadImage)
-	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
-		t.Errorf(
-			"Section file contents don't match\n"+
-				"Got: %s\n"+
-				"Expected: %s",
-			contents,
-			testSectionContents)
-	}
-	cleanup(testEpubFilename, tempDir)
 }
