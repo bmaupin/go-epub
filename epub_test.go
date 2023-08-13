@@ -68,7 +68,7 @@ const (
 	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
 	testAudioFromFileFilename = "sample_audio.wav"
 	testAudioFromFileSource   = "testdata/sample_audio.wav"
-	testAudioFromURLSource    = "https://file-examples.com/storage/fe644084cb644d3709528c4/2017/11/file_example_WAV_1MG.wav"
+	testAudioFromURLSource    = "https://file-examples.com/storage/fe1dbaea7664d369bb6e226/2017/11/file_example_WAV_1MG.wav"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
 	testPpdTemplate           = `page-progression-direction="%s"`
