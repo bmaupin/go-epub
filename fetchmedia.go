@@ -50,11 +50,12 @@ func (g grabber) checkMedia(mediaSource string) error {
 	}
 	if source != nil {
 		source.Close()
+		return nil
 	}
-	if len(fetchErrors) > 0 { // Check if there are any errors
-		return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
+	if err == nil {
+		return nil
 	}
-	return nil
+	return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
 }
 
 // fetchMedia from mediaSource into mediaFolderPath as mediaFilename returning its type.
