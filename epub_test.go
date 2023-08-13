@@ -63,10 +63,8 @@ const (
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
 	testNumberFilenameStart   = "01filenametest.png"
 	testSpaceInFilename       = "filename with space.png"
-	//testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testVideoFromFileFilename = "testfromfile.mp4"
 	testVideoFromFileSource   = "testdata/sample_640x360.mp4"
-	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
 	testAudioFromFileFilename = "sample_audio.wav"
 	testAudioFromFileSource   = "testdata/sample_audio.wav"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
@@ -317,6 +315,14 @@ func TestAddImage(t *testing.T) {
 }
 
 func TestAddVideo(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
+
 	e := NewEpub(testEpubTitle)
 	testVideoFromFilePath, err := e.AddVideo(testVideoFromFileSource, testVideoFromFileFilename)
 	if err != nil {
@@ -379,10 +385,6 @@ func TestAddAudio(t *testing.T) {
 	// start a test server with the file server handler
 	server := httptest.NewServer(fs)
 	defer server.Close()
-
-	//	testSectionBodyWithImage := `    <h1>Section 1</h1>
-	//	<p>This is a paragraph.</p>
-	//	<p><img src="` + server.URL + `/gophercolor16x16.png" loading="lazy"/></p>`
 
 	testAudioFromURLSource := server.URL + "/sample_audio.wav"
 	testAudioFromURLPath, err := e.AddAudio(testAudioFromURLSource, "")
@@ -948,6 +950,7 @@ func testEpubValidity(t testing.TB) {
 
 	testAudioFromURLSource := server.URL + "/sample_audio.wav"
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
+	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
 	e := NewEpub(testEpubTitle)
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
