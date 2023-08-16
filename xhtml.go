@@ -13,9 +13,9 @@ const (
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title></title>
+    <title dir="auto"></title>
   </head>
-  <body></body>
+  <body dir="auto"></body>
 </html>
 `
 )
@@ -34,8 +34,14 @@ type xhtmlRoot struct {
 }
 
 type xhtmlHead struct {
-	Title string `xml:"title"`
+	Title xhtmlTitle `xml:"title"`
 	Link  *xhtmlLink
+}
+
+type xhtmlTitle struct {
+	XMLName xml.Name `xml:"title,omitempty"`
+	Dir     string   `xml:"dir,attr,omitempty"`
+	Value   string   `xml:",chardata"`
 }
 
 // The <link> element, used to link to stylesheets
@@ -52,6 +58,7 @@ type xhtmlLink struct {
 // leave it up to the user of the package to validate the content
 type xhtmlInnerxml struct {
 	XML string `xml:",innerxml"`
+	Dir string `xml:"dir,attr,omitempty"`
 }
 
 // Constructor for xhtml
@@ -66,7 +73,9 @@ func newXhtml(body string) *xhtml {
 
 // Constructor for xhtmlRoot
 func newXhtmlRoot() *xhtmlRoot {
-	r := &xhtmlRoot{}
+	r := &xhtmlRoot{
+		Body: xhtmlInnerxml{Dir: "auto"},
+	}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &r)
 	if err != nil {
 		panic(fmt.Sprintf(
@@ -83,6 +92,7 @@ func newXhtmlRoot() *xhtmlRoot {
 
 func (x *xhtml) setBody(body string) {
 	x.xml.Body.XML = "\n" + body + "\n"
+	x.xml.Body.Dir = "auto"
 }
 
 func (x *xhtml) setCSS(path string) {
@@ -94,7 +104,10 @@ func (x *xhtml) setCSS(path string) {
 }
 
 func (x *xhtml) setTitle(title string) {
-	x.xml.Head.Title = title
+	x.xml.Head.Title = xhtmlTitle{
+		Dir:   "auto",
+		Value: title,
+	}
 }
 
 func (x *xhtml) setXmlnsEpub(xmlns string) {
@@ -102,7 +115,7 @@ func (x *xhtml) setXmlnsEpub(xmlns string) {
 }
 
 func (x *xhtml) Title() string {
-	return x.xml.Head.Title
+	return x.xml.Head.Title.Value
 }
 
 // Write the XHTML file to the specified path
