@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -62,13 +63,10 @@ const (
 	testImageFromFileSource   = "testdata/gophercolor16x16.png"
 	testNumberFilenameStart   = "01filenametest.png"
 	testSpaceInFilename       = "filename with space.png"
-	testImageFromURLSource    = "https://golang.org/doc/gopher/gophercolor16x16.png"
 	testVideoFromFileFilename = "testfromfile.mp4"
 	testVideoFromFileSource   = "testdata/sample_640x360.mp4"
-	testVideoFromURLSource    = "https://filesamples.com/samples/video/mp4/sample_640x360.mp4"
 	testAudioFromFileFilename = "sample_audio.wav"
 	testAudioFromFileSource   = "testdata/sample_audio.wav"
-	testAudioFromURLSource    = "https://file-examples.com/storage/fe1dbaea7664d369bb6e226/2017/11/file_example_WAV_1MG.wav"
 	testLangTemplate          = `<dc:language>%s</dc:language>`
 	testDescTemplate          = `<dc:description>%s</dc:description>`
 	testPpdTemplate           = `page-progression-direction="%s"`
@@ -89,6 +87,11 @@ const (
 </package>`
 	testSectionBody = `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
+	testSectionBodyWithnotabledownloadImage = `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p><p><img src="https://example.com/fileNotExist.jpg" loading="lazy"/></p>`
+	testSectionBodyWithImageEmbed = `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>
+	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
 	testSectionContentTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -257,6 +260,13 @@ func TestAddFont(t *testing.T) {
 }
 
 func TestAddImage(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	e := NewEpub(testEpubTitle)
 	testImageFromFilePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	if err != nil {
@@ -305,6 +315,14 @@ func TestAddImage(t *testing.T) {
 }
 
 func TestAddVideo(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
+
 	e := NewEpub(testEpubTitle)
 	testVideoFromFilePath, err := e.AddVideo(testVideoFromFileSource, testVideoFromFileFilename)
 	if err != nil {
@@ -362,6 +380,13 @@ func TestAddAudio(t *testing.T) {
 	}
 	fmt.Println(testAudioFromFilePath)
 
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testAudioFromURLSource := server.URL + "/sample_audio.wav"
 	testAudioFromURLPath, err := e.AddAudio(testAudioFromURLSource, "")
 	if err != nil {
 		t.Errorf("Error adding audio: %s", err)
@@ -751,6 +776,13 @@ func TestSetCover(t *testing.T) {
 }
 
 func TestManifestItems(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	testManifestItems := []string{`id="filenamewithspace.png" href="images/filename with space.png" media-type="image/png"></item>`,
 		`id="gophercolor16x16.png" href="images/gophercolor16x16.png" media-type="image/png"></item>`,
 		`id="id01filenametest.png" href="images/01filenametest.png" media-type="image/png"></item>`,
@@ -832,7 +864,93 @@ func TestUnableToCreateEpubError(t *testing.T) {
 	}
 }
 
+func TestEmbedImage(t *testing.T) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testSectionBodyWithImage := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>
+	<p><img src="` + server.URL + `/gophercolor16x16.png" loading="lazy"/></p>`
+	testSectionBodyWithImageExpect := `    <h1>Section 1</h1>
+	<p>This is a paragraph.</p>
+	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
+	e := NewEpub(testEpubTitle)
+	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+
+	testSection2Path, err := e.AddSection(testSectionBodyWithnotabledownloadImage, testSectionTitle, "", "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+	testSection3Path, err := e.AddSection(testSectionBodyWithImage, testSectionTitle, "", "")
+	if err != nil {
+		t.Errorf("Error adding section: %s", err)
+	}
+	e.EmbedImages()
+	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
+
+	contents, err := storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection1Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+	// test 1
+	testSectionContents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBody)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSectionContents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSectionContents)
+	}
+	// test 2
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection2Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testSection2Contents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBodyWithnotabledownloadImage)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSection2Contents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSection2Contents)
+	}
+	// test 3
+	contents, err = storage.ReadFile(filesystem, filepath.Join(tempDir, contentFolderName, xhtmlFolderName, testSection3Path))
+	if err != nil {
+		t.Errorf("Unexpected error reading section file: %s", err)
+	}
+
+	testSection3Contents := fmt.Sprintf(testSectionContentTemplate, testSectionTitle, testSectionBodyWithImageExpect)
+	if trimAllSpace(string(contents)) != trimAllSpace(testSection3Contents) {
+		t.Errorf(
+			"Section file contents don't match\n"+
+				"Got: %s\n"+
+				"Expected: %s",
+			contents,
+			testSection3Contents)
+	}
+	cleanup(testEpubFilename, tempDir)
+}
+
 func testEpubValidity(t testing.TB) {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testAudioFromURLSource := server.URL + "/sample_audio.wav"
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
+	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
 	e := NewEpub(testEpubTitle)
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
