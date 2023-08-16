@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/vincent-petithory/dataurl"
@@ -20,22 +21,38 @@ type grabber struct {
 	*http.Client
 }
 
+func detectMediaType(mediaSource string) string {
+	if strings.HasPrefix(mediaSource, "http://") || strings.HasPrefix(mediaSource, "https://") {
+		return "URL"
+	}
+
+	if strings.HasPrefix(mediaSource, "data:") {
+		return "DataURL"
+	}
+
+	return "File"
+}
+
 func (g grabber) checkMedia(mediaSource string) error {
-	fetchErrors := make([]error, 0)
-	for _, f := range []func(string, bool) (io.ReadCloser, error){
-		g.localHandler,
-		g.httpHandler,
-		g.dataURLHandler,
-	} {
-		var err error
-		source, err := f(mediaSource, true)
-		if source != nil {
-			source.Close()
-		}
-		if err == nil {
-			return nil
-		}
-		fetchErrors = append(fetchErrors, err)
+	var fetchErrors []error // Declare fetchErrors variable
+	var f func(string, bool) (io.ReadCloser, error)
+	switch detectMediaType(mediaSource) {
+	case "URL":
+		f = g.httpHandler
+	case "DataURL":
+		f = g.dataURLHandler
+	default:
+		f = g.localHandler
+	}
+	source, err := f(mediaSource, true)
+	if err != nil {
+		fetchErrors = append(fetchErrors, err) // Capture the error
+	}
+	if source != nil {
+		source.Close()
+	}
+	if err == nil {
+		return nil
 	}
 	return &FileRetrievalError{Source: mediaSource, Err: fetchError(fetchErrors)}
 }

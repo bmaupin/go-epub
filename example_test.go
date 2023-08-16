@@ -3,6 +3,8 @@ package epub_test
 import (
 	"fmt"
 	"log"
+	"net/http"
+	"net/http/httptest"
 
 	"github.com/bmaupin/go-epub"
 )
@@ -59,6 +61,14 @@ func ExampleEpub_AddFont() {
 }
 
 func ExampleEpub_AddImage() {
+	fs := http.FileServer(http.Dir("./testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
+	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
+
 	e := epub.NewEpub("My title")
 
 	// Add an image from a local file
@@ -68,7 +78,7 @@ func ExampleEpub_AddImage() {
 	}
 
 	// Add an image from a URL. The filename is optional
-	img2Path, err := e.AddImage("https://golang.org/doc/gopher/gophercolor16x16.png", "")
+	img2Path, err := e.AddImage(testImageFromURLSource, "")
 	if err != nil {
 		log.Fatal(err)
 	}
