@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -1082,7 +1083,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}()
 
@@ -1094,7 +1095,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		}
 		defer func() {
 			if err := rc.Close(); err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		}()
 
@@ -1114,7 +1115,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		}
 		defer func() {
 			if err := w.Close(); err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		}()
 
