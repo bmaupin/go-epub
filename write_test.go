@@ -7,10 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestEpubWriteTo(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	require.NoError(t, err)
+
 	var b bytes.Buffer
 	n, err := e.WriteTo(&b)
 	if err != nil {
@@ -23,23 +27,23 @@ func TestEpubWriteTo(t *testing.T) {
 
 func TestWriteToErrors(t *testing.T) {
 	t.Run("CSS", func(t *testing.T) {
-		e := NewEpub(testEpubTitle)
+		e, _ := NewEpub(testEpubTitle)
 		testWriteToErrors(t, e, e.AddCSS, "cover.css")
 	})
 	t.Run("Font", func(t *testing.T) {
-		e := NewEpub(testEpubTitle)
+		e, _ := NewEpub(testEpubTitle)
 		testWriteToErrors(t, e, e.AddFont, "redacted-script-regular.ttf")
 	})
 	t.Run("Image", func(t *testing.T) {
-		e := NewEpub(testEpubTitle)
+		e, _ := NewEpub(testEpubTitle)
 		testWriteToErrors(t, e, e.AddImage, "gophercolor16x16.png")
 	})
 	t.Run("Video", func(t *testing.T) {
-		e := NewEpub(testEpubTitle)
+		e, _ := NewEpub(testEpubTitle)
 		testWriteToErrors(t, e, e.AddVideo, "sample_640x360.mp4")
 	})
 	t.Run("Audio", func(t *testing.T) {
-		e := NewEpub(testEpubTitle)
+		e, _ := NewEpub(testEpubTitle)
 		testWriteToErrors(t, e, e.AddAudio, "sample_audio.wav")
 	})
 }

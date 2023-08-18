@@ -10,7 +10,7 @@ import (
 )
 
 func ExampleEpub_AddCSS() {
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Add CSS
 	css1Path, err := e.AddCSS("testdata/cover.css", "epub.css")
@@ -38,7 +38,7 @@ func ExampleEpub_AddCSS() {
 }
 
 func ExampleEpub_AddFont() {
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Add a font from a local file
 	font1Path, err := e.AddFont("testdata/redacted-script-regular.ttf", "font.ttf")
@@ -69,7 +69,7 @@ func ExampleEpub_AddImage() {
 
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Add an image from a local file
 	img1Path, err := e.AddImage("testdata/gophercolor16x16.png", "go-gopher.png")
@@ -92,7 +92,7 @@ func ExampleEpub_AddImage() {
 }
 
 func ExampleEpub_AddSection() {
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Add a section. The CSS path is optional
 	section1Body := `    <h1>Section 1</h1>
@@ -121,7 +121,7 @@ func ExampleEpub_AddSection() {
 }
 
 func ExampleEpub_AddSubSection() {
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Add a section. The CSS path is optional
 	section1Body := `    <h1>Section 1</h1>
@@ -150,7 +150,7 @@ func ExampleEpub_AddSubSection() {
 }
 
 func ExampleEpub_SetCover() {
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Set the cover. The CSS file is optional
 	coverImagePath, _ := e.AddImage("testdata/gophercolor16x16.png", "cover.png")
@@ -162,7 +162,7 @@ func ExampleEpub_SetCover() {
 }
 
 func ExampleEpub_SetIdentifier() {
-	e := epub.NewEpub("My title")
+	e, _ := epub.NewEpub("My title")
 
 	// Set the identifier to a UUID
 	e.SetIdentifier("urn:uuid:a1b0d67e-2e81-4df5-9e67-a64cbe366809")

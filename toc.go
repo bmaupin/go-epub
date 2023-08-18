@@ -282,7 +282,7 @@ func (t *toc) writeNcxDoc(tempDir string) error {
 
 	ncxFileContent, err := xml.MarshalIndent(t.ncxXML, "", "  ")
 	if err != nil {
-		return fmt.Errorf("Error marshalling XML for EPUB v2 TOC file: %w\n"+"+\tXML=%#v", err, t, t.ncxXML)
+		return fmt.Errorf("Error marshalling XML for EPUB v2 TOC file: %w\n"+"+\tXML=%#v", err, t.ncxXML)
 	}
 
 	// Add the xml header to the output
