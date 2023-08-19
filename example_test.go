@@ -15,13 +15,13 @@ func ExampleEpub_AddCSS() {
 	// Add CSS
 	css1Path, err := e.AddCSS("testdata/cover.css", "epub.css")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// The filename is optional
 	css2Path, err := e.AddCSS("testdata/cover.css", "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Use the CSS in a section
@@ -43,13 +43,13 @@ func ExampleEpub_AddFont() {
 	// Add a font from a local file
 	font1Path, err := e.AddFont("testdata/redacted-script-regular.ttf", "font.ttf")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// The filename is optional
 	font2Path, err := e.AddFont("testdata/redacted-script-regular.ttf", "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	fmt.Println(font1Path)
@@ -74,13 +74,13 @@ func ExampleEpub_AddImage() {
 	// Add an image from a local file
 	img1Path, err := e.AddImage("testdata/gophercolor16x16.png", "go-gopher.png")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Add an image from a URL. The filename is optional
 	img2Path, err := e.AddImage(testImageFromURLSource, "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	fmt.Println(img1Path)
@@ -99,7 +99,7 @@ func ExampleEpub_AddSection() {
 	<p>This is a paragraph.</p>`
 	section1Path, err := e.AddSection(section1Body, "Section 1", "firstsection.xhtml", "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Link to the first section
@@ -109,7 +109,7 @@ func ExampleEpub_AddSection() {
 	// The title and filename are also optional
 	section2Path, err := e.AddSection(section2Body, "", "", "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	fmt.Println(section1Path)
@@ -128,7 +128,7 @@ func ExampleEpub_AddSubSection() {
 	<p>This is a paragraph.</p>`
 	section1Path, err := e.AddSection(section1Body, "Section 1", "firstsection.xhtml", "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Link to the first section
@@ -138,7 +138,7 @@ func ExampleEpub_AddSubSection() {
 	// The title and filename are also optional
 	section2Path, err := e.AddSubSection(section1Path, section2Body, "", "", "")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	fmt.Println(section1Path)

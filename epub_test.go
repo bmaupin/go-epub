@@ -1083,7 +1083,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}()
 
@@ -1095,7 +1095,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		}
 		defer func() {
 			if err := rc.Close(); err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		}()
 
@@ -1115,7 +1115,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		}
 		defer func() {
 			if err := w.Close(); err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		}()
 

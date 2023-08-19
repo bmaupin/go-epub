@@ -296,8 +296,7 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 		}
 		defer func() {
 			if err := r.Close(); err != nil {
-				log.Fatal(err)
-
+				log.Println(err)
 			}
 		}()
 
@@ -313,14 +312,14 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 	mimetypeInfo, err := fs.Stat(filesystem, mimetypeFilePath)
 	if err != nil {
 		if err := z.Close(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		return counter.Total, fmt.Errorf("unable to get FileInfo for mimetype file: %w", err)
 	}
 	err = addFileToZip(mimetypeFilePath, fileInfoToDirEntry(mimetypeInfo), nil)
 	if err != nil {
 		if err := z.Close(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		return counter.Total, fmt.Errorf("unable to add mimetype file to EPUB: %w", err)
 	}
@@ -330,7 +329,7 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 	err = fs.WalkDir(filesystem, rootEpubDir, addFileToZip)
 	if err != nil {
 		if err := z.Close(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		return counter.Total, fmt.Errorf("unable to add file to EPUB: %w", err)
 	}
