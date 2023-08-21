@@ -587,6 +587,11 @@ func (e *Epub) EmbedImages() {
 		for _, match := range imageTagMatches {
 			imageURL := match[1]
 			if !strings.HasPrefix(imageURL, "data:image/") {
+				// Check if the image URL already exists in the map
+				if _, exists := images[imageURL]; exists {
+					continue
+				}
+
 				images[imageURL] = match[0]
 				filePath, err := e.AddImage(string(imageURL), "")
 				if err != nil {
