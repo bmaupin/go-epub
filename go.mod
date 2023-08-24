@@ -8,4 +8,7 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0
 )
 
-require golang.org/x/net v0.13.0 // indirect
+require (
+	github.com/google/uuid v1.3.1 // indirect
+	golang.org/x/net v0.13.0 // indirect
+)

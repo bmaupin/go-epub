@@ -7,8 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/gofrs/uuid"
 )
@@ -382,22 +380,8 @@ func fixXMLId(id string) string {
 	if len(id) == 0 {
 		panic("No id given")
 	}
-	fixedId := []rune{}
-	for i := 0; len(id) > 0; i++ {
-		r, size := utf8.DecodeRuneInString(id)
-		if i == 0 {
-			// The new id should be prefixed with 'id' if an invalid
-			// starting character is found
-			// this is not 100% accurate, but a better check than no check
-			if unicode.IsNumber(r) || unicode.IsPunct(r) || unicode.IsSymbol(r) {
-				fixedId = append(fixedId, []rune("id")...)
-			}
-		}
-		if !unicode.IsSpace(r) && r != ':' {
-			fixedId = append(fixedId, r)
-		}
-		id = id[size:]
-	}
+	newid := uuid.Must(uuid.NewV4()).String()
+	fixedId := fmt.Sprintf("id%s", newid)
 	return string(fixedId)
 }
 
