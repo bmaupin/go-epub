@@ -591,22 +591,27 @@ func (e *Epub) EmbedImages() {
 				if _, exists := images[imageURL]; exists {
 					continue
 				}
+				originalImgTag := match[0]
+				images[imageURL] = match[1]
 
-				images[imageURL] = match[0]
+				// organize img tags first one always be src and other data-src
+				// Replace all "data-src=" with "src="
+				match[0] = strings.ReplaceAll(match[0], " data-src=", " src=")
+
+				firstSrcIndex := strings.Index(match[0], " src=")
+				match[0] = match[0][:firstSrcIndex+len(" src=")] + strings.ReplaceAll(match[0][firstSrcIndex+len(" src="):], " src=", " data-src=")
+
 				filePath, err := e.AddImage(string(imageURL), "")
 				if err != nil {
 					log.Printf("can't add image to the epub: %s", err)
 					continue
 				}
-				e.sections[i].xhtml.xml.Body.XML = strings.ReplaceAll(section.xhtml.xml.Body.XML, match[0], replaceSrcAttribute(match[0], filePath))
+				newImgTag := strings.ReplaceAll(match[0], imageURL, filePath)
+				//e.sections[i].xhtml.xml.Body.XML = strings.ReplaceAll(section.xhtml.xml.Body.XML, match[0], replaceSrcAttribute(match[0], filePath))
+				e.sections[i].xhtml.xml.Body.XML = strings.ReplaceAll(section.xhtml.xml.Body.XML, originalImgTag, newImgTag)
 			}
 		}
 	}
-}
-
-func replaceSrcAttribute(imgTag string, filePath string) string {
-	re := regexp.MustCompile(`src="([^"]*)"`)
-	return re.ReplaceAllString(imgTag, fmt.Sprintf(`src="%s"`, filePath))
 }
 
 // Add a media file to the EPUB and return the path relative to the EPUB section
