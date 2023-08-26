@@ -607,7 +607,6 @@ func (e *Epub) EmbedImages() {
 					continue
 				}
 				newImgTag := strings.ReplaceAll(match[0], imageURL, filePath)
-				//e.sections[i].xhtml.xml.Body.XML = strings.ReplaceAll(section.xhtml.xml.Body.XML, match[0], replaceSrcAttribute(match[0], filePath))
 				e.sections[i].xhtml.xml.Body.XML = strings.ReplaceAll(section.xhtml.xml.Body.XML, originalImgTag, newImgTag)
 			}
 		}
