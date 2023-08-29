@@ -6,6 +6,8 @@
 
 ---
 
+⚠️ This project is unmaintained. Please use [go-shiori/go-epub](https://github.com/go-shiori/go-epub) or [another fork](https://github.com/bmaupin/go-epub/forks).
+
 ### Features
 - [Documented API](https://godoc.org/github.com/bmaupin/go-epub)
 - Creates valid EPUB 3.0 files
