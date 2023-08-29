@@ -38,7 +38,6 @@ const (
 // metadata about the EPUB (title, author, etc) as well as a list of files the
 // EPUB contains.
 //
-// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v3plus2/EPUB/package.opf
 // Spec: http://www.idpf.org/epub/301/spec/epub-publications.html
 type pkg struct {
 	xml          *pkgRoot
@@ -73,8 +72,9 @@ type pkgIdentifier struct {
 
 // <item> elements, one per each file stored in the EPUB
 // Ex: <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
-//     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
-//     <item id="section0001.xhtml" href="xhtml/section0001.xhtml" media-type="application/xhtml+xml" />
+//
+//	<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+//	<item id="section0001.xhtml" href="xhtml/section0001.xhtml" media-type="application/xhtml+xml" />
 type pkgItem struct {
 	ID         string `xml:"id,attr"`
 	Href       string `xml:"href,attr"`
@@ -91,7 +91,8 @@ type pkgItemref struct {
 // The <meta> element, which contains modified date, role of the creator (e.g.
 // author), etc
 // Ex: <meta refines="#creator" property="role" scheme="marc:relators" id="role">aut</meta>
-//     <meta property="dcterms:modified">2011-01-01T12:00:00Z</meta>
+//
+//	<meta property="dcterms:modified">2011-01-01T12:00:00Z</meta>
 type pkgMeta struct {
 	Refines  string `xml:"refines,attr,omitempty"`
 	Property string `xml:"property,attr,omitempty"`

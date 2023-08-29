@@ -46,14 +46,12 @@ type toc struct {
 	// This holds the body XML for the EPUB v3 TOC file (nav.xhtml). Since this is
 	// an XHTML file, the rest of the structure is handled by the xhtml type
 	//
-	// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v3plus2/EPUB/nav.xhtml
 	// Spec: http://www.idpf.org/epub/301/spec/epub-contentdocs.html#sec-xhtml-nav
 	navXML *tocNavBody
 
 	// This holds the XML for the EPUB v2 TOC file (toc.ncx). This is added so the
 	// resulting EPUB v3 file will still work with devices that only support EPUB v2
 	//
-	// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v3plus2/EPUB/toc.ncx
 	// Spec: http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
 	ncxXML *tocNcxRoot
 
@@ -195,7 +193,7 @@ func (t *toc) addSubSection(parent string, index int, title string, relativePath
 			Data: title,
 		},
 	}
-	if len(t.navXML.Links) > parentNavIndex  {
+	if len(t.navXML.Links) > parentNavIndex {
 		// Create a new array if none exists
 		if t.navXML.Links[parentNavIndex].Children == nil {
 			n := make([]tocNavItem, 0)

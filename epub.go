@@ -1,7 +1,6 @@
 /*
 Package epub generates valid EPUB 3.0 files with additional EPUB 2.0 table of
-contents (as seen here: https://github.com/bmaupin/epub-samples) for maximum
-compatibility.
+contents for maximum compatibility.
 
 Basic usage:
 

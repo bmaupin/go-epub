@@ -183,7 +183,6 @@ func createEpubFolders(rootEpubDir string) {
 // Write the contatiner file (container.xml), which mostly just points to the
 // package file (package.opf)
 //
-// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v3plus2/META-INF/container.xml
 // Spec: http://www.idpf.org/epub/301/spec/epub-ocf.html#sec-container-metainf-container.xml
 func writeContainerFile(rootEpubDir string) {
 	containerFilePath := filepath.Join(rootEpubDir, metaInfFolderName, containerFilename)
@@ -403,7 +402,6 @@ func fixXMLId(id string) string {
 
 // Write the mimetype file
 //
-// Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v3plus2/mimetype
 // Spec: http://www.idpf.org/epub/301/spec/epub-ocf.html#sec-zip-container-mime
 func writeMimetype(rootEpubDir string) {
 	mimetypeFilePath := filepath.Join(rootEpubDir, mimetypeFilename)
