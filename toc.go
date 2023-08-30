@@ -117,7 +117,7 @@ func newToc() (*toc, error) {
 
 	t.ncxXML, err = newTocNcxXML()
 	if err != nil {
-		return nil, fmt.Errorf("can't create navXML becuse of %w", err)
+		return nil, fmt.Errorf("can't create navXML: %w", err)
 	}
 
 	return t, nil
