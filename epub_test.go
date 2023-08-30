@@ -1083,7 +1083,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
-			log.Println(err)
+			t.Error(err)
 		}
 	}()
 
