@@ -1063,6 +1063,7 @@ func trimAllSpace(s string) string {
 
 // UnzipFile unzips a file located at sourceFilePath to the provided destination directory
 func unzipFile(sourceFilePath string, destDirPath string) error {
+	var t *testing.T
 	// First, make sure the destination exists and is a directory
 	f, err := filesystem.Open(destDirPath)
 	if err != nil {
