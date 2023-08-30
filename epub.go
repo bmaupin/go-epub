@@ -515,7 +515,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) error 
 		coverPath, err = e.addSection("", coverBody, "", "", internalCSSPath)
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
-			return fmt.Errorf("Error adding default cover XHTML file becuse of: %w", err)
+			return fmt.Errorf("Error adding default cover XHTML file: %w", err)
 		}
 	}
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
