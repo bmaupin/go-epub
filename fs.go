@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bmaupin/go-epub/internal/storage"
-	"github.com/bmaupin/go-epub/internal/storage/memory"
-	"github.com/bmaupin/go-epub/internal/storage/osfs"
+	"github.com/go-shiori/go-epub/internal/storage"
+	"github.com/go-shiori/go-epub/internal/storage/memory"
+	"github.com/go-shiori/go-epub/internal/storage/osfs"
 )
 
 type FSType int
