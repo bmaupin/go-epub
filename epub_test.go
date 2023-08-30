@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-shiori/go-epub/internal/storage"
 	"github.com/gofrs/uuid"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -111,7 +110,9 @@ const (
 
 func TestEpubWrite(t *testing.T) {
 	e, err := NewEpub(testEpubTitle)
-	require.NoError(t, err)
+	if err != nil {
+		t.Error(err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -632,7 +633,9 @@ func TestEpubPpd(t *testing.T) {
 func TestEpubTitle(t *testing.T) {
 	// First, test the title we provide when creating the epub
 	e, err := NewEpub(testEpubTitle)
-	require.NoError(t, err)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if e.Title() != testEpubTitle {
 		t.Errorf(

@@ -7,14 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestEpubWriteTo(t *testing.T) {
 	e, err := NewEpub(testEpubTitle)
-	require.NoError(t, err)
-
+	if err != nil {
+		t.Error(err)
+	}
 	var b bytes.Buffer
 	n, err := e.WriteTo(&b)
 	if err != nil {
