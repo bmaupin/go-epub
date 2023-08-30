@@ -381,7 +381,7 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 	x, err := newXhtml(body)
 	if err != nil {
 		//return internalFilename, errors.Wrap(err, "can't add section we cant create xhtml")
-		return internalFilename, fmt.Errorf("can't add section we cant create xhtml becuse of: %w", err)
+		return internalFilename, fmt.Errorf("can't add section we cant create xhtml: %w", err)
 	}
 	x.setTitle(sectionTitle)
 	x.setXmlnsEpub(xmlnsEpub)
