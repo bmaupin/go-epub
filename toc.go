@@ -262,7 +262,7 @@ func (t *toc) writeNavDoc(tempDir string) error {
 
 	n, err := newXhtml(string(navBodyContent))
 	if err != nil {
-		return fmt.Errorf("can't create xhtml for TOC file becuase of: %w", err)
+		return fmt.Errorf("can't create xhtml for TOC file: %w", err)
 	}
 	n.setXmlnsEpub(xmlnsEpub)
 	n.setTitle(t.title)
