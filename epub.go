@@ -495,7 +495,7 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) error 
 			internalCSSPath, err = e.addCSS(e.cover.cssTempFile, coverCSSFilename)
 			if _, ok := err.(*FilenameAlreadyUsedError); ok {
 				// This shouldn't cause an error
-				return fmt.Errorf("Error adding default cover CSS file becuse of: %w", err)
+				return fmt.Errorf("Error adding default cover CSS file: %w", err)
 			}
 		}
 		if err != nil {
