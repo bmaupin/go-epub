@@ -37,7 +37,6 @@ const (
 // pkg implements the package document file (package.opf), which contains
 // metadata about the EPUB (title, author, etc) as well as a list of files the
 // EPUB contains.
-//
 // Sample: https://github.com/bmaupin/epub-samples/blob/master/minimal-v3plus2/EPUB/package.opf
 // Spec: http://www.idpf.org/epub/301/spec/epub-publications.html
 type pkg struct {

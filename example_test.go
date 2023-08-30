@@ -16,12 +16,14 @@ func ExampleEpub_AddCSS() {
 	css1Path, err := e.AddCSS("testdata/cover.css", "epub.css")
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	// The filename is optional
 	css2Path, err := e.AddCSS("testdata/cover.css", "")
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	// Use the CSS in a section
