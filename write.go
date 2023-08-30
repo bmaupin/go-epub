@@ -380,7 +380,7 @@ func (e *Epub) writeMedia(rootEpubDir string, mediaMap map[string]string, mediaF
 			// Add the file to the OPF manifest
 			xmlId, err := fixXMLId(mediaFilename)
 			if err != nil {
-				return err
+				return fmt.Errorf("error creating xml id: %w", err)
 			}
 			e.pkg.addToManifest(xmlId, filepath.Join(mediaFolderName, mediaFilename), mediaType, mediaProperties)
 		}
