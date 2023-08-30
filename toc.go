@@ -270,7 +270,7 @@ func (t *toc) writeNavDoc(tempDir string) error {
 	navFilePath := filepath.Join(tempDir, contentFolderName, tocNavFilename)
 	err = n.write(navFilePath)
 	if err != nil {
-		return fmt.Errorf("can't write TOC file becuase of: %w", err)
+		return fmt.Errorf("can't write TOC file: %w", err)
 	}
 	return nil
 }
