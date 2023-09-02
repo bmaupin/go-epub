@@ -587,7 +587,7 @@ func (e *Epub) EmbedImages() {
 		for _, match := range imageTagMatches {
 			imageURL := match[1]
 			if !strings.HasPrefix(imageURL, "data:image/") {
-				// Check if the image URL already exists in the map
+				// Check if the image exists somewhere else in the document, to avoid processing it several times
 				if _, exists := images[imageURL]; exists {
 					continue
 				}
@@ -595,6 +595,9 @@ func (e *Epub) EmbedImages() {
 				images[imageURL] = match[1]
 
 				// organize img tags first one always be src and other data-src
+				// at least one src that point to the file inside epub
+				// no dupolicate src that point to the same file
+				// you can read more details https://github.com/go-shiori/go-epub/pull/3#issuecomment-1703777716
 				// Replace all "data-src=" with "src="
 				match[0] = strings.ReplaceAll(match[0], " data-src=", " src=")
 
