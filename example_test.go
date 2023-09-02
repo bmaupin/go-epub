@@ -5,12 +5,17 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
 	"github.com/go-shiori/go-epub"
 )
 
 func ExampleEpub_AddCSS() {
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Add CSS
 	css1Path, err := e.AddCSS("testdata/cover.css", "epub.css")
@@ -40,7 +45,11 @@ func ExampleEpub_AddCSS() {
 }
 
 func ExampleEpub_AddFont() {
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Add a font from a local file
 	font1Path, err := e.AddFont("testdata/redacted-script-regular.ttf", "font.ttf")
@@ -71,7 +80,11 @@ func ExampleEpub_AddImage() {
 
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Add an image from a local file
 	img1Path, err := e.AddImage("testdata/gophercolor16x16.png", "go-gopher.png")
@@ -94,7 +107,11 @@ func ExampleEpub_AddImage() {
 }
 
 func ExampleEpub_AddSection() {
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Add a section. The CSS path is optional
 	section1Body := `    <h1>Section 1</h1>
@@ -123,7 +140,11 @@ func ExampleEpub_AddSection() {
 }
 
 func ExampleEpub_AddSubSection() {
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Add a section. The CSS path is optional
 	section1Body := `    <h1>Section 1</h1>
@@ -152,7 +173,11 @@ func ExampleEpub_AddSubSection() {
 }
 
 func ExampleEpub_SetCover() {
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Set the cover. The CSS file is optional
 	coverImagePath, _ := e.AddImage("testdata/gophercolor16x16.png", "cover.png")
@@ -164,7 +189,11 @@ func ExampleEpub_SetCover() {
 }
 
 func ExampleEpub_SetIdentifier() {
-	e, _ := epub.NewEpub("My title")
+	var t *testing.T
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Set the identifier to a UUID
 	e.SetIdentifier("urn:uuid:a1b0d67e-2e81-4df5-9e67-a64cbe366809")

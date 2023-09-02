@@ -5,7 +5,11 @@ contents for maximum compatibility.
 Basic usage:
 
 	// Create a new EPUB
-	e := epub.NewEpub("My title")
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		log.Println(err)
+	}
+
 
 	// Set the author
 	e.SetAuthor("Hingle McCringleberry")

@@ -165,7 +165,11 @@ func TestEpubWrite(t *testing.T) {
 }
 
 func TestAddCSS(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testCSS1Path, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	if err != nil {
 		t.Errorf("Error adding CSS: %s", err)
@@ -237,7 +241,10 @@ func TestAddCSS(t *testing.T) {
 }
 
 func TestAddFont(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testFontFromFilePath, err := e.AddFont(testFontFromFileSource, "")
 	if err != nil {
@@ -271,7 +278,10 @@ func TestAddImage(t *testing.T) {
 	defer server.Close()
 
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testImageFromFilePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	if err != nil {
@@ -328,7 +338,10 @@ func TestAddVideo(t *testing.T) {
 
 	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
 
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testVideoFromFilePath, err := e.AddVideo(testVideoFromFileSource, testVideoFromFileFilename)
 	if err != nil {
@@ -379,7 +392,11 @@ func TestAddVideo(t *testing.T) {
 }
 
 func TestAddAudio(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testAudioFromFilePath, err := e.AddAudio(testAudioFromFileSource, testAudioFromFileFilename)
 	if err != nil {
 		t.Errorf("Error adding audio: %s", err)
@@ -436,7 +453,10 @@ func TestAddAudio(t *testing.T) {
 }
 
 func TestAddSection(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
@@ -483,7 +503,10 @@ func TestAddSection(t *testing.T) {
 }
 
 func TestAddSubSection(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
@@ -530,7 +553,10 @@ func TestAddSubSection(t *testing.T) {
 }
 
 func TestEpubAuthor(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	e.SetAuthor(testEpubAuthor)
 
@@ -564,7 +590,10 @@ func TestEpubAuthor(t *testing.T) {
 }
 
 func TestEpubLang(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	e.SetLang(testEpubLang)
 
@@ -598,7 +627,11 @@ func TestEpubLang(t *testing.T) {
 }
 
 func TestEpubPpd(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetPpd(testEpubPpd)
 
 	if e.Ppd() != testEpubPpd {
@@ -698,7 +731,10 @@ func TestEpubTitle(t *testing.T) {
 }
 
 func TestEpubDescription(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	e.SetDescription(testEpubDescription)
 
@@ -732,7 +768,10 @@ func TestEpubDescription(t *testing.T) {
 }
 
 func TestEpubIdentifier(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	e.SetIdentifier(testEpubIdentifier)
 
@@ -766,7 +805,10 @@ func TestEpubIdentifier(t *testing.T) {
 }
 
 func TestSetCover(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
@@ -808,7 +850,10 @@ func TestManifestItems(t *testing.T) {
 		`id="testfromfile.png" href="images/testfromfile.png" media-type="image/png"></item>`,
 	}
 
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, "")
@@ -851,9 +896,12 @@ func TestManifestItems(t *testing.T) {
 }
 
 func TestFilenameAlreadyUsedError(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
-	_, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	_, err = e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	if err != nil {
 		t.Errorf("Error adding CSS: %s", err)
 	}
@@ -865,18 +913,24 @@ func TestFilenameAlreadyUsedError(t *testing.T) {
 }
 
 func TestFileRetrievalError(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
-	_, err := e.AddCSS("/sbin/thisShouldFail", testCoverCSSFilename)
+	_, err = e.AddCSS("/sbin/thisShouldFail", testCoverCSSFilename)
 	if _, ok := err.(*FileRetrievalError); !ok {
 		t.Errorf("Expected error FileRetrievalError not returned. Returned instead: %+v", err)
 	}
 }
 
 func TestUnableToCreateEpubError(t *testing.T) {
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
-	err := e.Write("/sbin/thisShouldFail")
+	err = e.Write("/sbin/thisShouldFail")
 	if _, ok := err.(*UnableToCreateEpubError); !ok {
 		t.Errorf("Expected error UnableToCreateEpubError not returned. Returned instead: %+v", err)
 	}
@@ -895,7 +949,10 @@ func TestEmbedImage(t *testing.T) {
 	testSectionBodyWithImageExpect := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>
 	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
@@ -970,7 +1027,10 @@ func testEpubValidity(t testing.TB) {
 	testAudioFromURLSource := server.URL + "/sample_audio.wav"
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
-	e, _ := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")

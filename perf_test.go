@@ -10,6 +10,7 @@ import (
 )
 
 func BenchmarkAddImage_http(b *testing.B) {
+	var t *testing.T
 	filename := "gophercolor16x16.png"
 	mux := http.NewServeMux()
 	mux.HandleFunc("/image.png", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +28,10 @@ func BenchmarkAddImage_http(b *testing.B) {
 	}))
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
-	e, _ := NewEpub("test")
+	e, err := NewEpub("test")
+	if err != nil {
+		t.Error(err)
+	}
 	for i := 0; i < b.N; i++ {
 		_, err := e.AddImage(ts.URL+"/image.png", "")
 		if err != nil {
@@ -36,7 +40,11 @@ func BenchmarkAddImage_http(b *testing.B) {
 	}
 }
 func BenchmarkAddImage_file(b *testing.B) {
-	e, _ := NewEpub("test")
+	var t *testing.T
+	e, err := NewEpub("test")
+	if err != nil {
+		t.Error(err)
+	}
 	for i := 0; i < b.N; i++ {
 		_, err := e.AddImage("testdata/gophercolor16x16.png", "")
 		if err != nil {

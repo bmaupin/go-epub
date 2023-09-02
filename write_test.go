@@ -26,23 +26,38 @@ func TestEpubWriteTo(t *testing.T) {
 
 func TestWriteToErrors(t *testing.T) {
 	t.Run("CSS", func(t *testing.T) {
-		e, _ := NewEpub(testEpubTitle)
+		e, err := NewEpub(testEpubTitle)
+		if err != nil {
+			t.Error(err)
+		}
 		testWriteToErrors(t, e, e.AddCSS, "cover.css")
 	})
 	t.Run("Font", func(t *testing.T) {
-		e, _ := NewEpub(testEpubTitle)
+		e, err := NewEpub(testEpubTitle)
+		if err != nil {
+			t.Error(err)
+		}
 		testWriteToErrors(t, e, e.AddFont, "redacted-script-regular.ttf")
 	})
 	t.Run("Image", func(t *testing.T) {
-		e, _ := NewEpub(testEpubTitle)
+		e, err := NewEpub(testEpubTitle)
+		if err != nil {
+			t.Error(err)
+		}
 		testWriteToErrors(t, e, e.AddImage, "gophercolor16x16.png")
 	})
 	t.Run("Video", func(t *testing.T) {
-		e, _ := NewEpub(testEpubTitle)
+		e, err := NewEpub(testEpubTitle)
+		if err != nil {
+			t.Error(err)
+		}
 		testWriteToErrors(t, e, e.AddVideo, "sample_640x360.mp4")
 	})
 	t.Run("Audio", func(t *testing.T) {
-		e, _ := NewEpub(testEpubTitle)
+		e, err := NewEpub(testEpubTitle)
+		if err != nil {
+			t.Error(err)
+		}
 		testWriteToErrors(t, e, e.AddAudio, "sample_audio.wav")
 	})
 }
