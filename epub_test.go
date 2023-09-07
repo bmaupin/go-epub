@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bmaupin/go-epub/internal/storage"
+	"github.com/go-shiori/go-epub/internal/storage"
 	"github.com/gofrs/uuid"
 )
 
@@ -109,7 +109,10 @@ const (
 )
 
 func TestEpubWrite(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -162,7 +165,11 @@ func TestEpubWrite(t *testing.T) {
 }
 
 func TestAddCSS(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testCSS1Path, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	if err != nil {
 		t.Errorf("Error adding CSS: %s", err)
@@ -234,7 +241,11 @@ func TestAddCSS(t *testing.T) {
 }
 
 func TestAddFont(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testFontFromFilePath, err := e.AddFont(testFontFromFileSource, "")
 	if err != nil {
 		t.Errorf("Error adding font: %s", err)
@@ -267,7 +278,11 @@ func TestAddImage(t *testing.T) {
 	defer server.Close()
 
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testImageFromFilePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	if err != nil {
 		t.Errorf("Error adding image: %s", err)
@@ -323,7 +338,11 @@ func TestAddVideo(t *testing.T) {
 
 	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
 
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testVideoFromFilePath, err := e.AddVideo(testVideoFromFileSource, testVideoFromFileFilename)
 	if err != nil {
 		t.Errorf("Error adding video: %s", err)
@@ -373,7 +392,11 @@ func TestAddVideo(t *testing.T) {
 }
 
 func TestAddAudio(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testAudioFromFilePath, err := e.AddAudio(testAudioFromFileSource, testAudioFromFileFilename)
 	if err != nil {
 		t.Errorf("Error adding audio: %s", err)
@@ -430,7 +453,11 @@ func TestAddAudio(t *testing.T) {
 }
 
 func TestAddSection(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
@@ -476,7 +503,11 @@ func TestAddSection(t *testing.T) {
 }
 
 func TestAddSubSection(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
@@ -522,7 +553,11 @@ func TestAddSubSection(t *testing.T) {
 }
 
 func TestEpubAuthor(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetAuthor(testEpubAuthor)
 
 	if e.Author() != testEpubAuthor {
@@ -555,7 +590,11 @@ func TestEpubAuthor(t *testing.T) {
 }
 
 func TestEpubLang(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetLang(testEpubLang)
 
 	if e.Lang() != testEpubLang {
@@ -588,7 +627,11 @@ func TestEpubLang(t *testing.T) {
 }
 
 func TestEpubPpd(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetPpd(testEpubPpd)
 
 	if e.Ppd() != testEpubPpd {
@@ -622,7 +665,11 @@ func TestEpubPpd(t *testing.T) {
 
 func TestEpubTitle(t *testing.T) {
 	// First, test the title we provide when creating the epub
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if e.Title() != testEpubTitle {
 		t.Errorf(
 			"Title doesn't match\n"+
@@ -684,7 +731,11 @@ func TestEpubTitle(t *testing.T) {
 }
 
 func TestEpubDescription(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetDescription(testEpubDescription)
 
 	if e.Description() != testEpubDescription {
@@ -717,7 +768,11 @@ func TestEpubDescription(t *testing.T) {
 }
 
 func TestEpubIdentifier(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetIdentifier(testEpubIdentifier)
 
 	if e.Identifier() != testEpubIdentifier {
@@ -750,7 +805,11 @@ func TestEpubIdentifier(t *testing.T) {
 }
 
 func TestSetCover(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.SetCover(testImagePath, testCSSPath)
@@ -791,7 +850,11 @@ func TestManifestItems(t *testing.T) {
 		`id="testfromfile.png" href="images/testfromfile.png" media-type="image/png"></item>`,
 	}
 
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	e.AddImage(testImageFromFileSource, "")
 	// In particular, we want to test these next two, which will be modified by fixXMLId()
@@ -833,9 +896,12 @@ func TestManifestItems(t *testing.T) {
 }
 
 func TestFilenameAlreadyUsedError(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
-	_, err := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
+	_, err = e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	if err != nil {
 		t.Errorf("Error adding CSS: %s", err)
 	}
@@ -847,18 +913,24 @@ func TestFilenameAlreadyUsedError(t *testing.T) {
 }
 
 func TestFileRetrievalError(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
-	_, err := e.AddCSS("/sbin/thisShouldFail", testCoverCSSFilename)
+	_, err = e.AddCSS("/sbin/thisShouldFail", testCoverCSSFilename)
 	if _, ok := err.(*FileRetrievalError); !ok {
 		t.Errorf("Expected error FileRetrievalError not returned. Returned instead: %+v", err)
 	}
 }
 
 func TestUnableToCreateEpubError(t *testing.T) {
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
 
-	err := e.Write("/sbin/thisShouldFail")
+	err = e.Write("/sbin/thisShouldFail")
 	if _, ok := err.(*UnableToCreateEpubError); !ok {
 		t.Errorf("Expected error UnableToCreateEpubError not returned. Returned instead: %+v", err)
 	}
@@ -877,7 +949,11 @@ func TestEmbedImage(t *testing.T) {
 	testSectionBodyWithImageExpect := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>
 	<p><img src="../images/gophercolor16x16.png" loading="lazy"/></p>`
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testSection1Path, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, "")
 	if err != nil {
 		t.Errorf("Error adding section: %s", err)
@@ -951,7 +1027,11 @@ func testEpubValidity(t testing.TB) {
 	testAudioFromURLSource := server.URL + "/sample_audio.wav"
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
 	testVideoFromURLSource := server.URL + "/sample_640x360.mp4"
-	e := NewEpub(testEpubTitle)
+	e, err := NewEpub(testEpubTitle)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
 	e.AddCSS(testCoverCSSSource, "")
 	testSectionPath, _ := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCoverCSSPath)
@@ -1045,6 +1125,7 @@ func trimAllSpace(s string) string {
 
 // UnzipFile unzips a file located at sourceFilePath to the provided destination directory
 func unzipFile(sourceFilePath string, destDirPath string) error {
+	var t *testing.T
 	// First, make sure the destination exists and is a directory
 	f, err := filesystem.Open(destDirPath)
 	if err != nil {
@@ -1065,7 +1146,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -1077,7 +1158,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		}
 		defer func() {
 			if err := rc.Close(); err != nil {
-				panic(err)
+				t.Error(err)
 			}
 		}()
 
@@ -1097,7 +1178,7 @@ func unzipFile(sourceFilePath string, destDirPath string) error {
 		}
 		defer func() {
 			if err := w.Close(); err != nil {
-				panic(err)
+				t.Error(err)
 			}
 		}()
 
