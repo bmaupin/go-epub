@@ -1,6 +1,7 @@
 package epub
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/go-shiori/go-epub/internal/storage"
@@ -23,7 +24,7 @@ const (
 
 // Use s as default storage/ This is typically used in an init function.
 // Default to local filesystem
-func Use(s FSType) {
+func Use(s FSType) error {
 	switch s {
 	case OsFS:
 		filesystem = osfs.NewOSFS(os.TempDir())
@@ -31,6 +32,7 @@ func Use(s FSType) {
 		//TODO
 		filesystem = memory.NewMemory()
 	default:
-		panic("unexpected FSType")
+		return fmt.Errorf("unexpected FSType")
 	}
+	return nil
 }

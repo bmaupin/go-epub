@@ -37,7 +37,6 @@ const (
 // pkg implements the package document file (package.opf), which contains
 // metadata about the EPUB (title, author, etc) as well as a list of files the
 // EPUB contains.
-//
 // Spec: http://www.idpf.org/epub/301/spec/epub-publications.html
 type pkg struct {
 	xml          *pkgRoot
@@ -124,7 +123,7 @@ type pkgSpine struct {
 }
 
 // Constructor for pkg
-func newPackage() *pkg {
+func newPackage() (*pkg, error) {
 	p := &pkg{
 		xml: &pkgRoot{
 			Metadata: pkgMetadata{
@@ -138,16 +137,10 @@ func newPackage() *pkg {
 
 	err := xml.Unmarshal([]byte(pkgFileTemplate), &p.xml)
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error unmarshalling package file XML: %s\n"+
-				"\tp.xml=%#v\n"+
-				"\tpkgFileTemplate=%s",
-			err,
-			*p.xml,
-			pkgFileTemplate))
+		return nil, fmt.Errorf("Error unmarshalling package file XML: %w\n"+"\tp.xml=%#v\n"+"\tpkgFileTemplate=%s", err, p.xml, pkgFileTemplate)
 	}
 
-	return p
+	return p, nil
 }
 
 func (p *pkg) addToManifest(id string, href string, mediaType string, properties string) {
@@ -252,7 +245,7 @@ func updateMeta(a []pkgMeta, m *pkgMeta) []pkgMeta {
 }
 
 // Write the package file to the temporary directory
-func (p *pkg) write(tempDir string) {
+func (p *pkg) write(tempDir string) error {
 	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	p.setModified(now)
 
@@ -260,11 +253,7 @@ func (p *pkg) write(tempDir string) {
 
 	output, err := xml.MarshalIndent(p.xml, "", "  ")
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error marshalling XML for package file: %s\n"+
-				"\tXML=%#v",
-			err,
-			p.xml))
+		return fmt.Errorf("Error unmarshalling XML for package file: %w\n"+"\tp.xml=%#v", err, p.xml)
 	}
 	// Add the xml header to the output
 	pkgFileContent := append([]byte(xml.Header), output...)
@@ -272,6 +261,7 @@ func (p *pkg) write(tempDir string) {
 	pkgFileContent = append(pkgFileContent, "\n"...)
 
 	if err := filesystem.WriteFile(pkgFilePath, []byte(pkgFileContent), filePermissions); err != nil {
-		panic(fmt.Sprintf("Error writing package file: %s", err))
+		return fmt.Errorf("Error writing package file: %w", err)
 	}
+	return nil
 }
