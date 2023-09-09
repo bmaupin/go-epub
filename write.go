@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 )
 
 // UnableToCreateEpubError is thrown by Write if it cannot create the destination EPUB file
@@ -380,9 +380,9 @@ func fixXMLId(id string) string {
 	if len(id) == 0 {
 		panic("No id given")
 	}
-	newid := uuid.Must(uuid.NewV4()).String()
-	fixedId := fmt.Sprintf("id%s", newid)
-	return string(fixedId)
+	namespace := uuid.NewV5(uuid.NamespaceURL, "github.com/go-shiori/go-epub")
+	fileIdentifier := fmt.Sprintf("id%s", uuid.NewV5(namespace, id))
+	return fileIdentifier
 }
 
 // Write the mimetype file
