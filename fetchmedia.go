@@ -107,7 +107,7 @@ func (g grabber) fetchMedia(mediaSource, mediaFolderPath, mediaFilename string) 
 	defer r.Close()
 	mime, err := mimetype.DetectReader(r)
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("unable to detect media type: %w", err)
 	}
 
 	// Is it CSS?

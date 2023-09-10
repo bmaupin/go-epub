@@ -1,12 +1,15 @@
 /*
 Package epub generates valid EPUB 3.0 files with additional EPUB 2.0 table of
-contents (as seen here: https://github.com/bmaupin/epub-samples) for maximum
-compatibility.
+contents for maximum compatibility.
 
 Basic usage:
 
 	// Create a new EPUB
-	e := epub.NewEpub("My title")
+	e, err := epub.NewEpub("My title")
+	if err != nil {
+		log.Println(err)
+	}
+
 
 	// Set the author
 	e.SetAuthor("Hingle McCringleberry")
@@ -156,7 +159,8 @@ type epubSection struct {
 }
 
 // NewEpub returns a new Epub.
-func NewEpub(title string) *Epub {
+func NewEpub(title string) (*Epub, error) {
+	var err error
 	e := &Epub{}
 	e.cover = &epubCover{
 		cssFilename:   "",
@@ -170,14 +174,20 @@ func NewEpub(title string) *Epub {
 	e.images = make(map[string]string)
 	e.videos = make(map[string]string)
 	e.audios = make(map[string]string)
-	e.pkg = newPackage()
-	e.toc = newToc()
+	e.pkg, err = newPackage()
+	if err != nil {
+		return nil, fmt.Errorf("can't create NewEpub: %w", err)
+	}
+	e.toc, err = newToc()
+	if err != nil {
+		return nil, fmt.Errorf("can't create NewEpub: %w", err)
+	}
 	// Set minimal required attributes
 	e.SetIdentifier(urnUUIDPrefix + uuid.Must(uuid.NewV4()).String())
 	e.SetLang(defaultEpubLang)
 	e.SetTitle(title)
 
-	return e
+	return e, nil
 }
 
 // AddCSS adds a CSS file to the EPUB and returns a relative path to the CSS
@@ -371,7 +381,11 @@ func (e *Epub) addSection(parentFilename string, body string, sectionTitle strin
 		return "", &ParentDoesNotExistError{Filename: parentFilename}
 	}
 
-	x := newXhtml(body)
+	x, err := newXhtml(body)
+	if err != nil {
+		//return internalFilename, errors.Wrap(err, "can't add section we cant create xhtml")
+		return internalFilename, fmt.Errorf("can't add section we cant create xhtml: %w", err)
+	}
 	x.setTitle(sectionTitle)
 	x.setXmlnsEpub(xmlnsEpub)
 
@@ -440,7 +454,7 @@ func (e *Epub) SetAuthor(author string) {
 // The internal path to an already-added CSS file (as returned by AddCSS) to be
 // used for the cover is optional. If the CSS path isn't provided, default CSS
 // will be used.
-func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
+func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) error {
 	e.Lock()
 	defer e.Unlock()
 	// If a cover already exists
@@ -484,12 +498,12 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 			internalCSSPath, err = e.addCSS(e.cover.cssTempFile, coverCSSFilename)
 			if _, ok := err.(*FilenameAlreadyUsedError); ok {
 				// This shouldn't cause an error
-				panic(fmt.Sprintf("Error adding default cover CSS file: %s", err))
+				return fmt.Errorf("Error adding default cover CSS file: %w", err)
 			}
 		}
 		if err != nil {
 			if _, ok := err.(*FilenameAlreadyUsedError); !ok {
-				panic(fmt.Sprintf("DEBUG %+v", err))
+				return err
 			}
 		}
 	}
@@ -504,10 +518,11 @@ func (e *Epub) SetCover(internalImagePath string, internalCSSPath string) {
 		coverPath, err = e.addSection("", coverBody, "", "", internalCSSPath)
 		if _, ok := err.(*FilenameAlreadyUsedError); ok {
 			// This shouldn't cause an error since we're not specifying a filename
-			panic(fmt.Sprintf("Error adding default cover XHTML file: %s", err))
+			return fmt.Errorf("Error adding default cover XHTML file: %w", err)
 		}
 	}
 	e.cover.xhtmlFilename = filepath.Base(coverPath)
+	return nil
 }
 
 // SetIdentifier sets the unique identifier of the EPUB, such as a UUID, DOI,
