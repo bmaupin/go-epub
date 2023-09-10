@@ -62,32 +62,30 @@ type xhtmlInnerxml struct {
 }
 
 // Constructor for xhtml
-func newXhtml(body string) *xhtml {
+func newXhtml(body string) (*xhtml, error) {
+	xmlroot, err := newXhtmlRoot()
+	if err != nil {
+		return nil, fmt.Errorf("can't create newXhtmlRoot because of: %w", err)
+	}
 	x := &xhtml{
-		xml: newXhtmlRoot(),
+		xml: xmlroot,
 	}
 	x.setBody(body)
 
-	return x
+	return x, nil
 }
 
 // Constructor for xhtmlRoot
-func newXhtmlRoot() *xhtmlRoot {
+func newXhtmlRoot() (*xhtmlRoot, error) {
 	r := &xhtmlRoot{
 		Body: xhtmlInnerxml{Dir: "auto"},
 	}
 	err := xml.Unmarshal([]byte(xhtmlTemplate), &r)
-	if err != nil {
-		panic(fmt.Sprintf(
-			"Error unmarshalling xhtmlRoot: %s\n"+
-				"\txhtmlRoot=%#v\n"+
-				"\txhtmlTemplate=%s",
-			err,
-			*r,
-			xhtmlTemplate))
-	}
 
-	return r
+	if err != nil {
+		return nil, fmt.Errorf("Error unmarshalling xhtmlRoot: %w\n"+"\txhtmlRoot=%#v\n"+"\txhtmlTemplate=%s", err, *r, xhtmlTemplate)
+	}
+	return r, nil
 }
 
 func (x *xhtml) setBody(body string) {
@@ -119,14 +117,10 @@ func (x *xhtml) Title() string {
 }
 
 // Write the XHTML file to the specified path
-func (x *xhtml) write(xhtmlFilePath string) {
+func (x *xhtml) write(xhtmlFilePath string) error {
 	xhtmlFileContent, err := xml.MarshalIndent(x.xml, "", "  ")
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Error marshalling XML for XHTML file: %s\n"+
-				"\tXML=%#v",
-			err,
-			x.xml))
+		return fmt.Errorf("Error marshalling XML for XHTML file: %w\n"+"\tXML=%v", err, x.xml)
 	}
 
 	// Add the doctype declaration to the output
@@ -137,6 +131,7 @@ func (x *xhtml) write(xhtmlFilePath string) {
 	xhtmlFileContent = append(xhtmlFileContent, "\n"...)
 
 	if err := filesystem.WriteFile(xhtmlFilePath, []byte(xhtmlFileContent), filePermissions); err != nil {
-		panic(fmt.Sprintf("Error writing XHTML file: %s", err))
+		return fmt.Errorf("Error writing XHTML file: %w", err)
 	}
+	return nil
 }

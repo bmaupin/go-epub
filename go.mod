@@ -1,10 +1,11 @@
-module github.com/bmaupin/go-epub
+module github.com/go-shiori/go-epub
 
 go 1.20
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/gofrs/uuid/v5 v5.0.0
 	github.com/vincent-petithory/dataurl v1.0.0
 )
 
