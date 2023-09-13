@@ -863,12 +863,20 @@ func TestManifestItems(t *testing.T) {
 	defer server.Close()
 
 	testImageFromURLSource := server.URL + "/gophercolor16x16.png"
+	testManifestItems := []string{
+		`id="id5857b58e-9d4f-5b23-ad10-d2644bb66023" href="images/filename with space.png" media-type="image/png"></item>`,
+		`id="id72c19376-e8fb-584c-9dbe-abc447874747" href="images/testfromfile.png" media-type="image/png"></item>`,
+		`id="id971cabb4-8f27-530a-b2fc-24044798f8a7" href="images/image0005.png" media-type="image/png"></item>`,
+		`id="ide5dc5e63-8586-5ff2-94d9-037b0543ac24" href="images/gophercolor16x16.png" media-type="image/png"></item>`,
+		`id="idfbc147f0-b6fd-5f0f-9d96-69f1c80e2ec6" href="images/01filenametest.png" media-type="image/png"></item>`,
+		`id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"></item>`,
+	}
 
 	e, err := NewEpub(testEpubTitle)
 	if err != nil {
 		t.Error(err)
 	}
-  _, err = e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	_, err = e.AddImage(testImageFromFileSource, testImageFromFileFilename)
 	if err != nil {
 		t.Error(err)
 	}
@@ -936,6 +944,17 @@ func TestManifestItems(t *testing.T) {
 	manifestContent := strings.Join(pkgFileManifestItems[:], "\n")
 	if !strings.Contains(manifestContent, line) {
 		t.Errorf("can't find nav: %s", manifestContent)
+	}
+
+	// Compare the slices by converting them to strings
+	if strings.Join(pkgFileManifestItems[:], ",") != strings.Join(testManifestItems[:], ",") {
+		t.Errorf(
+			"Package file manifest items don't match\n"+
+				"Got: \n%s\n\n"+
+				"Expected: \n%s\n",
+			strings.Join(pkgFileManifestItems[:], "\n"),
+			strings.Join(testManifestItems[:], "\n"))
+
 	}
 
 	cleanup(testEpubFilename, tempDir)
