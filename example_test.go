@@ -34,7 +34,11 @@ func ExampleEpub_AddCSS() {
 	// Use the CSS in a section
 	sectionBody := `    <h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection(sectionBody, "Section 1", "", css1Path)
+	_, err = e.AddSection(sectionBody, "Section 1", "", css1Path)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	fmt.Println(css1Path)
 	fmt.Println(css2Path)
@@ -181,11 +185,17 @@ func ExampleEpub_SetCover() {
 
 	// Set the cover. The CSS file is optional
 	coverImagePath, _ := e.AddImage("testdata/gophercolor16x16.png", "cover.png")
-	e.SetCover(coverImagePath, "")
+	err = e.SetCover(coverImagePath, "")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Update the cover using custom CSS
 	coverCSSPath, _ := e.AddCSS("testdata/cover.css", "")
-	e.SetCover(coverImagePath, coverCSSPath)
+	err = e.SetCover(coverImagePath, coverCSSPath)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func ExampleEpub_SetIdentifier() {

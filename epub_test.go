@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -263,7 +263,7 @@ func TestAddFont(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata font file: %s", err)
 	}
-	if bytes.Compare(contents, testFontContents) != 0 {
+	if !bytes.Equal(contents, testFontContents) {
 		t.Errorf("Font file contents don't match")
 	}
 
@@ -305,7 +305,7 @@ func TestAddImage(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata image file: %s", err)
 	}
-	if bytes.Compare(contents, testImageContents) != 0 {
+	if !bytes.Equal(contents, testImageContents) {
 		t.Errorf("Image file contents don't match")
 	}
 
@@ -318,11 +318,11 @@ func TestAddImage(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error response from test image URL: %s", err)
 	}
-	testImageContents, err = ioutil.ReadAll(resp.Body)
+	testImageContents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Unexpected error reading test image file from URL: %s", err)
 	}
-	if bytes.Compare(contents, testImageContents) != 0 {
+	if !bytes.Equal(contents, testImageContents) {
 		t.Errorf("Image file contents don't match")
 	}
 
@@ -367,7 +367,7 @@ func TestAddVideo(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata video file: %s", err)
 	}
-	if bytes.Compare(contents, testVideoContents) != 0 {
+	if !bytes.Equal(contents, testVideoContents) {
 		t.Errorf("Video file contents don't match")
 	}
 
@@ -380,11 +380,11 @@ func TestAddVideo(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error response from test video URL: %s", err)
 	}
-	testVideoContents, err = ioutil.ReadAll(resp.Body)
+	testVideoContents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Unexpected error reading test video file from URL: %s", err)
 	}
-	if bytes.Compare(contents, testVideoContents) != 0 {
+	if !bytes.Equal(contents, testVideoContents) {
 		t.Errorf("Video file contents don't match")
 	}
 
@@ -428,7 +428,7 @@ func TestAddAudio(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error reading testdata audio file: %s", err)
 	}
-	if bytes.Compare(contents, testAudioContents) != 0 {
+	if !bytes.Equal(contents, testAudioContents) {
 		t.Errorf("Audio file contents don't match")
 	}
 
@@ -441,11 +441,11 @@ func TestAddAudio(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error response from test audio URL: %s", err)
 	}
-	testAudioContents, err = ioutil.ReadAll(resp.Body)
+	testAudioContents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Unexpected error reading test audio file from URL: %s", err)
 	}
-	if bytes.Compare(contents, testAudioContents) != 0 {
+	if !bytes.Equal(contents, testAudioContents) {
 		t.Errorf("Audio file contents don't match")
 	}
 
@@ -810,9 +810,16 @@ func TestSetCover(t *testing.T) {
 		t.Error(err)
 	}
 
-	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	testImagePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
-	e.SetCover(testImagePath, testCSSPath)
+	err = e.SetCover(testImagePath, testCSSPath)
+	if err != nil {
+		t.Error(err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -855,12 +862,27 @@ func TestManifestItems(t *testing.T) {
 		t.Error(err)
 	}
 
-	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
-	e.AddImage(testImageFromFileSource, "")
+	_, err = e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddImage(testImageFromFileSource, "")
+	if err != nil {
+		t.Error(err)
+	}
 	// In particular, we want to test these next two, which will be modified by fixXMLId()
-	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
-	e.AddImage(testImageFromFileSource, testSpaceInFilename)
-	e.AddImage(testImageFromURLSource, "")
+	_, err = e.AddImage(testImageFromFileSource, testNumberFilenameStart)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddImage(testImageFromFileSource, testSpaceInFilename)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddImage(testImageFromURLSource, "")
+	if err != nil {
+		t.Error(err)
+	}
 
 	tempDir := writeAndExtractEpub(t, e, testEpubFilename)
 
@@ -1033,24 +1055,65 @@ func testEpubValidity(t testing.TB) {
 	}
 
 	testCoverCSSPath, _ := e.AddCSS(testCoverCSSSource, testCoverCSSFilename)
-	e.AddCSS(testCoverCSSSource, "")
-	testSectionPath, _ := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCoverCSSPath)
-	e.AddSubSection(testSectionPath, testSectionBody, "Test subsection", "subsection.xhtml", "")
+	_, err = e.AddCSS(testCoverCSSSource, "")
+	if err != nil {
+		t.Error(err)
+	}
 
-	e.AddFont(testFontFromFileSource, "")
+	testSectionPath, err := e.AddSection(testSectionBody, testSectionTitle, testSectionFilename, testCoverCSSPath)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddSubSection(testSectionPath, testSectionBody, "Test subsection", "subsection.xhtml", "")
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = e.AddFont(testFontFromFileSource, "")
+	if err != nil {
+		t.Error(err)
+	}
 	// Add CSS referencing the font in order to validate the font MIME type
-	testFontCSSPath, _ := e.AddCSS(testFontCSSSource, testFontCSSFilename)
+	testFontCSSPath, err := e.AddCSS(testFontCSSSource, testFontCSSFilename)
+	if err != nil {
+		t.Error(err)
+	}
 
-	e.AddSection(testSectionBody, testSectionTitle, "", testFontCSSPath)
+	_, err = e.AddSection(testSectionBody, testSectionTitle, "", testFontCSSPath)
+	if err != nil {
+		t.Error(err)
+	}
 
-	testImagePath, _ := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
-	e.AddImage(testImageFromFileSource, testImageFromFileFilename)
-	e.AddImage(testImageFromURLSource, "")
-	e.AddImage(testImageFromFileSource, testNumberFilenameStart)
-	e.AddVideo(testVideoFromURLSource, testVideoFromFileFilename)
-	e.AddAudio(testAudioFromURLSource, testAudioFromFileFilename)
+	testImagePath, err := e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddImage(testImageFromFileSource, testImageFromFileFilename)
+	if err == nil {
+		t.Error(err)
+	}
+	_, err = e.AddImage(testImageFromURLSource, "")
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddImage(testImageFromFileSource, testNumberFilenameStart)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddVideo(testVideoFromURLSource, testVideoFromFileFilename)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = e.AddAudio(testAudioFromURLSource, testAudioFromFileFilename)
+	if err != nil {
+		t.Error(err)
+	}
 	e.SetAuthor(testEpubAuthor)
-	e.SetCover(testImagePath, "")
+	err = e.SetCover(testImagePath, "")
+	if err != nil {
+		t.Error(err)
+	}
+
 	e.SetDescription(testEpubDescription)
 	e.SetIdentifier(testEpubIdentifier)
 	e.SetLang(testEpubLang)
@@ -1072,20 +1135,30 @@ func testEpubValidity(t testing.TB) {
 		cleanup(testEpubFilename, tempDir)
 	} else {
 		// Always remove the files in tempDir; they can still be extracted from the test epub as needed
-		filesystem.RemoveAll(tempDir)
+		err := filesystem.RemoveAll(tempDir)
+		if err != nil {
+			log.Print("Error removing temp directory: %w", err)
+		}
+
 	}
 
 }
 
 func BenchmarkEpubValidity(b *testing.B) {
 	b.Run("LocalFS", func(b *testing.B) {
-		Use(OsFS)
+		err := Use(OsFS)
+		if err != nil {
+			b.Error(err)
+		}
 		for i := 0; i < b.N; i++ {
 			testEpubValidity(b)
 		}
 	})
 	b.Run("MemoryFS", func(b *testing.B) {
-		Use(MemoryFS)
+		err := Use(MemoryFS)
+		if err != nil {
+			b.Error(err)
+		}
 		for i := 0; i < b.N; i++ {
 			testEpubValidity(b)
 		}
@@ -1095,18 +1168,27 @@ func BenchmarkEpubValidity(b *testing.B) {
 
 func TestEpubValidity(t *testing.T) {
 	t.Run("LocalFS", func(t *testing.T) {
-		Use(OsFS)
+		err := Use(OsFS)
+		if err != nil {
+			t.Error(err)
+		}
 		testEpubValidity(t)
 	})
 	t.Run("MemoryFS", func(t *testing.T) {
-		Use(MemoryFS)
+		err := Use(MemoryFS)
+		if err != nil {
+			t.Error(err)
+		}
 		testEpubValidity(t)
 	})
 }
 
 func cleanup(epubFilename string, tempDir string) {
 	os.Remove(epubFilename)
-	filesystem.RemoveAll(tempDir)
+	err := filesystem.RemoveAll(tempDir)
+	if err != nil {
+		log.Print("Error removing temp directory: %w", err)
+	}
 }
 
 // TrimAllSpace trims all space from each line of the string and removes empty
@@ -1199,7 +1281,7 @@ func validateEpub(t testing.TB, epubFilename string) ([]byte, error) {
 		t.Error("Error getting working directory")
 	}
 
-	items, err := ioutil.ReadDir(cwd)
+	items, err := os.ReadDir(cwd)
 	if err != nil {
 		t.Error("Error getting contents of working directory")
 	}
@@ -1211,7 +1293,7 @@ func validateEpub(t testing.TB, epubFilename string) ([]byte, error) {
 			break
 
 		} else if strings.HasPrefix(i.Name(), testEpubcheckPrefix) {
-			if i.Mode().IsDir() {
+			if i.IsDir() {
 				pathToEpubcheck = filepath.Join(i.Name(), testEpubcheckJarfile)
 				if _, err := os.Stat(pathToEpubcheck); err == nil {
 					break

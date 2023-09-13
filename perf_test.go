@@ -20,7 +20,11 @@ func BenchmarkAddImage_http(b *testing.B) {
 				b.Fatal("cannot open testdata")
 			}
 			defer data.Close()
-			io.Copy(w, data)
+			_, err = io.Copy(w, data)
+			if err != nil {
+				b.Fatal("cannot copy content")
+			}
+
 		case "HEAD":
 			w.WriteHeader(http.StatusOK)
 		}
