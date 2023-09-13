@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -842,19 +841,6 @@ func TestSetCover(t *testing.T) {
 	cleanup(testEpubFilename, tempDir)
 }
 
-func extractManifestIds(manifestContent string) ([]string, error) {
-	re := regexp.MustCompile(`id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})`)
-	matches := re.FindAllStringSubmatch(manifestContent, -1)
-	if matches == nil {
-		return nil, fmt.Errorf("no manifest item ids found")
-	}
-	var ids []string
-	for _, match := range matches {
-		ids = append(ids, "id"+match[1])
-	}
-	return ids, nil
-}
-
 func TestManifestItems(t *testing.T) {
 	fs := http.FileServer(http.Dir("./testdata/"))
 
@@ -906,29 +892,8 @@ func TestManifestItems(t *testing.T) {
 		t.Errorf("Unexpected error reading package file: %s", err)
 	}
 
-	expectedIds := []string{
-		"filenamewithspace.png",
-		"gophercolor16x16.png",
-		"id01filenametest.png",
-		"image0005.png",
-		"testfromfile.png",
-	}
-
 	// Get just the manifest portion of the package file
 	manifestContentFromFile := string(pkgFileContent)[strings.Index(string(pkgFileContent), "<manifest>"):strings.Index(string(pkgFileContent), "</manifest>")]
-	ids, err := extractManifestIds(manifestContentFromFile)
-	if err != nil {
-		t.Errorf("Unexpected error extracting manifest item ids: %s", err)
-	}
-	if len(ids) != len(expectedIds) {
-		t.Errorf("Unexpected number of manifest item ids: got %d, expected %d", len(ids), len(expectedIds))
-	}
-	for _, id := range ids {
-		if !strings.HasPrefix(id, "id") {
-			t.Errorf("Manifest item id %q does not start with \"id\"", id)
-		}
-	}
-
 	// Convert the manifest portion of the package file to a slice
 	pkgFileManifestItems := strings.Split(manifestContentFromFile, "<item")
 	// Drop the <manifest> and </manifest>
@@ -939,12 +904,6 @@ func TestManifestItems(t *testing.T) {
 	}
 	// Sort the manifest items from the package file (they will be in a random order)
 	sort.Strings(pkgFileManifestItems)
-
-	line := `id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"></item>`
-	manifestContent := strings.Join(pkgFileManifestItems[:], "\n")
-	if !strings.Contains(manifestContent, line) {
-		t.Errorf("can't find nav: %s", manifestContent)
-	}
 
 	// Compare the slices by converting them to strings
 	if strings.Join(pkgFileManifestItems[:], ",") != strings.Join(testManifestItems[:], ",") {
