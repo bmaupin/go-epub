@@ -1,4 +1,4 @@
-[![CI](https://github.com/go-shiori/go-epub/workflows/CI/badge.svg)](github.com/go-shiori/go-epub/actions)
+[![CI](https://github.com/go-shiori/go-epub/workflows/CI/badge.svg)](https://github.com/go-shiori/go-epub/actions)
 [![Coverage Status](https://coveralls.io/repos/github/go-shiori/go-epub/badge.svg)](https://coveralls.io/github/go-shiori/go-epub)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-shiori/go-epub)](https://goreportcard.com/report/github.com/go-shiori/go-epub)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/go-shiori/go-epub/blob/master/LICENSE)
