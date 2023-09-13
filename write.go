@@ -71,7 +71,10 @@ func (e *Epub) WriteTo(dst io.Writer) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	createEpubFolders(tempDir)
+	err = createEpubFolders(tempDir)
+	if err != nil {
+		return 0, err
+	}
 
 	// Must be called after:
 	// createEpubFolders()
@@ -272,7 +275,7 @@ func (e *Epub) writeEpub(rootEpubDir string, dst io.Writer) (int64, error) {
 		var w io.Writer
 		if filepath.FromSlash(path) == filepath.Join(rootEpubDir, mimetypeFilename) {
 			// Skip the mimetype file if it's already been written
-			if skipMimetypeFile == true {
+			if skipMimetypeFile {
 				return nil
 			}
 			// The mimetype file must be uncompressed according to the EPUB spec
@@ -411,7 +414,10 @@ func writeMimetype(rootEpubDir string) error {
 }
 
 func (e *Epub) writePackageFile(rootEpubDir string) {
-	e.pkg.write(rootEpubDir)
+	err := e.pkg.write(rootEpubDir)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 // Write the section files to the temporary directory and add the sections to
@@ -433,7 +439,11 @@ func (e *Epub) writeSections(rootEpubDir string) {
 			}
 
 			sectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, section.filename)
-			section.xhtml.write(sectionFilePath)
+			err := section.xhtml.write(sectionFilePath)
+			if err != nil {
+				log.Println(err)
+			}
+
 			relativePath := filepath.Join(xhtmlFolderName, section.filename)
 
 			// The cover page should have already been added to the spine first
@@ -454,7 +464,10 @@ func (e *Epub) writeSections(rootEpubDir string) {
 						e.toc.addSubSection(relativePath, index, child.xhtml.Title(), relativeSubPath)
 
 						subSectionFilePath := filepath.Join(rootEpubDir, contentFolderName, xhtmlFolderName, child.filename)
-						child.xhtml.write(subSectionFilePath)
+						err = child.xhtml.write(subSectionFilePath)
+						if err != nil {
+							log.Println(err)
+						}
 
 						// Add subsection to spine
 						e.pkg.addToSpine(child.filename)
@@ -474,5 +487,9 @@ func (e *Epub) writeToc(rootEpubDir string) {
 	e.pkg.addToManifest(tocNavItemID, tocNavFilename, mediaTypeXhtml, tocNavItemProperties)
 	e.pkg.addToManifest(tocNcxItemID, tocNcxFilename, mediaTypeNcx, "")
 
-	e.toc.write(rootEpubDir)
+	err := e.toc.write(rootEpubDir)
+	if err != nil {
+		log.Println(err)
+	}
+
 }

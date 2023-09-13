@@ -3,7 +3,6 @@ package epub
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -69,11 +68,15 @@ func testWriteToErrors(t *testing.T, e *Epub, adder func(string, string) (string
 		t.Fatalf("cannot open testdata: %v", err)
 	}
 	defer data.Close()
-	temp, err := ioutil.TempFile("", "temp")
+	temp, err := os.CreateTemp("", "temp")
 	if err != nil {
 		t.Fatalf("unable to create temp file: %v", err)
 	}
-	io.Copy(temp, data)
+	_, err = io.Copy(temp, data)
+	if err != nil {
+		t.Fatalf("unable to copy tmp file to destination: %v", err)
+	}
+
 	temp.Close()
 	// Add temp file to epub
 	if _, err := adder(temp.Name(), ""); err != nil {

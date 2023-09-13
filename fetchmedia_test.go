@@ -36,11 +36,17 @@ AAAAAAAAAAAAAA==`, "\n", "", -1)
 
 func Test_fetchMedia(t *testing.T) {
 	t.Run("LocalFS", func(t *testing.T) {
-		Use(OsFS)
+		err := Use(OsFS)
+		if err != nil {
+			t.Error(err)
+		}
 		testFetchMedia(t)
 	})
 	t.Run("MemoryFS", func(t *testing.T) {
-		Use(MemoryFS)
+		err := Use(MemoryFS)
+		if err != nil {
+			t.Error(err)
+		}
 		testFetchMedia(t)
 	})
 }
@@ -54,7 +60,10 @@ func testFetchMedia(t *testing.T) {
 			t.Fatal("cannot open testdata")
 		}
 		defer data.Close()
-		io.Copy(w, data)
+		_, err = io.Copy(w, data)
+		if err != nil {
+			t.Fatal("cannot open testdata")
+		}
 	}))
 	mux.HandleFunc("/test.css", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "body{}")

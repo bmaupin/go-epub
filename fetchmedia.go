@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -156,7 +155,7 @@ func (g grabber) dataURLHandler(mediaSource string, onlyCheck bool) (io.ReadClos
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.NopCloser(bytes.NewReader(data.Data)), nil
+	return io.NopCloser(bytes.NewReader(data.Data)), nil
 }
 
 type fetchError []error

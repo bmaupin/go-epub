@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"io/ioutil"
+	"io"
 	"path"
 	"path/filepath"
 	"testing"
@@ -33,13 +33,16 @@ func TestMemory_Mkdir(t *testing.T) {
 func TestMemory_WriteFile(t *testing.T) {
 	fs := NewMemory()
 
-	fs.WriteFile("test", []byte{}, 0666)
+	err := fs.WriteFile("test", []byte{}, 0666)
+	if err != nil {
+		t.Fail()
+	}
 	file, _ := fs.Open("test")
 	stat, _ := file.Stat()
 	if !stat.Mode().IsRegular() {
 		t.Fail()
 	}
-	err := fs.WriteFile("./..", []byte{}, 0666)
+	err = fs.WriteFile("./..", []byte{}, 0666)
 	if err == nil {
 		t.Fail()
 	}
@@ -48,13 +51,16 @@ func TestMemory_WriteFile(t *testing.T) {
 func TestMemory_Create(t *testing.T) {
 	fs := NewMemory()
 
-	fs.Create("test")
+	_, err := fs.Create("test")
+	if err != nil {
+		t.Fatal(err)
+	}
 	file, _ := fs.Open("test")
 	stat, _ := file.Stat()
 	if !stat.Mode().IsRegular() {
 		t.Fail()
 	}
-	_, err := fs.Create("./..")
+	_, err = fs.Create("./..")
 	if err == nil {
 		t.Fail()
 	}
@@ -75,7 +81,7 @@ func TestMemory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open error: %v", err)
 	}
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		t.Fatalf("readall error: %v", err)
 	}

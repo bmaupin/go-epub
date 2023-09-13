@@ -17,7 +17,10 @@ Basic usage:
 	// Add a section
 	section1Body := `<h1>Section 1</h1>
 	<p>This is a paragraph.</p>`
-	e.AddSection(section1Body, "Section 1", "", "")
+	e, err := e.AddSection(section1Body, "Section 1", "", "")
+	if err != nil {
+		log.Println(err)
+	}
 
 	// Write the EPUB
 	err = e.Write("My EPUB.epub")

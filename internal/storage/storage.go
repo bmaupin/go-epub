@@ -5,7 +5,6 @@ package storage
 import (
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -35,7 +34,7 @@ func ReadFile(fs Storage, name string) ([]byte, error) {
 		return nil, err
 	}
 	defer f.Close()
-	return ioutil.ReadAll(f)
+	return io.ReadAll(f)
 }
 func MkdirAll(fs Storage, dir string, perm fs.FileMode) error {
 	list := make([]string, 0)
