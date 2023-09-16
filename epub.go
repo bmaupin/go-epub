@@ -42,9 +42,7 @@ import (
 	"strings"
 	"sync"
 
-	// TODO: Eventually this should include the major version (e.g. github.com/gofrs/uuid/v3) but that would break
-	// compatibility with Go < 1.9 (https://github.com/golang/go/wiki/Modules#semantic-import-versioning)
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/vincent-petithory/dataurl"
 )
 

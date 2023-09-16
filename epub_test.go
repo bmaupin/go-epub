@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/go-epub/internal/storage"
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 )
 
 const (
